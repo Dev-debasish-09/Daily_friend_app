@@ -54,12 +54,6 @@ backBtn.addEventListener('click', () => {
 
 /* ---------- Friendly live hints ---------- */
 
-// Same day and month, n years later (29 Feb -> 1 Mar in non-leap years)
-function addYears(iso, years) {
-  const next = `${Number(iso.slice(0, 4)) + years}${iso.slice(4)}`;
-  return isValidISO(next) ? next : addDays(`${next.slice(0, 8)}28`, 1);
-}
-
 function updateDobHint() {
   const dob = dobInput.value;
   if (PROFILE_RULES.dob(dob)) {

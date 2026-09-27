@@ -12,31 +12,315 @@
 
   <script src="shared.js"></script>
   <script src="index.js" defer></script>
+
+  <!-- Styles only Today needs -->
+  <style>
+    /* ----- Summit hero: mountain + rising sun ----- */
+    /* --score (0 to 1) is set by index.js and drives the sun, glow and gold wash */
+    .hero {
+      --score: 0;
+      padding: 0;
+      overflow: hidden;
+      transition: box-shadow var(--dur-med) ease;
+    }
+
+    .summit { display: block; width: 100%; height: auto; }
+
+    .sky-top    { stop-color: var(--sky-top);    stop-opacity: 0.55; }
+    .sky-bottom { stop-color: var(--sky-bottom); stop-opacity: 0.5; }
+    .glow-in    { stop-color: var(--gold); stop-opacity: 0.85; }
+    .glow-out   { stop-color: var(--gold); stop-opacity: 0; }
+
+    .gold-wash {
+      fill: var(--gold);
+      opacity: calc(var(--score) * 0.18);
+      transition: opacity 1.2s var(--ease-out);
+    }
+
+    /* 0% = sun below the horizon, 100% = well above the peak */
+    .sun {
+      transform: translateY(calc((1 - var(--score)) * 88px));
+      transition: transform 1.2s var(--ease-out);
+    }
+    .sun-glow { opacity: calc(0.2 + var(--score) * 0.8); transition: opacity 1.2s ease; }
+    .sun-core { fill: var(--peach); }
+    .sun-gold { fill: var(--gold); opacity: var(--score); transition: opacity 1.2s ease; }
+
+    .rays {
+      fill: var(--gold);
+      opacity: 0;
+      transform: scale(0.5);
+      transform-box: view-box;
+      transform-origin: 180px 44px;   /* sun centre */
+      transition: opacity 0.6s ease, transform 0.6s var(--ease-out);
+    }
+
+    .range-far   { fill: var(--mountain-far); }
+    .range-near  { fill: var(--mountain-near); }
+
+    /* Day Won: full gold sunrise */
+    .hero.is-won { box-shadow: var(--shadow-card), inset 0 0 0 2px var(--gold); }
+    .hero.is-won .rays { opacity: 1; transform: scale(1); }
+    .hero.is-won .gold-wash { opacity: 0.3; }
+    .hero.is-bursting .rays { animation: rays-burst 1.4s var(--ease-out); }
+
+    @keyframes rays-burst {
+      0%   { opacity: 0; transform: scale(0.4) rotate(-25deg); }
+      55%  { opacity: 1; transform: scale(1.18) rotate(4deg); }
+      100% { opacity: 1; transform: scale(1) rotate(0deg); }
+    }
+
+    .hero__body {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 16px 20px 20px;
+    }
+
+    .hero__top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px 12px;
+    }
+
+    .hero__score { display: flex; align-items: baseline; gap: 8px; }
+    .hero__badges { display: flex; flex-wrap: wrap; gap: 6px; }
+
+    /* Win streak line under the score */
+    .hero__streak {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-top: 10px;
+      border-top: 1px solid var(--line);
+      font-weight: 700;
+    }
+    .hero__streak svg { flex: none; width: 20px; height: 20px; color: var(--accent-text); }
+
+    /* Daily quote card */
+    .quote-card {
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .quote-card blockquote { margin: 0; }
+
+    /* Streak under a habit's progress */
+    .habit__streak {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 2px;
+      font-size: var(--fs-xs);
+      font-weight: 800;
+      color: var(--accent-text);
+    }
+    .habit__streak svg { width: 14px; height: 14px; }
+
+    .group-title {
+      font-family: var(--font-ui);
+      font-size: var(--fs-xs);
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .checklist {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* One habit row (a .tile) */
+    .habit { gap: 12px; }
+
+    .habit__head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .habit__check {
+      flex: none;
+      display: grid;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+      border: 2px solid var(--line);
+      border-radius: 50%;
+      color: transparent;
+      transition: background-color var(--dur-med) ease, border-color var(--dur-med) ease;
+    }
+    .habit__check svg { width: 16px; height: 16px; }
+
+    .habit__text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+    .habit__name {
+      font-family: var(--font-head);
+      font-size: var(--fs-md);
+      font-weight: 600;
+      line-height: 1.3;
+    }
+
+    .habit__progress {
+      font-size: var(--fs-sm);
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .habit__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    .habit__custom { display: flex; flex-direction: column; gap: 10px; }
+
+    /* Done state: pine check + pine outline */
+    .habit.is-done {
+      box-shadow: var(--shadow-tile), inset 0 0 0 1.5px var(--success);
+    }
+    .habit.is-done .habit__check {
+      background: var(--success);
+      border-color: var(--success);
+      color: var(--on-success);
+    }
+    .habit.is-done .habit__progress {
+      color: var(--success-text);
+      font-weight: 700;
+    }
+
+    /* Minimum kept (not full target): gold check */
+    .habit.is-kept .habit__check {
+      background: var(--gold);
+      border-color: var(--gold);
+      color: var(--on-gold);
+    }
+    .habit.is-kept .habit__progress { color: var(--ink); font-weight: 700; }
+
+    /* Yes/no habits: the whole row is one button */
+    .habit--toggle {
+      width: 100%;
+      min-height: 72px;
+      font: inherit;
+      color: inherit;
+      text-align: left;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: transform var(--dur-fast) var(--ease-out);
+    }
+    .habit--toggle:active { transform: scale(0.98); }
+
+    /* Little pop when a habit turns done (user action only) */
+    .habit.just-done { animation: done-pop 480ms var(--ease-out); }
+    .habit.just-done .habit__check { animation: check-pop 480ms var(--ease-out); }
+
+    @keyframes done-pop {
+      0%   { transform: scale(1); }
+      40%  { transform: scale(1.02); }
+      100% { transform: scale(1); }
+    }
+    @keyframes check-pop {
+      0%   { transform: scale(0.6); }
+      60%  { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .habit--toggle:active { transform: none; }
+    }
+  </style>
 </head>
 
-<!-- PLACEHOLDER: the real Today page (mountain, sunrise, targets) comes in a later step -->
 <body data-page="today">
   <main class="page" id="main">
 
-    <header class="stack rise-in">
+    <header class="stack">
       <p class="eyebrow" id="today-date"></p>
       <h1 id="hello">Hello</h1>
     </header>
 
-    <section class="grid-2" aria-label="Your markers">
-      <div class="tile">
-        <span class="tile__label">ISS exam</span>
-        <span class="tile__value" id="exam-days">–</span>
-        <span class="tile__note" id="exam-date"></span>
-      </div>
-      <div class="tile">
-        <span class="tile__label">Food delivery limit</span>
-        <span class="tile__value" id="food-limit">–</span>
-        <span class="tile__note">per month</span>
+    <!-- Summit hero: the sun rises with today's score (the page's one load moment) -->
+    <section class="card hero" id="hero" aria-labelledby="h-score">
+      <svg class="summit" viewBox="0 0 360 200" role="img" aria-labelledby="summit-label" focusable="false">
+        <title id="summit-label">The sun is below the horizon</title>
+        <defs>
+          <linearGradient id="sky-gradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" class="sky-top"/>
+            <stop offset="1" class="sky-bottom"/>
+          </linearGradient>
+          <radialGradient id="sun-glow-gradient">
+            <stop offset="0" class="glow-in"/>
+            <stop offset="1" class="glow-out"/>
+          </radialGradient>
+        </defs>
+
+        <rect width="360" height="200" fill="url(#sky-gradient)"/>
+        <rect class="gold-wash" width="360" height="200"/>
+
+        <!-- Sun (drawn before the mountains so they hide it at low scores) -->
+        <g class="sun">
+          <g class="rays" id="rays"></g>
+          <circle class="sun-glow" cx="180" cy="44" r="84" fill="url(#sun-glow-gradient)"/>
+          <circle class="sun-core" cx="180" cy="44" r="24"/>
+          <circle class="sun-gold" cx="180" cy="44" r="24"/>
+        </g>
+
+        <!-- Mountains: far range, near range with the summit at the centre -->
+        <path class="range-far" d="M0 200V112l34-18 36 14 48-40 40 30 22-12 42 26 40-30 44 22 54 10v86z"/>
+        <path class="range-near" d="M0 200V150l48-18 44 14 48-42 40-20 34 26 26-10 52 40 38-12 30 14v58z"/>
+      </svg>
+
+      <div class="hero__body">
+        <div class="hero__top">
+          <p class="hero__score">
+            <span class="num-big" id="score">0%</span>
+            <span class="muted" id="h-score">today’s score</span>
+          </p>
+          <div class="hero__badges">
+            <span class="badge badge--gold" id="won-badge" hidden>Day won</span>
+            <span class="badge" id="day-type">Weekday targets</span>
+          </div>
+        </div>
+        <p class="muted" id="done-summary"></p>
+        <p id="summary-message">Fresh climb today. One small step counts.</p>
+        <p class="hero__streak" id="win-streak">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/></svg>
+          <span id="win-streak-text">Win today to start a streak.</span>
+        </p>
       </div>
     </section>
 
-    <p class="muted">Your full Today page is coming next.</p>
+    <!-- Daily quote (Fraunces italic lives only here) -->
+    <figure class="card quote-card" id="quote-card" hidden>
+      <figcaption class="eyebrow" id="quote-label">Today’s line</figcaption>
+      <blockquote class="quote" id="quote-text"></blockquote>
+    </figure>
+
+    <!-- Checklist (filled by index.js) -->
+    <div class="stack-lg" id="checklist">
+      <p class="muted">Loading your habits…</p>
+    </div>
+
+    <!-- Countdowns -->
+    <section class="stack" aria-labelledby="h-countdowns">
+      <h2 class="group-title" id="h-countdowns">Countdowns</h2>
+      <div class="grid-2">
+        <div class="tile">
+          <span class="tile__label">ISS exam</span>
+          <span class="tile__value" id="exam-days">–</span>
+          <span class="tile__note" id="exam-date"></span>
+        </div>
+        <div class="tile">
+          <span class="tile__label">Turning 30</span>
+          <span class="tile__value" id="thirty-days">–</span>
+          <span class="tile__note" id="thirty-date"></span>
+        </div>
+      </div>
+    </section>
 
   </main>
 </body>

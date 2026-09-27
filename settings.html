@@ -12,6 +12,32 @@
 
   <script src="shared.js"></script>
   <script src="settings.js" defer></script>
+
+  <!-- Styles only Settings needs -->
+  <style>
+    .quote-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .quote-list:empty { display: none; }
+
+    .quote-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 6px 10px 16px;
+      background: var(--tile-bg);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-tile);
+    }
+    .quote-item__text { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+    .quote-item .btn { flex: none; padding: 12px 14px; }
+    .quote-item .btn.is-confirming { color: var(--danger-text); }
+  </style>
 </head>
 
 <body data-page="settings">
@@ -56,6 +82,26 @@
 
         <button class="btn btn--primary btn--block" type="submit">Save changes</button>
       </form>
+    </section>
+
+    <!-- Your own quotes -->
+    <section class="card stack-lg" aria-labelledby="h-quotes">
+      <div class="stack">
+        <h2 id="h-quotes">Your quotes</h2>
+        <p class="muted">Your own lines show on Today about one day in three.</p>
+      </div>
+
+      <form class="stack" id="quote-form" novalidate>
+        <div class="field">
+          <label class="label" for="quote-input">New quote</label>
+          <textarea class="textarea" id="quote-input" maxlength="200"
+            placeholder="e.g. The ISS rank is built in the quiet hours." aria-describedby="quote-count"></textarea>
+          <p class="hint" id="quote-count">0 of 200 characters</p>
+        </div>
+        <button class="btn btn--primary btn--block" type="submit">Add quote</button>
+      </form>
+
+      <ul class="quote-list" id="quote-list" aria-label="Your saved quotes"></ul>
     </section>
 
     <!-- Appearance -->

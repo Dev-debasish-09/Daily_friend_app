@@ -37,6 +37,8 @@
   --danger-text: #B23A35;
   --mountain-near: #3D3A6B;
   --mountain-far: #8C86C4;
+  --sky-top: #C9C3F2;             /* summit sky on Today */
+  --sky-bottom: #F6A58C;
 
   /* Raw RGB for tinted shadows and lines */
   --ink-rgb: 43 42 74;
@@ -137,6 +139,8 @@
   --danger-text: #FF8A80;
   --mountain-near: #0E0D22;
   --mountain-far: #3A3772;
+  --sky-top: #1E1C45;
+  --sky-bottom: #6A4A7E;
 
   --ink-rgb: 236 234 247;
   --shadow-rgb: 5 4 18;
@@ -711,6 +715,110 @@ input[type="date"].input::-webkit-date-and-time-value {
 .choice__title { display: block; font-weight: 800; }
 .choice__desc  { display: block; font-size: var(--fs-sm); color: var(--muted); }
 
+/* Small pill buttons (+15, Custom, toggles). Still 48px tall. */
+.chip-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: var(--tap);
+  min-height: var(--tap);
+  padding: 0 16px;
+  background: var(--input-bg);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-pill);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 0.9375rem;
+  font-weight: 800;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) ease,
+    border-color var(--dur-fast) ease;
+}
+
+.chip-btn:active { transform: scale(0.95); }
+
+.chip-btn[aria-expanded="true"],
+.chip-btn[aria-pressed="true"] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+.chip-btn--gold[aria-pressed="true"] {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--on-gold);
+}
+
+/* − 2 + stepper for counts */
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px;
+  background: var(--input-bg);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-pill);
+}
+
+.stepper__btn {
+  width: var(--tap);
+  height: var(--tap);
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--accent-text);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform var(--dur-fast) var(--ease-out), background-color var(--dur-fast) ease;
+}
+
+.stepper__btn:active { transform: scale(0.9); background: var(--accent-soft); }
+.stepper__btn[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; }
+
+.stepper__value {
+  min-width: 2.5ch;
+  text-align: center;
+  font-family: var(--font-head);
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Confetti layer (created by confetti() in shared.js) */
+.confetti-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* Small label pill */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  background: var(--accent-soft);
+  border-radius: var(--radius-pill);
+  color: var(--accent-text);
+  font-size: var(--fs-xs);
+  font-weight: 800;
+}
+
+.badge--gold {
+  background: var(--gold);
+  color: var(--on-gold);
+}
+
 /* Thin progress bar: set --value on the bar, e.g. style="--value: 66%" */
 .progress {
   height: 6px;
@@ -966,6 +1074,8 @@ body[data-nav="off"] .toast-region {
   .btn:active:not(:disabled),
   .segmented button:active,
   .choice:active,
+  .chip-btn:active,
+  .stepper__btn:active,
   .bottom-nav__item:active { transform: none; }
 
   .toast { transform: none; }

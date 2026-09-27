@@ -6,7 +6,8 @@
    Sections:
    1. Storage   2. Settings + theme   3. Dates (Asia/Kolkata)
    4. Money (INR)   5. Profile   6. Form errors   7. Toast
-   8. Background   9. Bottom nav   10. Start-up + onboarding gate
+   8. Background   9. Bottom nav   10. Habits + daily logs
+   11. Start-up + onboarding gate
    ========================================================= */
 
 
@@ -169,6 +170,12 @@ function weekdayOf(iso) {
 function isWeekend(iso = todayISO()) {
   const day = weekdayOf(iso);
   return day === 0 || day === 6;
+}
+
+// Same day and month, n years later (29 Feb -> 1 Mar in non-leap years)
+function addYears(iso, years) {
+  const next = `${Number(iso.slice(0, 4)) + years}${iso.slice(4)}`;
+  return isValidISO(next) ? next : addDays(`${next.slice(0, 8)}28`, 1);
 }
 
 // "YYYY-MM-DD" -> "Sun, 27 Sept" (pass Intl options to change the look)
@@ -416,6 +423,93 @@ function showToast(message, { type = 'info', duration = 2800 } = {}) {
 }
 
 
+/* ---------- Celebration: vibration + confetti ---------- */
+
+function prefersReducedMotion() {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+// Gentle phone buzz. Android only; iPhones ignore it.
+function haptic(pattern = 20) {
+  try {
+    if (navigator.vibrate) navigator.vibrate(pattern);
+  } catch (err) {
+    /* not supported: fine */
+  }
+}
+
+// Small burst of theme-coloured confetti from a point on screen.
+// confetti({ x, y, count: 24 }) for a habit, count: 140 for a Day Won.
+function confetti({ x = window.innerWidth / 2, y = window.innerHeight / 3, count = 24, power = 1 } = {}) {
+  if (prefersReducedMotion()) return;
+
+  const canvas = document.createElement('canvas');
+  canvas.className = 'confetti-canvas';
+  canvas.setAttribute('aria-hidden', 'true');
+  document.body.appendChild(canvas);
+
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = window.innerWidth * dpr;
+  canvas.height = window.innerHeight * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  const styles = getComputedStyle(document.body);
+  const colors = ['--gold', '--peach', '--lavender', '--accent', '--success']
+    .map((name) => styles.getPropertyValue(name).trim());
+
+  // Each piece: position, speed, spin, colour
+  const pieces = Array.from({ length: count }, () => {
+    const angle = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 0.9;   // mostly upwards
+    const speed = (4 + Math.random() * 6) * power;
+    return {
+      x,
+      y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      size: 5 + Math.random() * 5,
+      rot: Math.random() * Math.PI,
+      spin: (Math.random() - 0.5) * 0.3,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      round: Math.random() < 0.3,
+    };
+  });
+
+  const duration = 1400 + power * 400;
+  const start = performance.now();
+
+  function frame(now) {
+    const t = now - start;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.globalAlpha = Math.max(0, 1 - t / duration);   // fade out
+
+    pieces.forEach((p) => {
+      p.vy += 0.22;          // gravity
+      p.vx *= 0.99;          // air drag
+      p.x += p.vx;
+      p.y += p.vy;
+      p.rot += p.spin;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.color;
+      if (p.round) {
+        ctx.beginPath();
+        ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
+      }
+      ctx.restore();
+    });
+
+    if (t < duration) requestAnimationFrame(frame);
+    else canvas.remove();
+  }
+  requestAnimationFrame(frame);
+}
+
+
 /* ---------- 8. Background ambience (floating light circles) ---------- */
 
 function addAmbientBackground() {
@@ -517,7 +611,217 @@ function renderBottomNav() {
 }
 
 
-/* ---------- 10. Start-up (runs on every page) ---------- */
+/* ---------- 10. Habits + daily logs ----------
+   Habits live in ascend:habits (seeded once from data/habits.json).
+   Logs live in monthly shards, ascend:logs:YYYY-MM:
+   { "2026-09-27": { "iss-study": { value: 90, updatedAt }, "home-workout": { value: 0, min: true } } }
+   value = minutes (duration), a number (count), or 1 (boolean done). */
+
+// Get habits; on first run copy the defaults from data/habits.json into storage.
+async function loadHabits() {
+  const saved = getData('habits', null);
+  if (Array.isArray(saved) && saved.length) return saved;
+  try {
+    const res = await fetch('data/habits.json', { cache: 'no-cache' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+    const list = Array.isArray(json.habits) ? json.habits : [];
+    if (list.length) setData('habits', list);
+    return list;
+  } catch (err) {
+    console.warn('[ascend] Could not load default habits', err);
+    return [];
+  }
+}
+
+// Today's target for a habit: weekend numbers on Sat/Sun. 0 = off that day.
+function habitTarget(habit, iso = todayISO()) {
+  const t = habit.target || {};
+  return Number(isWeekend(iso) ? t.weekend : t.weekday) || 0;
+}
+
+// Fully done: the target is reached.
+function isHabitDone(habit, entry, target = habitTarget(habit)) {
+  if (target <= 0) return false;
+  return (Number(entry && entry.value) || 0) >= target;
+}
+
+// Kept: done, OR the minimum version was done. Kept habits keep the streak alive.
+function isHabitKept(habit, entry, target = habitTarget(habit)) {
+  if (target <= 0) return false;
+  return isHabitDone(habit, entry, target) || Boolean(habit.minimum && entry && entry.min);
+}
+
+
+/* ---------- Daily score ----------
+   Weighted: non-negotiable 3, important 2, bonus 1.
+   Partial credit: 90 of 270 min = 1/3 of the weight.
+   Minimum version = at least 50% credit (and it keeps the streak).
+   Day Won = every non-negotiable kept AND score >= 80%. */
+
+const PRIORITY_WEIGHTS = { 'non-negotiable': 3, important: 2, bonus: 1 };
+const DAY_WON_SCORE = 80;
+
+// Older saved habits used "daily"; treat it (and anything unknown) as important
+function habitPriority(habit) {
+  return PRIORITY_WEIGHTS[habit.priority] ? habit.priority : 'important';
+}
+
+// 0..1 credit for one habit today
+function habitCredit(habit, entry, target) {
+  if (target <= 0) return 0;
+  const progress = Math.min(1, (Number(entry && entry.value) || 0) / target);
+  return habit.minimum && entry && entry.min ? Math.max(progress, 0.5) : progress;
+}
+
+// Score for one day: { score (0-100), done, kept, total, nonNegKept, won }
+function dayScore(habits, dayLog, iso = todayISO()) {
+  let earned = 0;
+  let possible = 0;
+  let done = 0;
+  let kept = 0;
+  let total = 0;
+  let nonNegKept = true;
+
+  habits.forEach((habit) => {
+    const target = habitTarget(habit, iso);
+    if (target <= 0) return;                     // off today
+    const entry = dayLog[habit.id];
+    const weight = PRIORITY_WEIGHTS[habitPriority(habit)];
+    earned += weight * habitCredit(habit, entry, target);
+    possible += weight;
+    total += 1;
+    if (isHabitDone(habit, entry, target)) done += 1;
+    const isKept = isHabitKept(habit, entry, target);
+    if (isKept) kept += 1;
+    if (habitPriority(habit) === 'non-negotiable' && !isKept) nonNegKept = false;
+  });
+
+  const score = possible ? Math.round((earned / possible) * 100) : 0;
+  return { score, done, kept, total, nonNegKept, won: nonNegKept && score >= DAY_WON_SCORE };
+}
+
+
+/* ---------- Streaks ----------
+   Habit streak: days in a row the habit was kept (the minimum counts).
+   Days the habit is off (target 0) are skipped, never breaking a streak.
+   Today only adds once kept; an unfinished today never breaks anything.
+
+   Win streak: days won in a row. A day with every non-negotiable kept
+   but under 80% keeps the streak alive without adding to it. */
+
+const STREAK_LOOKBACK_DAYS = 800;
+
+// Reads days from the monthly log shards, parsing each month only once
+function makeLogReader() {
+  const months = {};
+  return (iso) => {
+    const key = shardKey('logs', iso);
+    if (!(key in months)) {
+      const saved = getData(key, {});
+      months[key] = saved && typeof saved === 'object' ? saved : {};
+    }
+    return months[key][iso] || {};
+  };
+}
+
+// { count, keptToday }
+function habitStreak(habit, readDay = makeLogReader(), today = todayISO()) {
+  const keptToday = isHabitKept(habit, readDay(today)[habit.id], habitTarget(habit, today));
+  let count = keptToday ? 1 : 0;
+
+  for (let i = 1; i <= STREAK_LOOKBACK_DAYS; i += 1) {
+    const iso = addDays(today, -i);
+    const target = habitTarget(habit, iso);
+    if (target <= 0) continue;                                   // off day: skip
+    if (isHabitKept(habit, readDay(iso)[habit.id], target)) count += 1;
+    else break;
+  }
+  return { count, keptToday };
+}
+
+// 'won' | 'kept' (non-negotiables kept, under 80%) | 'rest' (nothing scheduled) | 'missed'
+function dayStatus(habits, day, iso) {
+  const result = dayScore(habits, day, iso);
+  if (result.total === 0) return 'rest';
+  if (result.won) return 'won';
+  if (result.nonNegKept) return 'kept';
+  return 'missed';
+}
+
+// { count, todayStatus }: count = days won in the unbroken chain
+function winStreak(habits, readDay = makeLogReader(), today = todayISO()) {
+  const todayStatus = dayStatus(habits, readDay(today), today);
+  let count = todayStatus === 'won' ? 1 : 0;
+
+  for (let i = 1; i <= STREAK_LOOKBACK_DAYS; i += 1) {
+    const iso = addDays(today, -i);
+    const status = dayStatus(habits, readDay(iso), iso);
+    if (status === 'won') count += 1;
+    else if (status === 'missed') break;                         // 'kept' and 'rest' bridge
+  }
+  return { count, todayStatus };
+}
+
+
+/* ---------- Quotes ----------
+   Built-in lines: data/quotes.json. Your own: ascend:quotes [{ id, text, addedOn }]. */
+
+async function loadQuotes() {
+  try {
+    const res = await fetch('data/quotes.json', { cache: 'no-cache' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+    return Array.isArray(json.quotes) ? json.quotes : [];
+  } catch (err) {
+    console.warn('[ascend] Could not load quotes', err);
+    return [];
+  }
+}
+
+function getMyQuotes() {
+  const saved = getData('quotes', []);
+  return Array.isArray(saved) ? saved : [];
+}
+
+function saveMyQuotes(list) {
+  return setData('quotes', list);
+}
+
+// Same quote all day. Your own quotes show about one day in three.
+function pickQuoteForDay(builtIn, mine, iso = todayISO()) {
+  const useMine = mine.length > 0 && (builtIn.length === 0 || dateSeed(`${iso}:mine`) % 3 === 0);
+  if (useMine) return { text: pickDaily(mine, iso).text, mine: true };
+  const quote = pickDaily(builtIn, iso);
+  return quote ? { text: quote.text, mine: false } : null;
+}
+
+// All habit entries for one day: { habitId: { value, min?, updatedAt } }
+function getDayLog(iso = todayISO()) {
+  const month = getData(shardKey('logs', iso), {});
+  return (month && month[iso]) || {};
+}
+
+// Save (or remove, when entry is null) one habit entry. Returns the updated day, or null.
+function saveHabitEntry(iso, habitId, entry) {
+  const key = shardKey('logs', iso);
+  const saved = getData(key, {});
+  const month = saved && typeof saved === 'object' ? saved : {};
+  const day = { ...(month[iso] || {}) };
+  if (entry) day[habitId] = { ...entry, updatedAt: new Date().toISOString() };
+  else delete day[habitId];
+  month[iso] = day;
+  return setData(key, month) ? day : null;
+}
+
+// Make text safe to put inside HTML
+function escapeHTML(text) {
+  const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+  return String(text ?? '').replace(/[&<>"']/g, (c) => map[c]);
+}
+
+
+/* ---------- 11. Start-up (runs on every page) ---------- */
 
 // Page name from the URL: "/money.html" or "/money" -> "money", "/" -> "index"
 function currentPageName() {
