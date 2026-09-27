@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en-IN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#F4F1FA">
+  <title>Style guide · ASCEND</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- shared.js first (applies theme before paint), then this page's script -->
+  <script src="shared.js"></script>
+  <script src="style-guide.js" defer></script>
+
+  <!-- Styles only this demo page needs -->
+  <style>
+    .swatches {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px 12px;
+    }
+    .swatch {
+      display: grid;
+      grid-template-columns: 44px minmax(0, 1fr);
+      column-gap: 10px;
+      align-items: center;
+    }
+    .swatch__chip {
+      grid-row: span 2;
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      box-shadow: inset 0 0 0 1px var(--line);
+    }
+    .swatch__name { font-size: var(--fs-sm); font-weight: 700; line-height: 1.2; }
+    .swatch__value { font-size: var(--fs-xs); color: var(--muted); }
+
+    .radius-demo {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .radius-demo > div {
+      display: grid;
+      place-items: center;
+      min-height: 72px;
+      padding: 8px;
+      text-align: center;
+      font-size: var(--fs-sm);
+      font-weight: 700;
+      background: var(--accent-soft);
+      border: 1.5px dashed var(--accent-text);
+    }
+
+    .kv { margin: 0; display: grid; gap: 10px; }
+    .kv__row {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--line);
+    }
+    .kv__row:last-child { border-bottom: 0; padding-bottom: 0; }
+    .kv dt code { font-size: var(--fs-xs); color: var(--muted); word-break: break-word; }
+    .kv dd { margin: 0; font-weight: 700; }
+  </style>
+</head>
+
+<body data-page="styleguide">
+  <main class="page" id="main">
+
+    <!-- Header (the page's one load moment) -->
+    <header class="stack rise-in">
+      <p class="eyebrow">ASCEND · Design system</p>
+      <h1>Style guide</h1>
+      <p class="muted">Every colour, card and control in one place. Switch themes to check both.</p>
+      <div class="segmented" role="group" aria-label="Theme">
+        <button type="button" data-theme-choice="dawn" aria-pressed="true">Dawn</button>
+        <button type="button" data-theme-choice="night" aria-pressed="false">Night</button>
+      </div>
+    </header>
+
+    <!-- Colours -->
+    <section class="card stack" aria-labelledby="h-colours">
+      <h2 id="h-colours">Colours</h2>
+      <ul class="swatches" id="swatches"></ul>
+    </section>
+
+    <!-- Type -->
+    <section class="card stack" aria-labelledby="h-type">
+      <h2 id="h-type">Type</h2>
+      <p class="eyebrow">Eyebrow label</p>
+      <h1>Heading 1 · Sora</h1>
+      <h2>Heading 2 · Sora</h2>
+      <h3>Heading 3 · Sora</h3>
+      <p>Body text in Nunito. Short, warm and specific — like “4h 30m of ISS done. Proud of you.”</p>
+      <p class="muted">Muted text for hints and secondary details.</p>
+      <p class="num-big">₹1,25,000</p>
+      <p class="quote">“Small steps, every single day, quietly add up to a summit.”</p>
+    </section>
+
+    <!-- Radius + depth -->
+    <section class="card stack" aria-labelledby="h-radius">
+      <h2 id="h-radius">Radius &amp; depth</h2>
+      <div class="radius-demo">
+        <div style="border-radius: var(--radius-card)">Card · 28px</div>
+        <div style="border-radius: var(--radius-tile)">Tile · 20px</div>
+        <div style="border-radius: var(--radius-input)">Input · 16px</div>
+        <div style="border-radius: var(--radius-pill)">Button · pill</div>
+      </div>
+      <p class="muted">Cards are frosted glass with a thin top highlight and soft layered shadows.</p>
+    </section>
+
+    <!-- Tiles -->
+    <section class="stack" aria-labelledby="h-tiles">
+      <h2 id="h-tiles">Tiles</h2>
+      <div class="grid-2">
+        <div class="tile">
+          <span class="tile__label">ISS today</span>
+          <span class="tile__value">4h 30m</span>
+          <span class="tile__note">of 5h target</span>
+        </div>
+        <div class="tile">
+          <span class="tile__label">Spent today</span>
+          <span class="tile__value">₹480</span>
+          <span class="tile__note">Under your ₹600 plan</span>
+        </div>
+        <div class="tile">
+          <span class="tile__label">Workout streak</span>
+          <span class="tile__value text-success">12 days</span>
+          <span class="tile__note">Longest yet</span>
+        </div>
+        <div class="tile">
+          <span class="tile__label">Food delivery</span>
+          <span class="tile__value text-danger">₹3,240</span>
+          <span class="tile__note">₹740 over this month</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Buttons -->
+    <section class="card stack" aria-labelledby="h-buttons">
+      <h2 id="h-buttons">Buttons</h2>
+      <p class="muted">Press and hold one — it squishes a little.</p>
+      <button class="btn btn--primary btn--block" type="button">Log 30 min of ISS</button>
+      <button class="btn btn--secondary btn--block" type="button">Add expense</button>
+      <button class="btn btn--gold btn--block" type="button">Claim today’s win</button>
+      <button class="btn btn--danger btn--block" type="button">Delete entry</button>
+      <div class="row">
+        <button class="btn btn--ghost" type="button">See all goals</button>
+        <button class="btn btn--primary" type="button" disabled>Save target</button>
+      </div>
+    </section>
+
+    <!-- Inputs -->
+    <section class="card stack" aria-labelledby="h-inputs">
+      <h2 id="h-inputs">Inputs</h2>
+
+      <div class="field">
+        <label class="label" for="sg-topic">What did you study?</label>
+        <input class="input" id="sg-topic" type="text" placeholder="e.g. Sampling theory, Ch. 4" autocomplete="off">
+      </div>
+
+      <div class="field">
+        <label class="label" for="sg-amount">Amount</label>
+        <div class="input-group">
+          <span class="input-group__prefix" aria-hidden="true">₹</span>
+          <input class="input" id="sg-amount" type="text" inputmode="decimal" placeholder="0">
+        </div>
+        <span class="hint">Numbers only. We format it as ₹1,25,000.</span>
+      </div>
+
+      <div class="field">
+        <label class="label" for="sg-category">Category</label>
+        <div class="select-wrap">
+          <select class="select" id="sg-category">
+            <option>Food delivery</option>
+            <option>Groceries</option>
+            <option>Travel</option>
+            <option>Books &amp; courses</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="label" for="sg-date">Date</label>
+        <input class="input" id="sg-date" type="date">
+      </div>
+
+      <div class="field">
+        <label class="label" for="sg-note-area">Note</label>
+        <textarea class="textarea" id="sg-note-area" placeholder="How did today feel?"></textarea>
+      </div>
+    </section>
+
+    <!-- Toasts -->
+    <section class="card stack" aria-labelledby="h-toast">
+      <h2 id="h-toast">Toast</h2>
+      <button class="btn btn--secondary btn--block" type="button" data-toast="success">Show success toast</button>
+      <button class="btn btn--secondary btn--block" type="button" data-toast="info">Show info toast</button>
+      <button class="btn btn--secondary btn--block" type="button" data-toast="danger">Show overspend toast</button>
+    </section>
+
+    <!-- Helpers (live output from shared.js) -->
+    <section class="card stack" aria-labelledby="h-helpers">
+      <h2 id="h-helpers">Helpers</h2>
+      <p class="muted">Live results from shared.js, in Asia/Kolkata time.</p>
+      <dl class="kv" id="helpers"></dl>
+    </section>
+
+    <!-- Storage -->
+    <section class="card stack" aria-labelledby="h-storage">
+      <h2 id="h-storage">Storage</h2>
+      <div class="field">
+        <label class="label" for="sg-note">Test note</label>
+        <input class="input" id="sg-note" type="text" placeholder="Type anything, then save" autocomplete="off">
+      </div>
+      <div class="grid-2">
+        <button class="btn btn--primary" type="button" id="sg-save">Save note</button>
+        <button class="btn btn--secondary" type="button" id="sg-read">Read note</button>
+      </div>
+      <p class="muted" id="sg-output" aria-live="polite">Saved under ascend:styleguide:note. Reload the page, then tap “Read note”.</p>
+    </section>
+
+  </main>
+</body>
+</html>
