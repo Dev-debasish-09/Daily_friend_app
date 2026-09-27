@@ -1,0 +1,875 @@
+/* =========================================================
+   ASCEND — shared design system (styles.css)
+   Used by every page. Sections:
+   1. Fonts        2. Dawn tokens     3. Night tokens
+   4. Base         5. Background      6. Layout + type
+   7. Cards/tiles  8. Buttons         9. Inputs
+   10. Toast       11. Bottom nav     12. Utilities
+   13. Motion + reduced motion
+   ========================================================= */
+
+/* ---------- 1. Fonts (Google Fonts for now; self-host later) ---------- */
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@1,400&family=Nunito:wght@400;600;700;800&family=Sora:wght@500;600;700;800&display=swap");
+
+
+/* ---------- 2. Dawn theme (default) ---------- */
+:root {
+  /* Brand colors */
+  --bg-top: #F4F1FA;
+  --bg-bottom: #FBE3D6;
+  --ink: #2B2A4A;                 /* main text, never pure black */
+  --muted: #6B6890;
+  --accent: #5B4BDB;              /* violet fill */
+  --on-accent: #FFFFFF;           /* text on accent fill */
+  --accent-text: #5B4BDB;         /* accent used as text/links */
+  --accent-soft: rgb(91 75 219 / 0.12);
+  --gold: #F2B544;
+  --on-gold: #2B2A4A;
+  --peach: #F6A58C;
+  --lavender: #C9C3F2;
+  --success: #2F7D6D;             /* pine green */
+  --on-success: #FFFFFF;
+  --danger: #C8453F;              /* ember, overspend */
+  --on-danger: #FFFFFF;
+  --mountain-near: #3D3A6B;
+  --mountain-far: #8C86C4;
+
+  /* Raw RGB for tinted shadows and lines */
+  --ink-rgb: 43 42 74;
+  --shadow-rgb: 43 42 74;
+
+  /* Surfaces */
+  --glass-bg: rgb(255 255 255 / 0.62);
+  --glass-border: rgb(255 255 255 / 0.7);
+  --glass-highlight: rgb(255 255 255 / 0.9);   /* thin top highlight */
+  --glass-blur: 18px;
+  --tile-bg: rgb(255 255 255 / 0.55);
+  --input-bg: rgb(255 255 255 / 0.8);
+  --nav-bg: rgb(255 255 255 / 0.78);
+  --menu-bg: rgb(255 255 255 / 0.94);
+  --line: rgb(var(--ink-rgb) / 0.14);
+  --focus: #5B4BDB;
+
+  /* Toast (dark on dawn, light on night) */
+  --toast-bg: #2B2A4A;
+  --toast-text: #F4F1FA;
+  --toast-success: #5FC2A8;
+  --toast-danger: #FF8A80;
+  --toast-info: #C9C3F2;
+
+  /* Background ambience */
+  --orb-1: rgb(246 165 140 / 0.55);   /* peach */
+  --orb-2: rgb(201 195 242 / 0.7);    /* lavender */
+  --orb-3: rgb(242 181 68 / 0.35);    /* gold */
+  --grain-opacity: 0.07;
+
+  /* Fonts */
+  --font-head: "Sora", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-ui: "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-quote: "Fraunces", Georgia, serif;
+  --font-mono: ui-monospace, "SFMono-Regular", Consolas, monospace;
+
+  /* Type scale */
+  --fs-xs: 0.8125rem;   /* 13px */
+  --fs-sm: 0.875rem;    /* 14px */
+  --fs-md: 1rem;        /* 16px */
+  --fs-lg: 1.125rem;    /* 18px */
+  --fs-xl: 1.375rem;    /* 22px */
+  --fs-2xl: 1.75rem;    /* 28px */
+  --fs-num: 2.5rem;     /* 40px big numbers */
+
+  /* Radius by hierarchy */
+  --radius-card: 28px;
+  --radius-tile: 20px;
+  --radius-input: 16px;
+  --radius-pill: 999px;
+
+  /* Layered soft shadows, tinted with the text color */
+  --shadow-card:
+    inset 0 1px 0 var(--glass-highlight),
+    0 1px 2px rgb(var(--shadow-rgb) / 0.06),
+    0 6px 16px rgb(var(--shadow-rgb) / 0.08),
+    0 20px 44px rgb(var(--shadow-rgb) / 0.10);
+  --shadow-tile:
+    inset 0 1px 0 var(--glass-highlight),
+    0 1px 2px rgb(var(--shadow-rgb) / 0.05),
+    0 6px 14px rgb(var(--shadow-rgb) / 0.07);
+  --shadow-btn:
+    0 1px 2px rgb(var(--shadow-rgb) / 0.12),
+    0 6px 16px rgb(var(--shadow-rgb) / 0.16);
+
+  /* Spacing + sizes */
+  --gutter: 16px;
+  --nav-h: 76px;        /* bottom nav height incl. its outer padding */
+  --tap: 48px;          /* minimum tap target */
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --dur-fast: 120ms;
+  --dur-med: 240ms;
+
+  color-scheme: light;
+}
+
+
+/* ---------- 3. Night theme ---------- */
+/* Set on <html> early (no flash) and on <body> by shared.js */
+[data-theme="night"] {
+  --bg-top: #14132B;
+  --bg-bottom: #262450;
+  --ink: #ECEAF7;
+  --muted: #A9A6CC;
+  --accent: #8B7CFF;
+  --on-accent: #14132B;           /* dark text: white on #8B7CFF fails AA */
+  --accent-text: #A99DFF;         /* lighter violet so text passes AA */
+  --accent-soft: rgb(139 124 255 / 0.18);
+  --gold: #F5C263;
+  --on-gold: #14132B;
+  --success: #5FC2A8;
+  --on-success: #14132B;
+  --danger: #FF8A80;
+  --on-danger: #14132B;
+  --mountain-near: #0E0D22;
+  --mountain-far: #3A3772;
+
+  --ink-rgb: 236 234 247;
+  --shadow-rgb: 5 4 18;
+
+  --glass-bg: rgb(255 255 255 / 0.07);
+  --glass-border: rgb(255 255 255 / 0.12);
+  --glass-highlight: rgb(255 255 255 / 0.14);
+  --tile-bg: rgb(255 255 255 / 0.06);
+  --input-bg: rgb(255 255 255 / 0.08);
+  --nav-bg: rgb(30 29 64 / 0.82);
+  --menu-bg: rgb(35 33 74 / 0.97);
+  --focus: #C9C3F2;
+
+  --toast-bg: #ECEAF7;
+  --toast-text: #14132B;
+  --toast-success: #2F7D6D;
+  --toast-danger: #C8453F;
+  --toast-info: #5B4BDB;
+
+  --orb-1: rgb(139 124 255 / 0.28);
+  --orb-2: rgb(246 165 140 / 0.14);
+  --orb-3: rgb(242 181 68 / 0.10);
+  --grain-opacity: 0.05;
+
+  /* Stronger shadows so depth still reads on dark */
+  --shadow-card:
+    inset 0 1px 0 var(--glass-highlight),
+    0 1px 2px rgb(var(--shadow-rgb) / 0.3),
+    0 8px 20px rgb(var(--shadow-rgb) / 0.3),
+    0 24px 48px rgb(var(--shadow-rgb) / 0.35);
+  --shadow-tile:
+    inset 0 1px 0 var(--glass-highlight),
+    0 1px 2px rgb(var(--shadow-rgb) / 0.3),
+    0 6px 14px rgb(var(--shadow-rgb) / 0.3);
+  --shadow-btn:
+    0 1px 2px rgb(var(--shadow-rgb) / 0.4),
+    0 6px 16px rgb(var(--shadow-rgb) / 0.4);
+
+  color-scheme: dark;
+}
+
+
+/* ---------- 4. Base ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  background: var(--bg-bottom);   /* shows during iOS overscroll */
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;               /* fallback */
+  min-height: 100dvh;
+  font-family: var(--font-ui);
+  font-size: var(--fs-md);
+  line-height: 1.5;
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+h1, h2, h3, h4 {
+  margin: 0;
+  font-family: var(--font-head);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+h1 { font-size: var(--fs-2xl); }
+h2 { font-size: var(--fs-xl); }
+h3 { font-size: var(--fs-lg); }
+
+p { margin: 0; }
+
+a { color: var(--accent-text); }
+
+img, svg { display: block; max-width: 100%; }
+
+button, input, select, textarea {
+  font: inherit;
+  color: inherit;
+}
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+
+/* Visible keyboard focus everywhere */
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+
+/* ---------- 5. Background: gradient, floating light, grain ---------- */
+/* Gradient layer (fixed so it doesn't stretch on long pages) */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background: linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
+}
+
+/* Soft light circles (injected by shared.js as .ambient) */
+.ambient {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.ambient__orb {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle at center, var(--orb) 0%, transparent 70%);
+  animation: drift var(--dur, 40s) ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+.ambient__orb:nth-child(1) {
+  --orb: var(--orb-1);
+  --dur: 38s;
+  --dx: -40px;
+  --dy: 60px;
+  width: 380px;
+  height: 380px;
+  top: -120px;
+  right: -140px;
+}
+
+.ambient__orb:nth-child(2) {
+  --orb: var(--orb-2);
+  --dur: 46s;
+  --dx: 50px;
+  --dy: -40px;
+  width: 440px;
+  height: 440px;
+  top: 30%;
+  left: -200px;
+  animation-delay: -12s;
+}
+
+.ambient__orb:nth-child(3) {
+  --orb: var(--orb-3);
+  --dur: 54s;
+  --dx: -30px;
+  --dy: -50px;
+  width: 320px;
+  height: 320px;
+  bottom: -80px;
+  right: -60px;
+  animation-delay: -24s;
+}
+
+@keyframes drift {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(var(--dx), var(--dy), 0); }
+}
+
+/* Subtle grain on top of everything in the background */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: var(--grain-opacity);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+}
+
+
+/* ---------- 6. Layout + type helpers ---------- */
+/* Main page column: mobile-first, safe-area aware, room for bottom nav */
+.page {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding-top: calc(env(safe-area-inset-top) + 20px);
+  padding-right: max(var(--gutter), env(safe-area-inset-right));
+  padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 32px);
+  padding-left: max(var(--gutter), env(safe-area-inset-left));
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.eyebrow {
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.muted { color: var(--muted); }
+
+/* Big numbers: Sora, digits line up */
+.num {
+  font-family: var(--font-head);
+  font-variant-numeric: tabular-nums;
+}
+
+.num-big {
+  font-family: var(--font-head);
+  font-size: var(--fs-num);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Fraunces italic is ONLY for the daily quote */
+.quote {
+  font-family: var(--font-quote);
+  font-style: italic;
+  font-size: var(--fs-xl);
+  line-height: 1.4;
+}
+
+
+/* ---------- 7. Cards + tiles (frosted glass) ---------- */
+.card {
+  position: relative;
+  padding: 20px;
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+
+.tile {
+  position: relative;
+  padding: 16px;
+  background: var(--tile-bg);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-tile);
+  box-shadow: var(--shadow-tile);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tile__label {
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.tile__value {
+  font-family: var(--font-head);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+.tile__note {
+  font-size: var(--fs-sm);
+  color: var(--muted);
+}
+
+/* Browsers without blur get a more solid surface so text stays readable */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .card, .tile { background: var(--menu-bg); }
+}
+
+
+/* ---------- 8. Buttons (pill, squish on press) ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: var(--tap);
+  padding: 12px 22px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-ui);
+  font-size: var(--fs-md);
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) ease,
+    box-shadow var(--dur-fast) ease,
+    filter var(--dur-fast) ease;
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.btn--primary {
+  background: var(--accent);
+  color: var(--on-accent);
+  box-shadow: var(--shadow-btn);
+}
+
+.btn--secondary {
+  background: var(--glass-bg);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+.btn--ghost {
+  background: transparent;
+  color: var(--accent-text);
+}
+
+.btn--gold {
+  background: var(--gold);
+  color: var(--on-gold);
+  box-shadow: var(--shadow-btn);
+}
+
+.btn--danger {
+  background: var(--danger);
+  color: var(--on-danger);
+}
+
+.btn--block {
+  width: 100%;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+@media (hover: hover) {
+  .btn--primary:hover:not(:disabled),
+  .btn--gold:hover:not(:disabled),
+  .btn--danger:hover:not(:disabled) { filter: brightness(1.06); }
+  .btn--secondary:hover:not(:disabled),
+  .btn--ghost:hover:not(:disabled) { background: var(--accent-soft); }
+}
+
+/* Segmented control (e.g. theme switch) */
+.segmented {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--tile-bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+}
+
+.segmented button {
+  min-height: var(--tap);
+  padding: 0 18px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--ink);
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform var(--dur-fast) var(--ease-out), background-color var(--dur-fast) ease;
+}
+
+.segmented button:active { transform: scale(0.96); }
+
+.segmented button[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--on-accent);
+  box-shadow: var(--shadow-btn);
+}
+
+
+/* ---------- 9. Inputs (16px+ text so iOS never zooms) ---------- */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.hint {
+  font-size: var(--fs-sm);
+  color: var(--muted);
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  min-height: 52px;
+  padding: 12px 16px;
+  font-family: var(--font-ui);
+  font-size: var(--fs-md);
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--ink);
+  background: var(--input-bg);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-input);
+  -webkit-appearance: none;
+  appearance: none;
+  transition: border-color var(--dur-fast) ease;
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--muted);
+  font-weight: 400;
+  opacity: 1;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  border-color: var(--focus);
+}
+
+.input:focus-visible,
+.select:focus-visible,
+.textarea:focus-visible {
+  outline-offset: 2px;
+}
+
+.textarea {
+  min-height: 104px;
+  resize: vertical;
+}
+
+/* iOS date inputs otherwise center their text */
+input[type="date"].input::-webkit-date-and-time-value {
+  text-align: left;
+}
+
+/* Select with a drawn chevron */
+.select-wrap {
+  position: relative;
+}
+
+.select-wrap .select {
+  padding-right: 44px;
+}
+
+.select-wrap::after {
+  content: "";
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--muted);
+  border-bottom: 2px solid var(--muted);
+  transform: translateY(-70%) rotate(45deg);
+  pointer-events: none;
+}
+
+/* Input with a ₹ (or other) prefix */
+.input-group {
+  position: relative;
+}
+
+.input-group__prefix {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-weight: 700;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.input-group .input {
+  padding-left: 36px;
+}
+
+
+/* ---------- 10. Toast ---------- */
+.toast-region {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 12px);
+  z-index: 60;
+  width: min(440px, calc(100% - 2 * var(--gutter)));
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border-radius: var(--radius-tile);
+  background: var(--toast-bg);
+  color: var(--toast-text);
+  font-weight: 700;
+  box-shadow: var(--shadow-card);
+  opacity: 0;
+  transform: translateY(12px) scale(0.98);
+  transition:
+    opacity var(--dur-med) var(--ease-out),
+    transform var(--dur-med) var(--ease-out);
+}
+
+.toast.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+.toast__dot {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--toast-info);
+}
+
+.toast--success .toast__dot { background: var(--toast-success); }
+.toast--danger .toast__dot  { background: var(--toast-danger); }
+
+
+/* ---------- 11. Bottom nav (floating glass bar) ---------- */
+.bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  padding-top: 8px;
+  padding-right: max(12px, env(safe-area-inset-right));
+  padding-bottom: calc(8px + env(safe-area-inset-bottom));
+  padding-left: max(12px, env(safe-area-inset-left));
+  pointer-events: none;   /* only the bar itself catches taps */
+}
+
+.bottom-nav__inner {
+  position: relative;
+  max-width: 480px;
+  margin: 0 auto;
+  pointer-events: auto;
+}
+
+.bottom-nav__bar {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 2px;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  background: var(--nav-bg);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+
+.bottom-nav__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  width: 100%;
+  min-height: 52px;
+  padding: 4px 0;
+  border: 0;
+  border-radius: var(--radius-tile);
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform var(--dur-fast) var(--ease-out), color var(--dur-fast) ease;
+}
+
+.bottom-nav__item:active {
+  transform: scale(0.94);
+}
+
+.bottom-nav__item[aria-current="page"],
+.bottom-nav__item.is-active,
+.bottom-nav__item[aria-expanded="true"] {
+  color: var(--accent-text);
+  background: var(--accent-soft);
+}
+
+.bottom-nav__item svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* "More" pop-up menu */
+.more-menu {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 8px);
+  width: min(240px, 100%);
+  margin: 0;
+  padding: 8px;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--menu-bg);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-tile);
+  box-shadow: var(--shadow-card);
+  transform-origin: bottom right;
+  animation: pop-in 180ms var(--ease-out);
+}
+
+.more-menu__link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: var(--tap);
+  padding: 0 14px;
+  border-radius: 14px;
+  color: var(--ink);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.more-menu__link svg {
+  width: 22px;
+  height: 22px;
+  color: var(--muted);
+}
+
+.more-menu__link[aria-current="page"] {
+  color: var(--accent-text);
+  background: var(--accent-soft);
+}
+
+@media (hover: hover) {
+  .more-menu__link:hover { background: var(--accent-soft); }
+}
+
+@keyframes pop-in {
+  from { opacity: 0; transform: translateY(6px) scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}
+
+
+/* ---------- 12. Utilities ---------- */
+.stack    { display: flex; flex-direction: column; gap: 12px; }
+.stack-lg { display: flex; flex-direction: column; gap: 20px; }
+.row      { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.grid-2   { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+
+.text-success { color: var(--success); }
+.text-danger  { color: var(--danger); }
+.text-accent  { color: var(--accent-text); }
+
+/* Hidden visually, still read by screen readers */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+
+/* ---------- 13. Motion ---------- */
+/* The one load moment per page: add .rise-in to the page header */
+.rise-in {
+  animation: rise-in 600ms var(--ease-out) both;
+}
+
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Respect reduced motion: no drifting, no squish, no slides */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .ambient__orb { animation: none; }
+
+  .btn:active:not(:disabled),
+  .segmented button:active,
+  .bottom-nav__item:active { transform: none; }
+
+  .toast { transform: none; }
+}
