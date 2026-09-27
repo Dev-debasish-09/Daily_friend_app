@@ -1,75 +1,120 @@
 {
   "version": 1,
-  "notes": "Default habits, copied into ascend:habits on first run. type: duration (minutes) | count | boolean. target.weekday applies Mon-Fri, target.weekend applies Sat/Sun; 0 means off that day. priority: non-negotiable (weight 3) | important (weight 2) | bonus (weight 1). minimum: the smallest version that still keeps the habit alive on a hard day.",
+  "notes": "Default habits, copied into ascend:habits on first run. type: duration (minutes) | count | boolean. target.weekday applies Mon-Fri, target.weekend applies Sat/Sun; 0 means off that day. priority: non-negotiable (weight 3) | important (weight 2) | bonus (weight 1). emoji + color (violet|lavender|gold|peach|pine|ember|mountain) are shown on Today. minimum: the smallest version that still keeps the habit alive on a hard day.",
   "habits": [
     {
       "id": "iss-study",
       "name": "ISS Study",
+      "emoji": "📚",
+      "color": "violet",
       "type": "duration",
-      "target": { "weekday": 270, "weekend": 720 },
+      "target": {
+        "weekday": 270,
+        "weekend": 720
+      },
       "priority": "non-negotiable"
     },
     {
       "id": "office-work",
       "name": "Office Work",
+      "emoji": "💼",
+      "color": "mountain",
       "type": "duration",
-      "target": { "weekday": 480, "weekend": 0 },
+      "target": {
+        "weekday": 480,
+        "weekend": 0
+      },
       "priority": "non-negotiable"
     },
     {
       "id": "home-workout",
       "name": "Home Workout",
+      "emoji": "💪",
+      "color": "pine",
       "type": "duration",
-      "target": { "weekday": 30, "weekend": 45 },
+      "target": {
+        "weekday": 30,
+        "weekend": 45
+      },
       "priority": "non-negotiable",
       "minimum": "10 pushups"
     },
     {
       "id": "dsa-video",
       "name": "DSA Video",
+      "emoji": "🎥",
+      "color": "lavender",
       "type": "count",
       "unit": "video",
       "unitPlural": "videos",
-      "target": { "weekday": 1, "weekend": 1 },
+      "target": {
+        "weekday": 1,
+        "weekend": 1
+      },
       "priority": "important"
     },
     {
       "id": "dsa-problem",
       "name": "DSA Problem",
+      "emoji": "🧩",
+      "color": "lavender",
       "type": "count",
       "unit": "problem",
       "unitPlural": "problems",
-      "target": { "weekday": 1, "weekend": 3 },
+      "target": {
+        "weekday": 1,
+        "weekend": 3
+      },
       "priority": "important"
     },
     {
       "id": "gmat-english-video",
       "name": "GMAT English Video",
+      "emoji": "📖",
+      "color": "peach",
       "type": "count",
       "unit": "video",
       "unitPlural": "videos",
-      "target": { "weekday": 1, "weekend": 1 },
+      "target": {
+        "weekday": 1,
+        "weekend": 1
+      },
       "priority": "important"
     },
     {
       "id": "machine-learning",
       "name": "Machine Learning",
+      "emoji": "🤖",
+      "color": "gold",
       "type": "duration",
-      "target": { "weekday": 20, "weekend": 60 },
+      "target": {
+        "weekday": 20,
+        "weekend": 60
+      },
       "priority": "bonus"
     },
     {
       "id": "no-food-delivery",
       "name": "No Food Delivery",
+      "emoji": "🥗",
+      "color": "pine",
       "type": "boolean",
-      "target": { "weekday": 1, "weekend": 1 },
+      "target": {
+        "weekday": 1,
+        "weekend": 1
+      },
       "priority": "important"
     },
     {
       "id": "sleep-by-1130",
       "name": "Sleep by 11:30 PM",
+      "emoji": "😴",
+      "color": "mountain",
       "type": "boolean",
-      "target": { "weekday": 1, "weekend": 1 },
+      "target": {
+        "weekday": 1,
+        "weekend": 1
+      },
       "priority": "important"
     }
   ]

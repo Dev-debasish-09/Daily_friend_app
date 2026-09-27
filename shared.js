@@ -617,27 +617,70 @@ function renderBottomNav() {
    { "2026-09-27": { "iss-study": { value: 90, updatedAt }, "home-workout": { value: 0, min: true } } }
    value = minutes (duration), a number (count), or 1 (boolean done). */
 
-// Get habits; on first run copy the defaults from data/habits.json into storage.
+async function fetchDefaultHabits() {
+  const res = await fetch('data/habits.json', { cache: 'no-cache' });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json = await res.json();
+  return Array.isArray(json.habits) ? json.habits : [];
+}
+
+// Get habits (in the user's order); on first run copy the defaults into storage.
+// Older saved habits without emoji/colour get them filled in from the defaults once.
 async function loadHabits() {
   const saved = getData('habits', null);
-  if (Array.isArray(saved) && saved.length) return saved;
   try {
-    const res = await fetch('data/habits.json', { cache: 'no-cache' });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const json = await res.json();
-    const list = Array.isArray(json.habits) ? json.habits : [];
+    if (Array.isArray(saved) && saved.length) {
+      if (saved.every((h) => 'emoji' in h && 'color' in h)) return saved;
+      const defaults = await fetchDefaultHabits();
+      const upgraded = saved.map((h) => {
+        const d = defaults.find((x) => x.id === h.id) || {};
+        return { ...h, emoji: h.emoji ?? d.emoji ?? '', color: h.color ?? d.color ?? 'violet' };
+      });
+      setData('habits', upgraded);
+      return upgraded;
+    }
+    const list = await fetchDefaultHabits();
     if (list.length) setData('habits', list);
     return list;
   } catch (err) {
     console.warn('[ascend] Could not load default habits', err);
-    return [];
+    return Array.isArray(saved) ? saved : [];
   }
 }
 
-// Today's target for a habit: weekend numbers on Sat/Sun. 0 = off that day.
+function saveHabits(list) {
+  return setData('habits', list);
+}
+
+// Was this habit being tracked on that date?
+// Not before it was created, not after it was archived, not during a paused (archived) stretch.
+function isHabitActiveOn(habit, iso = todayISO()) {
+  if (habit.createdOn && iso < habit.createdOn) return false;
+  if (habit.archived && habit.archivedOn && iso >= habit.archivedOn) return false;
+  if (Array.isArray(habit.pauses) && habit.pauses.some(([from, to]) => iso >= from && iso <= to)) return false;
+  return true;
+}
+
+// Target for a habit on a date: weekend numbers on Sat/Sun. 0 = off that day.
 function habitTarget(habit, iso = todayISO()) {
+  if (!isHabitActiveOn(habit, iso)) return 0;
   const t = habit.target || {};
   return Number(isWeekend(iso) ? t.weekend : t.weekday) || 0;
+}
+
+// Habit colours are stored as names so they follow the theme
+const HABIT_COLORS = {
+  violet: { label: 'Violet', css: 'var(--accent)' },
+  lavender: { label: 'Lavender', css: 'var(--lavender)' },
+  gold: { label: 'Gold', css: 'var(--gold)' },
+  peach: { label: 'Peach', css: 'var(--peach)' },
+  pine: { label: 'Pine', css: 'var(--success)' },
+  ember: { label: 'Ember', css: 'var(--danger)' },
+  mountain: { label: 'Mountain', css: 'var(--mountain-far)' },
+};
+
+function habitColorCSS(habit) {
+  return (HABIT_COLORS[habit.color] || HABIT_COLORS.violet).css;
 }
 
 // Fully done: the target is reached.
@@ -812,6 +855,70 @@ function saveHabitEntry(iso, habitId, entry) {
   else delete day[habitId];
   month[iso] = day;
   return setData(key, month) ? day : null;
+}
+
+// Add (or with a negative number, remove) minutes on a habit's log for a day.
+// Keeps a "minimum kept" mark. Returns the updated day, or null.
+function addHabitMinutes(iso, habitId, minutes) {
+  const entry = getDayLog(iso)[habitId] || {};
+  const value = Math.max(0, Math.min(1440, (Number(entry.value) || 0) + minutes));
+  const next = value > 0 || entry.min ? { value, ...(entry.min ? { min: true } : {}) } : null;
+  return saveHabitEntry(iso, habitId, next);
+}
+
+
+/* ---------- Time sessions (ascend:sessions:YYYY-MM) ----------
+   { "2026-09-27": [ { id, habitId, start, end, source: "timer" | "manual" } ] }
+   start/end are timestamps in milliseconds. A session belongs to the IST day it started. */
+
+function getDaySessions(iso = todayISO()) {
+  const month = getData(shardKey('sessions', iso), {});
+  const list = month && month[iso];
+  return Array.isArray(list) ? list : [];
+}
+
+function saveDaySessions(iso, list) {
+  const key = shardKey('sessions', iso);
+  const saved = getData(key, {});
+  const month = saved && typeof saved === 'object' ? saved : {};
+  month[iso] = list;
+  return setData(key, month);
+}
+
+// Returns the session's day, or null if saving failed
+function addSession(session) {
+  const iso = toISODate(new Date(session.start));
+  const list = [...getDaySessions(iso), session].sort((a, b) => a.start - b.start);
+  return saveDaySessions(iso, list) ? iso : null;
+}
+
+function removeSession(iso, sessionId) {
+  return saveDaySessions(iso, getDaySessions(iso).filter((s) => s.id !== sessionId));
+}
+
+// "2026-09-27" + "09:30" (IST) -> timestamp. India has no daylight saving, so +05:30 is fixed.
+function istTimeToEpoch(iso, hhmm) {
+  return Date.parse(`${iso}T${hhmm}:00+05:30`);
+}
+
+// Minutes since IST midnight for a timestamp (0–1439)
+function minuteOfDayIST(ms) {
+  const p = istParts(new Date(ms));
+  return p.hour * 60 + p.minute;
+}
+
+const istTimeFormatter = new Intl.DateTimeFormat('en-US', {
+  timeZone: TIME_ZONE, hour: 'numeric', minute: '2-digit', hour12: true,
+});
+
+// Timestamp -> "9:30 AM" (IST)
+function formatTimeIST(ms) {
+  return istTimeFormatter.format(new Date(ms));
+}
+
+// Short unique id: newId('s') -> "slq2x9k3ab"
+function newId(prefix = '') {
+  return `${prefix}${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
 }
 
 // Make text safe to put inside HTML

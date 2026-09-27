@@ -138,8 +138,19 @@
       gap: 12px;
     }
 
-    /* One habit row (a .tile) */
+    /* One habit row (a .tile), with a thin stripe in the habit's colour */
     .habit { gap: 12px; }
+    .habit::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 16px;
+      bottom: 16px;
+      width: 4px;
+      border-radius: 0 4px 4px 0;
+      background: var(--habit-color, transparent);
+    }
+    .habit__emoji { margin-right: 6px; }
 
     .habit__head {
       display: flex;

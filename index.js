@@ -51,8 +51,9 @@ function currentScore() {
 }
 
 function unitLabel(habit, n) {
-  if (n === 1) return habit.unit || '';
-  return habit.unitPlural || `${habit.unit || ''}s`;
+  if (!habit.unit) return '';
+  if (n === 1) return habit.unit;
+  return habit.unitPlural || `${habit.unit}s`;
 }
 
 // "1h 30m of 4h 30m", "1 of 3 problems", "Done today"
@@ -60,7 +61,7 @@ function progressText(habit, entry, target) {
   const minOnly = habit.minimum && entry.min && entry.value < target;
   let text;
   if (habit.type === 'duration') text = `${formatMinutes(entry.value)} of ${formatMinutes(target)}`;
-  else if (habit.type === 'count') text = `${entry.value} of ${target} ${unitLabel(habit, target)}`;
+  else if (habit.type === 'count') text = `${entry.value} of ${target} ${unitLabel(habit, target)}`.trim();
   else text = entry.value ? 'Done today' : 'Tap when done';
   return minOnly ? `Minimum kept (50%) · ${text}` : text;
 }
@@ -81,7 +82,7 @@ function headHTML(habit, entry, target) {
     <span class="habit__head">
       <span class="habit__check" aria-hidden="true">${CHECK_SVG}</span>
       <span class="habit__text">
-        <span class="habit__name">${escapeHTML(habit.name)}</span>
+        <span class="habit__name">${habit.emoji ? `<span class="habit__emoji" aria-hidden="true">${escapeHTML(habit.emoji)}</span>` : ''}${escapeHTML(habit.name)}</span>
         <span class="habit__progress">${escapeHTML(progressText(habit, entry, target))}</span>
         ${streakHTML(habit)}
       </span>
@@ -93,6 +94,7 @@ function rowHTML(habit) {
   const entry = entryFor(habit.id);
   const id = escapeHTML(habit.id);
   const name = escapeHTML(habit.name);
+  const color = `--habit-color: ${habitColorCSS(habit)}`;   // coloured stripe on the row
 
   // Pine check when fully done, gold check when only the minimum was kept
   let stateClass = '';
@@ -103,25 +105,32 @@ function rowHTML(habit) {
   if (habit.type === 'boolean') {
     return `
       <li>
-        <button type="button" class="habit habit--toggle tile${stateClass}" data-habit="${id}"
+        <button type="button" class="habit habit--toggle tile${stateClass}" data-habit="${id}" style="${color}"
           data-action="toggle" data-focus-key="${id}:toggle" aria-pressed="${entry.value > 0}">
           ${headHTML(habit, entry, target)}
         </button>
       </li>`;
   }
 
+  // "Did the minimum" button for duration and count habits that have one
+  const minimum = habit.minimum ? `
+    <button type="button" class="chip-btn chip-btn--gold" data-action="min" data-focus-key="${id}:min"
+      aria-pressed="${Boolean(entry.min)}">Did the minimum: ${escapeHTML(habit.minimum)}</button>` : '';
+
   let actions = '';
 
   if (habit.type === 'count') {
+    const unit = escapeHTML(habit.unit || '');
     actions = `
       <div class="habit__actions">
         <div class="stepper" role="group" aria-label="${name}">
           <button type="button" class="stepper__btn" data-action="dec" data-focus-key="${id}:dec"
-            aria-label="Remove one ${escapeHTML(habit.unit || '')}"${entry.value <= 0 ? ' aria-disabled="true"' : ''}>−</button>
+            aria-label="Remove one${unit ? ` ${unit}` : ''}"${entry.value <= 0 ? ' aria-disabled="true"' : ''}>−</button>
           <span class="stepper__value" aria-live="polite">${entry.value}</span>
           <button type="button" class="stepper__btn" data-action="inc" data-focus-key="${id}:inc"
-            aria-label="Add one ${escapeHTML(habit.unit || '')}">+</button>
+            aria-label="Add one${unit ? ` ${unit}` : ''}">+</button>
         </div>
+        ${minimum}
       </div>`;
   }
 
@@ -131,9 +140,6 @@ function rowHTML(habit) {
     const quick = QUICK_MINUTES.map((m) => `
       <button type="button" class="chip-btn" data-action="add" data-minutes="${m}"
         data-focus-key="${id}:add:${m}" aria-label="Add ${m} minutes to ${name}">+${m}</button>`).join('');
-    const minimum = habit.minimum ? `
-      <button type="button" class="chip-btn chip-btn--gold" data-action="min" data-focus-key="${id}:min"
-        aria-pressed="${Boolean(entry.min)}">Did the minimum: ${escapeHTML(habit.minimum)}</button>` : '';
 
     actions = `
       <div class="progress" aria-hidden="true"><div class="progress__bar" style="--value: ${pct}%"></div></div>
@@ -156,7 +162,7 @@ function rowHTML(habit) {
       </form>`;
   }
 
-  return `<li class="habit tile${stateClass}" data-habit="${id}">${headHTML(habit, entry, target)}${actions}</li>`;
+  return `<li class="habit tile${stateClass}" data-habit="${id}" style="${color}">${headHTML(habit, entry, target)}${actions}</li>`;
 }
 
 
@@ -184,7 +190,8 @@ function render({ justDoneId = null, focusKey = null, riseIn = false } = {}) {
       </section>`;
   }).join('');
 
-  const off = habits.filter((h) => habitTarget(h, today) === 0);
+  // Active habits that simply rest today (archived ones stay out of sight)
+  const off = habits.filter((h) => isHabitActiveOn(h, today) && habitTarget(h, today) === 0);
   const offHTML = off.length
     ? `<p class="muted">Off today: ${off.map((h) => escapeHTML(h.name)).join(', ')}. Enjoy the space.</p>`
     : '';

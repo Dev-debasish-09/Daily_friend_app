@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en-IN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#F4F1FA">
+  <title>Track · ASCEND</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="styles.css">
+
+  <script src="shared.js"></script>
+  <script src="track.js" defer></script>
+
+  <!-- Styles only Track needs -->
+  <style>
+    .section-title {
+      font-family: var(--font-ui);
+      font-size: var(--fs-xs);
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* ----- Running timer ----- */
+    .timer-card {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: var(--shadow-card), inset 0 0 0 2px var(--habit-color, var(--accent));
+    }
+    .timer-card__habit { font-family: var(--font-head); font-size: var(--fs-lg); font-weight: 700; }
+    .timer-card__emoji { margin-right: 6px; }
+
+    .clock {
+      font-family: var(--font-head);
+      font-size: 3.25rem;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .timer-card__status { font-weight: 700; }
+    .timer-card__actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    #discard-btn.is-confirming { color: var(--danger-text); background: var(--accent-soft); }
+
+    /* ----- Mode picker ----- */
+    .mode-row { display: flex; flex-direction: column; gap: 8px; }
+    .segmented button[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
+
+    /* ----- Habit rows ----- */
+    .track-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .track-row {
+      flex-direction: row;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 12px 12px 18px;
+    }
+    .track-row::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 14px;
+      bottom: 14px;
+      width: 4px;
+      border-radius: 0 4px 4px 0;
+      background: var(--habit-color);
+    }
+    .track-row__text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .track-row__name { font-weight: 800; overflow-wrap: anywhere; }
+    .track-row__meta { font-size: var(--fs-sm); color: var(--muted); }
+    .track-row .btn { flex: none; padding: 12px 20px; }
+
+    /* ----- Day strip (SVG) ----- */
+    .strip { display: block; width: 100%; height: auto; }
+    .strip__hour-line { stroke: var(--line); stroke-width: 1; }
+    .strip__hour-label { fill: var(--muted); font-family: var(--font-ui); font-size: 11px; font-weight: 700; }
+    .strip__block-fill { fill-opacity: 0.22; }
+    .strip__block-live { fill-opacity: 0.14; stroke-dasharray: 4 3; stroke-width: 1.5; }
+    .strip__block-label { fill: var(--ink); font-family: var(--font-ui); font-size: 12px; font-weight: 700; }
+    .strip__now-line { stroke: var(--accent-text); stroke-width: 2; }
+    .strip__now-dot { fill: var(--accent-text); }
+    .strip__now-label { fill: var(--accent-text); font-family: var(--font-ui); font-size: 11px; font-weight: 800; }
+
+    /* Text list of the same sessions (screen readers + delete) */
+    .session-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .session-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 0;
+      border-top: 1px solid var(--line);
+    }
+    .session-item__text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .session-item__main { font-weight: 700; overflow-wrap: anywhere; }
+    .session-item__meta { font-size: var(--fs-sm); color: var(--muted); }
+    .session-item .btn { flex: none; padding: 12px 14px; }
+    .session-item .btn.is-confirming { color: var(--danger-text); }
+
+    .time-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  </style>
+</head>
+
+<body data-page="track">
+  <main class="page" id="main">
+
+    <header class="stack rise-in">
+      <p class="eyebrow" id="today-date"></p>
+      <h1>Track</h1>
+      <p class="muted">Time your focus. Every minute flows into Today.</p>
+    </header>
+
+    <!-- Running timer (hidden when nothing is running) -->
+    <section class="card timer-card" id="timer-card" aria-labelledby="timer-habit" hidden>
+      <p class="timer-card__habit" id="timer-habit"></p>
+      <p class="clock" id="clock" role="timer">0:00</p>
+      <div class="progress" id="phase-progress" aria-hidden="true" hidden>
+        <div class="progress__bar" id="phase-bar"></div>
+      </div>
+      <p class="timer-card__status" id="timer-status" aria-live="polite"></p>
+      <div class="timer-card__actions" id="timer-actions"></div>
+      <button class="btn btn--ghost btn--block" type="button" id="discard-btn">Discard this run</button>
+    </section>
+
+    <!-- Timer mode -->
+    <section class="mode-row" aria-labelledby="h-mode">
+      <h2 class="section-title" id="h-mode">Timer mode</h2>
+      <div class="segmented" role="group" aria-labelledby="h-mode" id="mode-picker">
+        <button type="button" data-mode="free" aria-pressed="true">Free</button>
+        <button type="button" data-mode="50/10" aria-pressed="false">50 / 10</button>
+        <button type="button" data-mode="25/5" aria-pressed="false">25 / 5</button>
+      </div>
+      <p class="hint" id="mode-hint">Free runs until you stop it.</p>
+    </section>
+
+    <!-- Habits you can time -->
+    <section class="stack" aria-labelledby="h-habits">
+      <h2 class="section-title" id="h-habits">Start a timer</h2>
+      <ul class="track-list" id="track-list">
+        <li class="muted">Loading your habits…</li>
+      </ul>
+    </section>
+
+    <!-- Today's day strip -->
+    <section class="card stack" aria-labelledby="h-timeline">
+      <h2 id="h-timeline">Today’s timeline</h2>
+      <div id="strip-wrap"></div>
+      <ol class="session-list" id="session-list" aria-label="Today’s sessions"></ol>
+    </section>
+
+    <!-- Manual past entry -->
+    <section class="card" aria-labelledby="h-manual">
+      <form class="stack-lg" id="manual-form" novalidate>
+        <div class="stack">
+          <h2 id="h-manual">Add past time</h2>
+          <p class="muted">Forgot the timer? Add it here. It counts on that day.</p>
+        </div>
+
+        <div class="field">
+          <label class="label" for="m-habit">Habit</label>
+          <div class="select-wrap">
+            <select class="select" id="m-habit"></select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="m-date">Date</label>
+          <input class="input" id="m-date" type="date">
+        </div>
+
+        <div class="time-row">
+          <div class="field">
+            <label class="label" for="m-from">From</label>
+            <input class="input" id="m-from" type="time">
+          </div>
+          <div class="field">
+            <label class="label" for="m-to">To</label>
+            <input class="input" id="m-to" type="time">
+          </div>
+        </div>
+        <p class="hint" id="m-summary" aria-live="polite"></p>
+
+        <button class="btn btn--primary btn--block" type="submit">Add time</button>
+      </form>
+    </section>
+
+  </main>
+</body>
+</html>
