@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en-IN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#F4F1FA">
+  <title>Welcome · ASCEND</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="styles.css">
+
+  <script src="shared.js"></script>
+  <script src="onboarding.js" defer></script>
+
+  <!-- Styles only onboarding needs -->
+  <style>
+    .onb-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: var(--tap);
+    }
+
+    /* Back button hugs the left edge; keeps its 48px tap area */
+    .onb-top .btn--ghost { padding-left: 8px; margin-left: -8px; }
+
+    /* Screen change: short slide, direction depends on Next/Back */
+    .onb-screen.is-entering { animation: screen-in 320ms var(--ease-out) both; }
+    .onb-screen.is-entering.from-left { animation-name: screen-in-left; }
+
+    @keyframes screen-in {
+      from { opacity: 0; transform: translateX(24px); }
+      to   { opacity: 1; transform: none; }
+    }
+    @keyframes screen-in-left {
+      from { opacity: 0; transform: translateX(-24px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    /* Small mountain art (theme colours) */
+    .art-sun  { fill: var(--gold); }
+    .art-far  { fill: var(--mountain-far); }
+    .art-near { fill: var(--mountain-near); }
+
+    .onb-art {
+      width: 100%;
+      height: auto;
+      border-radius: var(--radius-tile);
+    }
+
+    /* Mini theme preview inside each choice card */
+    .theme-preview {
+      flex: none;
+      width: 56px;
+      height: 56px;
+      overflow: hidden;
+      border-radius: 16px;
+      background: linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
+      box-shadow: inset 0 0 0 1px var(--line);
+    }
+    .theme-preview svg { width: 100%; height: 100%; }
+  </style>
+</head>
+
+<body data-page="onboarding" data-nav="off">
+  <main class="page" id="main">
+
+    <!-- Top row: Back + step count, then progress bar -->
+    <div class="stack">
+      <div class="onb-top">
+        <button class="btn btn--ghost" type="button" id="back-btn" hidden>← Back</button>
+        <p class="eyebrow" id="step-label" aria-live="polite">Step 1 of 3</p>
+      </div>
+      <div class="progress" aria-hidden="true">
+        <div class="progress__bar" id="progress-bar" style="--value: 33.33%"></div>
+      </div>
+    </div>
+
+    <!-- Screen 1: name + date of birth -->
+    <section class="onb-screen rise-in" aria-labelledby="h-step-1">
+      <form class="card stack-lg" id="form-1" novalidate>
+        <svg class="onb-art" viewBox="0 0 320 110" aria-hidden="true" focusable="false">
+          <circle class="art-sun" cx="176" cy="60" r="24"/>
+          <path class="art-far" d="M0 110V78l48-26 38 18 54-40 56 34 42-22 82 38v30z"/>
+          <path class="art-near" d="M0 110V92l60-26 44 20 64-38 54 36 48-16 50 22v20z"/>
+        </svg>
+
+        <div class="stack">
+          <h1 id="h-step-1" tabindex="-1">Welcome to ASCEND</h1>
+          <p class="muted">Your climb to 30 starts here. First, a little about you.</p>
+        </div>
+
+        <div class="field">
+          <label class="label" for="name">Your name</label>
+          <input class="input" id="name" name="name" type="text" autocomplete="name"
+                 autocapitalize="words" maxlength="40" placeholder="e.g. Debasish" required>
+        </div>
+
+        <div class="field">
+          <label class="label" for="dob">Date of birth</label>
+          <input class="input" id="dob" name="dob" type="date" min="1940-01-01"
+                 aria-describedby="dob-hint" required>
+          <p class="hint" id="dob-hint">We use this to count down to 30.</p>
+        </div>
+
+        <button class="btn btn--primary btn--block" type="submit">Next: your goals</button>
+      </form>
+    </section>
+
+    <!-- Screen 2: ISS exam date + food delivery limit -->
+    <section class="onb-screen" aria-labelledby="h-step-2" hidden>
+      <form class="card stack-lg" id="form-2" novalidate>
+        <div class="stack">
+          <h1 id="h-step-2" tabindex="-1">Set your markers</h1>
+          <p class="muted">Two numbers that keep you on track.</p>
+        </div>
+
+        <div class="field">
+          <label class="label" for="exam">ISS exam date</label>
+          <input class="input" id="exam" name="exam" type="date" aria-describedby="exam-hint" required>
+          <p class="hint" id="exam-hint">Check the UPSC calendar. You can change this later.</p>
+        </div>
+
+        <div class="field">
+          <label class="label" for="limit">Monthly food delivery limit</label>
+          <div class="input-group">
+            <span class="input-group__prefix" aria-hidden="true">₹</span>
+            <input class="input" id="limit" name="limit" type="text" inputmode="numeric"
+                   autocomplete="off" placeholder="2,000" aria-describedby="limit-hint" required>
+          </div>
+          <p class="hint" id="limit-hint">We’ll give you a heads-up as you get close.</p>
+        </div>
+
+        <button class="btn btn--primary btn--block" type="submit">Next: pick a theme</button>
+      </form>
+    </section>
+
+    <!-- Screen 3: theme -->
+    <section class="onb-screen" aria-labelledby="h-step-3" hidden>
+      <form class="card stack-lg" id="form-3" novalidate>
+        <div class="stack">
+          <h1 id="h-step-3" tabindex="-1">Pick your sky</h1>
+          <p class="muted">Switch anytime in Settings.</p>
+        </div>
+
+        <fieldset class="choices">
+          <legend class="label">Theme</legend>
+
+          <label class="choice">
+            <input type="radio" name="theme" value="dawn">
+            <span class="theme-preview" data-theme="dawn" aria-hidden="true">
+              <svg viewBox="0 0 56 56"><circle class="art-sun" cx="30" cy="30" r="8"/><path class="art-far" d="M0 56V38l14-8 10 6 12-12 20 16v16z"/><path class="art-near" d="M0 56v-8l16-8 12 8 14-10 14 10v8z"/></svg>
+            </span>
+            <span class="choice__text">
+              <span class="choice__title">Dawn</span>
+              <span class="choice__desc">Soft lavender and peach. Bright and calm.</span>
+            </span>
+          </label>
+
+          <label class="choice">
+            <input type="radio" name="theme" value="night">
+            <span class="theme-preview" data-theme="night" aria-hidden="true">
+              <svg viewBox="0 0 56 56"><circle class="art-sun" cx="30" cy="30" r="8"/><path class="art-far" d="M0 56V38l14-8 10 6 12-12 20 16v16z"/><path class="art-near" d="M0 56v-8l16-8 12 8 14-10 14 10v8z"/></svg>
+            </span>
+            <span class="choice__text">
+              <span class="choice__title">Night</span>
+              <span class="choice__desc">Deep indigo. Easy on the eyes after dark.</span>
+            </span>
+          </label>
+        </fieldset>
+
+        <button class="btn btn--gold btn--block" type="submit">Save and start my climb</button>
+      </form>
+    </section>
+
+  </main>
+</body>
+</html>

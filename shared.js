@@ -5,8 +5,8 @@
      <script src="page.js" defer></script>
    Sections:
    1. Storage   2. Settings + theme   3. Dates (Asia/Kolkata)
-   4. Money (INR)   5. Toast   6. Background   7. Bottom nav
-   8. Start-up
+   4. Money (INR)   5. Profile   6. Form errors   7. Toast
+   8. Background   9. Bottom nav   10. Start-up + onboarding gate
    ========================================================= */
 
 
@@ -239,8 +239,136 @@ function formatINRCompact(amount) {
   return formatINR(n);
 }
 
+// Number with Indian grouping, no ₹: 125000 -> "1,25,000" (for input boxes)
+function formatIndianNumber(n) {
+  return new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(Number(n) || 0);
+}
 
-/* ---------- 5. Toast ----------
+// What the user typed -> number, or null if it isn't a valid amount.
+// "2,500" -> 2500, "₹ 349.50" -> 349.5, "abc" -> null
+function parseAmount(text) {
+  const clean = String(text ?? '').replace(/[₹,\s]/g, '');
+  if (!/^\d+(\.\d{1,2})?$/.test(clean)) return null;
+  return Number(clean);
+}
+
+// Tidy an amount box to "1,25,000" when the user leaves it
+function bindAmountInput(input) {
+  input.addEventListener('blur', () => {
+    const n = parseAmount(input.value);
+    if (n !== null) input.value = formatIndianNumber(n);
+  });
+}
+
+
+/* ---------- 5. Profile (ascend:profile) ----------
+   { name, dob, issExamDate, foodDeliveryLimit, onboardedOn, createdOn, updatedOn } */
+
+function getProfile() {
+  const p = getData('profile', null);
+  return p && typeof p === 'object' ? p : null;
+}
+
+function hasProfile() {
+  const p = getProfile();
+  return Boolean(p && p.name);
+}
+
+// Merge changes into the saved profile. Returns the new profile, or null if saving failed.
+function saveProfile(changes) {
+  const today = todayISO();
+  const next = { createdOn: today, ...(getProfile() || {}), ...changes, updatedOn: today };
+  return setData('profile', next) ? next : null;
+}
+
+function firstName(fullName) {
+  return String(fullName || '').trim().split(/\s+/)[0] || 'friend';
+}
+
+// True for a real calendar date in "YYYY-MM-DD" form
+function isValidISO(iso) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(String(iso)) && addDays(iso, 0) === iso;
+}
+
+// Age in whole years on a given date
+function ageOn(dobIso, onIso = todayISO()) {
+  let age = Number(onIso.slice(0, 4)) - Number(dobIso.slice(0, 4));
+  if (onIso.slice(5) < dobIso.slice(5)) age -= 1;   // birthday not reached yet
+  return age;
+}
+
+// One rule per profile field. Each returns '' when fine, or a friendly message.
+const PROFILE_RULES = {
+  name(value) {
+    const v = String(value || '').trim();
+    if (!v) return 'Tell us what to call you.';
+    if (v.length > 40) return 'Keep it under 40 characters.';
+    return '';
+  },
+  dob(value) {
+    if (!isValidISO(value)) return 'Pick your date of birth.';
+    const age = ageOn(value);
+    if (age < 10 || age > 100) return 'That date doesn’t look right. Check the year.';
+    return '';
+  },
+  issExamDate(value, { allowPastExam = false } = {}) {
+    if (!isValidISO(value)) return 'Pick your exam date. You can change it later.';
+    if (!allowPastExam && value < todayISO()) return 'Pick today or a later date.';
+    return '';
+  },
+  foodDeliveryLimit(value) {
+    const n = parseAmount(value);
+    if (n === null) return 'Enter an amount in rupees, like 2,000.';
+    if (n > 1000000) return 'That’s over ₹10,00,000. Try a smaller limit.';
+    return '';
+  },
+};
+
+
+/* ---------- 6. Form errors ----------
+   validateFields([[input, 'name'], [input, 'dob']]) checks each input
+   against PROFILE_RULES, shows messages, focuses the first problem. */
+
+function showFieldError(input, message) {
+  const field = input.closest('.field');
+  const errorId = `${input.id}-error`;
+  let error = document.getElementById(errorId);
+  if (!error && message) {
+    error = document.createElement('p');
+    error.id = errorId;
+    error.className = 'field-error';
+    field.appendChild(error);
+  }
+  if (error) {
+    error.textContent = message;
+    error.hidden = !message;
+  }
+
+  // Link the message to the input for screen readers (keep any hint link)
+  const ids = (input.getAttribute('aria-describedby') || '').split(' ').filter((id) => id && id !== errorId);
+  if (message) {
+    ids.push(errorId);
+    input.setAttribute('aria-invalid', 'true');
+  } else {
+    input.removeAttribute('aria-invalid');
+  }
+  if (ids.length) input.setAttribute('aria-describedby', ids.join(' '));
+  else input.removeAttribute('aria-describedby');
+}
+
+function validateFields(pairs, options = {}) {
+  let firstBad = null;
+  pairs.forEach(([input, rule]) => {
+    const message = PROFILE_RULES[rule](input.value, options);
+    showFieldError(input, message);
+    if (message && !firstBad) firstBad = input;
+  });
+  if (firstBad) firstBad.focus();
+  return !firstBad;
+}
+
+
+/* ---------- 7. Toast ----------
    showToast('Expense saved', { type: 'success' })
    type: 'success' | 'info' | 'danger' */
 
@@ -288,7 +416,7 @@ function showToast(message, { type = 'info', duration = 2800 } = {}) {
 }
 
 
-/* ---------- 6. Background ambience (floating light circles) ---------- */
+/* ---------- 8. Background ambience (floating light circles) ---------- */
 
 function addAmbientBackground() {
   if (document.querySelector('.ambient')) return;
@@ -300,7 +428,7 @@ function addAmbientBackground() {
 }
 
 
-/* ---------- 7. Bottom nav ----------
+/* ---------- 9. Bottom nav ----------
    Each page sets <body data-page="today|track|money|goals|insights|wins|settings">
    to highlight its tab. Use data-nav="off" to hide the nav. */
 
@@ -389,7 +517,28 @@ function renderBottomNav() {
 }
 
 
-/* ---------- 8. Start-up (runs on every page) ---------- */
+/* ---------- 10. Start-up (runs on every page) ---------- */
+
+// Page name from the URL: "/money.html" or "/money" -> "money", "/" -> "index"
+function currentPageName() {
+  const last = location.pathname.split('/').pop() || '';
+  return last.replace(/\.html$/, '') || 'index';
+}
+
+// Onboarding gate: no profile yet -> onboarding; already set up -> skip onboarding.
+// Runs in <head>, so the wrong page never paints.
+(function onboardingGate() {
+  const page = currentPageName();
+  if (page === 'style-guide') return;
+  const done = hasProfile();
+  if (!done && page !== 'onboarding') location.replace('onboarding.html');
+  else if (done && page === 'onboarding') location.replace('index.html');
+})();
+
+// Clear a field's error as soon as the user starts fixing it
+document.addEventListener('input', (e) => {
+  if (e.target.matches && e.target.matches('[aria-invalid="true"]')) showFieldError(e.target, '');
+});
 
 document.addEventListener('DOMContentLoaded', () => {
   applyTheme(getSettings().theme);     // now also sets it on <body>

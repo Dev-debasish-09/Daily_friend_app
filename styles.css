@@ -13,7 +13,9 @@
 
 
 /* ---------- 2. Dawn theme (default) ---------- */
-:root {
+/* [data-theme="dawn"] lets a small preview show Dawn inside the Night theme */
+:root,
+[data-theme="dawn"] {
   /* Brand colors */
   --bg-top: #F4F1FA;
   --bg-bottom: #FBE3D6;
@@ -29,8 +31,10 @@
   --lavender: #C9C3F2;
   --success: #2F7D6D;             /* pine green */
   --on-success: #FFFFFF;
+  --success-text: #276B5D;        /* slightly deeper so small text passes AA on glass */
   --danger: #C8453F;              /* ember, overspend */
   --on-danger: #FFFFFF;
+  --danger-text: #B23A35;
   --mountain-near: #3D3A6B;
   --mountain-far: #8C86C4;
 
@@ -127,8 +131,10 @@
   --on-gold: #14132B;
   --success: #5FC2A8;
   --on-success: #14132B;
+  --success-text: #5FC2A8;
   --danger: #FF8A80;
   --on-danger: #14132B;
+  --danger-text: #FF8A80;
   --mountain-near: #0E0D22;
   --mountain-far: #3A3772;
 
@@ -640,6 +646,87 @@ input[type="date"].input::-webkit-date-and-time-value {
   padding-left: 36px;
 }
 
+/* Error message under a field (added by showFieldError in shared.js) */
+.field-error {
+  margin: 0;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--danger-text);
+}
+
+.input[aria-invalid="true"],
+.select[aria-invalid="true"],
+.textarea[aria-invalid="true"] {
+  border-color: var(--danger-text);
+}
+
+/* Big tappable radio cards (e.g. theme choice) */
+.choices {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.choices legend {
+  padding: 0;
+  margin-bottom: 6px;
+}
+
+.choice {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 72px;
+  padding: 12px 16px;
+  background: var(--tile-bg);
+  border: 2px solid var(--line);
+  border-radius: var(--radius-tile);
+  cursor: pointer;
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) ease,
+    background-color var(--dur-fast) ease;
+}
+
+.choice:active { transform: scale(0.98); }
+
+.choice:has(input:checked) {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.choice input {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.choice__text { min-width: 0; }
+.choice__title { display: block; font-weight: 800; }
+.choice__desc  { display: block; font-size: var(--fs-sm); color: var(--muted); }
+
+/* Thin progress bar: set --value on the bar, e.g. style="--value: 66%" */
+.progress {
+  height: 6px;
+  overflow: hidden;
+  background: var(--line);
+  border-radius: var(--radius-pill);
+}
+
+.progress__bar {
+  width: var(--value, 0%);
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--gold));
+  border-radius: inherit;
+  transition: width var(--dur-med) var(--ease-out);
+}
+
 
 /* ---------- 10. Toast ---------- */
 .toast-region {
@@ -825,8 +912,17 @@ input[type="date"].input::-webkit-date-and-time-value {
 .row      { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
 .grid-2   { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 
-.text-success { color: var(--success); }
-.text-danger  { color: var(--danger); }
+.text-success { color: var(--success-text); }
+.text-danger  { color: var(--danger-text); }
+
+/* Pages without the bottom nav (e.g. onboarding) don't need the extra space */
+body[data-nav="off"] .page {
+  padding-bottom: calc(env(safe-area-inset-bottom) + 32px);
+}
+
+body[data-nav="off"] .toast-region {
+  bottom: calc(env(safe-area-inset-bottom) + 16px);
+}
 .text-accent  { color: var(--accent-text); }
 
 /* Hidden visually, still read by screen readers */
@@ -869,6 +965,7 @@ input[type="date"].input::-webkit-date-and-time-value {
 
   .btn:active:not(:disabled),
   .segmented button:active,
+  .choice:active,
   .bottom-nav__item:active { transform: none; }
 
   .toast { transform: none; }
