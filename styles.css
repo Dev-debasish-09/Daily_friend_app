@@ -39,6 +39,17 @@
   --mountain-far: #8C86C4;
   --sky-top: #C9C3F2;             /* summit sky on Today */
   --chart-last: #8E8AAE;          /* "last week" bars: de-emphasis grey, 3:1 on cards (validated) */
+  /* Categorical chart slots (dataviz reference palette, validated on ASCEND cards) */
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #eda100;
+  --series-5: #e87ba4;
+  --series-6: #008300;
+  /* Gold coins (Money signature) */
+  --coin-face: #F2B544;
+  --coin-edge: #C98A1E;
+  --coin-rim: #F8D27E;
   --sky-bottom: #F6A58C;
 
   /* Raw RGB for tinted shadows and lines */
@@ -143,6 +154,15 @@
   --mountain-far: #3A3772;
   --sky-top: #1E1C45;
   --chart-last: #B4B1CC;
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-4: #c98500;
+  --series-5: #d55181;
+  --series-6: #008300;
+  --coin-face: #F5C263;
+  --coin-edge: #B57A12;
+  --coin-rim: #FADB93;
   --sky-bottom: #6A4A7E;
 
   --ink-rgb: 236 234 247;
@@ -894,6 +914,296 @@ input[type="date"].input::-webkit-date-and-time-value {
   to   { transform: none; }
 }
 
+/* Sheet with a pinned footer (scrolling body + always-visible Save) */
+.sheet__form {
+  display: flex;
+  flex-direction: column;
+  max-height: 92dvh;
+}
+#expense-sheet { max-height: 96dvh; }
+#expense-sheet .sheet__form { max-height: 96dvh; }
+
+.sheet__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 12px max(var(--gutter), env(safe-area-inset-right)) 12px max(var(--gutter), env(safe-area-inset-left));
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.sheet__scroll > * { flex-shrink: 0; }   /* scroll the sheet; never squash its sections */
+
+.sheet__footer {
+  padding: 12px max(var(--gutter), env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) max(var(--gutter), env(safe-area-inset-left));
+  background: var(--sheet-bg);
+  border-top: 1px solid var(--line);
+}
+
+
+/* ----- Quick-add expense sheet ----- */
+.xp-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.xp-head .btn { margin-right: -12px; }
+
+.amount-box { text-align: center; }
+
+.amount-display {
+  display: block;
+  font-family: var(--font-head);
+  font-size: 2.5rem;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+}
+.amount-display.is-empty { color: var(--muted); }
+
+/* Category tiles: 4 across, radio buttons underneath */
+.cat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.cat-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 54px;
+  padding: 4px;
+  background: var(--tile-bg);
+  border: 2px solid var(--line);
+  border-radius: 16px;
+  text-align: center;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform var(--dur-fast) var(--ease-out), border-color var(--dur-fast) ease, background-color var(--dur-fast) ease;
+}
+.cat-tile:active { transform: scale(0.95); }
+.cat-tile input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
+.cat-tile__emoji { font-size: 1.375rem; line-height: 1.1; }
+.cat-tile__name { font-size: 0.75rem; font-weight: 800; line-height: 1.15; overflow-wrap: normal; hyphens: none; }
+
+/* Narrow phones: 3 tiles across so names never break mid-word */
+@media (max-width: 359px) {
+  .cat-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+.cat-tile:has(input:checked) {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  box-shadow: inset 0 -4px 0 var(--swatch);
+}
+.cat-tile:has(input:focus-visible) { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+/* UPI / Card / Cash */
+.method-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  min-width: 0;
+  margin: 0;
+  padding: 4px;
+  background: var(--tile-bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+}
+.method-option { position: relative; }
+.method-option input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
+.method-option span {
+  display: grid;
+  place-items: center;
+  min-height: var(--tap);
+  border-radius: var(--radius-pill);
+  font-weight: 800;
+  pointer-events: none;
+}
+.method-option input:checked + span { background: var(--accent); color: var(--on-accent); }
+.method-option input:focus-visible + span { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+/* Big number keypad */
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+.key-btn {
+  display: grid;
+  place-items: center;
+  min-height: var(--tap);
+  background: var(--input-bg);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  color: var(--ink);
+  font-family: var(--font-head);
+  font-size: 1.5rem;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: transform var(--dur-fast) var(--ease-out), background-color var(--dur-fast) ease;
+}
+.key-btn:active { transform: scale(0.94); background: var(--accent-soft); }
+.key-btn svg { width: 26px; height: 26px; }
+
+/* Short screens: tighten the sheet so the keypad stays in view */
+@media (max-height: 700px) {
+  .amount-display { font-size: 2rem; }
+  .cat-tile__emoji { font-size: 1.125rem; }
+  #xp-title { font-size: var(--fs-lg); }
+
+  /* Categories become one row you swipe sideways */
+  .cat-grid {
+    display: flex;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    padding: 2px 2px 6px;
+    margin: 0 -2px;
+  }
+  .cat-tile {
+    flex: 0 0 76px;
+    min-height: 56px;
+    scroll-snap-align: start;
+  }
+}
+
+.xp-more summary {
+  display: flex;
+  align-items: center;
+  min-height: var(--tap);
+  font-weight: 700;
+  color: var(--accent-text);
+  cursor: pointer;
+}
+.xp-more[open] summary { margin-bottom: 8px; }
+#xp-delete.is-confirming { color: var(--danger-text); background: var(--accent-soft); }
+
+/* ----- Meters: spent vs budget. Colour + icon + words, never colour alone ----- */
+.meter__track {
+  height: 10px;
+  overflow: hidden;
+  background: var(--line);
+  border-radius: var(--radius-pill);
+}
+.meter__track--thin { height: 6px; }
+.meter__fill {
+  width: var(--value, 0%);
+  height: 100%;
+  background: var(--meter-color, var(--accent));
+  border-radius: inherit;
+  transition: width var(--dur-med) var(--ease-out);
+}
+.meter__note {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+}
+.meter__note svg { flex: none; width: 16px; height: 16px; margin-top: 2px; }
+.meter__note.is-normal { color: var(--success-text); }
+.meter__note.is-amber  { color: var(--ink); }          /* gold text would fail contrast */
+.meter__note.is-amber svg { color: var(--gold); }
+.meter__note.is-ember  { color: var(--danger-text); }
+
+/* Food delivery card (Money + Today) */
+.food-card { display: flex; flex-direction: column; gap: 12px; }
+.food-card__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+}
+.food-card__title { font-size: var(--fs-lg); }
+.food-card__amount { font-family: var(--font-head); font-size: var(--fs-lg); font-weight: 700; }
+.food-card__amount .muted { font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: 700; }
+.food-card .tile__value { font-size: 1.375rem; }
+
+/* ----- Charts: tooltip, table view, legend ----- */
+.chart-tip {
+  position: absolute;
+  z-index: 2;
+  max-width: 240px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--toast-bg);
+  color: var(--toast-text);
+  font-size: var(--fs-sm);
+  line-height: 1.4;
+  box-shadow: var(--shadow-tile);
+  pointer-events: none;
+}
+.chart-tip strong { display: block; font-size: var(--fs-md); }
+
+.table-view summary {
+  display: flex;
+  align-items: center;
+  min-height: var(--tap);
+  font-weight: 700;
+  color: var(--accent-text);
+  cursor: pointer;
+}
+.data-table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
+.data-table th, .data-table td { padding: 8px 4px; border-bottom: 1px solid var(--line); text-align: right; }
+.data-table th:first-child, .data-table td:first-child { text-align: left; }
+.data-table thead th { color: var(--muted); font-weight: 800; }
+.data-table td { font-variant-numeric: tabular-nums; }
+.data-table td:not(:first-child) { white-space: nowrap; }
+.data-table tfoot td { font-weight: 800; border-bottom: 0; }
+
+.chart-legend { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.chart-legend li { display: flex; align-items: center; gap: 10px; font-size: var(--fs-sm); }
+.chart-legend__key { flex: none; width: 12px; height: 12px; border-radius: 3px; }
+.chart-legend__name { flex: 1; min-width: 0; font-weight: 700; }
+.chart-legend__value { flex: none; font-weight: 800; font-variant-numeric: tabular-nums; }
+.chart-legend__pct { flex: none; width: 3.5ch; text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* Floating quick-add button (sits above the bottom nav) */
+.fab {
+  position: fixed;
+  z-index: 45;
+  right: max(var(--gutter), calc((100vw - 480px) / 2 + var(--gutter)));
+  bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 14px);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 56px;
+  padding: 0 20px 0 16px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-family: var(--font-ui);
+  font-size: var(--fs-md);
+  font-weight: 800;
+  box-shadow: var(--shadow-btn), 0 10px 24px rgb(var(--shadow-rgb) / 0.2);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.fab svg { width: 22px; height: 22px; }
+.fab:active { transform: scale(0.95); }
+
+/* Leave room so the button never covers the last content */
+body.has-fab .page {
+  padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 96px);
+}
+
 /* Confetti layer (created by confetti() in shared.js) */
 .confetti-canvas {
   position: fixed;
@@ -1178,6 +1488,9 @@ body[data-nav="off"] .toast-region {
   .choice:active,
   .chip-btn:active,
   .icon-btn:active,
+  .cat-tile:active,
+  .key-btn:active,
+  .fab:active,
   .stepper__btn:active,
   .bottom-nav__item:active { transform: none; }
 

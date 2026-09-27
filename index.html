@@ -246,7 +246,7 @@
   </style>
 </head>
 
-<body data-page="today">
+<body data-page="today" class="has-fab">
   <main class="page" id="main">
 
     <header class="stack">
@@ -311,6 +311,9 @@
       <blockquote class="quote" id="quote-text"></blockquote>
     </figure>
 
+    <!-- Food delivery (same card as on Money) -->
+    <section class="card food-card" id="food-card" aria-labelledby="food-title"></section>
+
     <!-- Checklist (filled by index.js) -->
     <div class="stack-lg" id="checklist">
       <p class="muted">Loading your habits…</p>
@@ -334,5 +337,11 @@
     </section>
 
   </main>
+
+  <!-- Quick-add an expense from Today (same sheet as the Money page) -->
+  <button class="fab" type="button" id="fab-expense" aria-label="Add expense">
+    <span aria-hidden="true">₹</span>
+    <span>Add expense</span>
+  </button>
 </body>
 </html>

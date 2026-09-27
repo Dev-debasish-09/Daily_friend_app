@@ -486,6 +486,7 @@ async function init() {
   renderHeader();
   drawRays();
   renderQuote();
+  renderFood();
 
   habits = await loadHabits();
   if (!habits.length) {
@@ -503,6 +504,16 @@ async function init() {
   }
 }
 
+// Food delivery card (same as on Money); the meal cost is edited on Money
+function renderFood() {
+  renderFoodCard(document.getElementById('food-card'), {
+    mealCostControl: '<a class="btn btn--ghost" href="money.html?edit=meal">Change home meal cost ({cost})</a>',
+  });
+}
+
+// Quick-add an expense without leaving Today; the food card updates after
+document.getElementById('fab-expense').addEventListener('click', () => openExpenseSheet({ onChange: renderFood }));
+
 // If the app stays open past midnight, start the new day fresh
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible' && todayISO() !== today) {
@@ -511,6 +522,7 @@ document.addEventListener('visibilitychange', () => {
     openCustom.clear();
     renderHeader();
     renderQuote();
+    renderFood();
     render();
   }
 });

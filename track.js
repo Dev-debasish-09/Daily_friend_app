@@ -654,11 +654,6 @@ const DOWN_ARROW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" s
 const weekChart = document.getElementById('week-chart');
 let weekRows = [];   // kept for the tooltip
 
-// Monday of the week that contains `iso`
-function weekStartOf(iso) {
-  return addDays(iso, -((weekdayOf(iso) + 6) % 7));
-}
-
 // Minutes per duration habit over `days` days from `fromIso`
 function minutesByHabit(fromIso, days, readDay) {
   const totals = {};

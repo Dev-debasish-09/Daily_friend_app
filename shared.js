@@ -928,6 +928,651 @@ function escapeHTML(text) {
 }
 
 
+/* ---------- Money: categories + expenses ----------
+   Expenses live in monthly shards, ascend:expenses:YYYY-MM:
+   { "2026-09-27": [ { id, amount, categoryId, method, note, createdAt, updatedAt } ] }
+   Newest first within a day. amount is in rupees (up to 2 decimals). */
+
+const PAYMENT_METHODS = { upi: 'UPI', card: 'Card', cash: 'Cash' };
+const FOOD_DELIVERY_ID = 'food-delivery';
+let categoriesCache = null;
+
+async function loadCategories() {
+  if (categoriesCache) return categoriesCache;
+  try {
+    const res = await fetch('data/categories.json', { cache: 'no-cache' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+    categoriesCache = Array.isArray(json.categories) ? json.categories : [];
+  } catch (err) {
+    console.warn('[ascend] Could not load categories', err);
+    categoriesCache = [];
+  }
+  if (!categoriesCache.length) categoriesCache = [{ id: 'other', name: 'Other', emoji: '🧾', color: 'mountain' }];
+  return categoriesCache;
+}
+
+function findCategory(id) {
+  const list = categoriesCache || [];
+  return list.find((c) => c.id === id) || { id, name: 'Other', emoji: '🧾', color: 'mountain' };
+}
+
+/* Day-grouped monthly shards, shared by expenses and income:
+   ascend:<type>:YYYY-MM = { "YYYY-MM-DD": [item, ...] }, newest first */
+
+function getMonthMap(type, ym) {
+  const saved = getData(`${type}:${ym}`, {});
+  return saved && typeof saved === 'object' ? saved : {};
+}
+
+function addToDay(type, iso, item) {
+  const ym = monthOf(iso);
+  const month = getMonthMap(type, ym);
+  month[iso] = [item, ...(month[iso] || [])];
+  return setData(`${type}:${ym}`, month);
+}
+
+function removeFromDay(type, iso, id) {
+  const ym = monthOf(iso);
+  const month = getMonthMap(type, ym);
+  month[iso] = (month[iso] || []).filter((x) => x.id !== id);
+  if (!month[iso].length) delete month[iso];
+  return setData(`${type}:${ym}`, month);
+}
+
+// Replace an item; moves it if the date changed
+function updateInDay(type, oldIso, newIso, item) {
+  if (oldIso !== newIso) return removeFromDay(type, oldIso, item.id) && addToDay(type, newIso, item);
+  const ym = monthOf(oldIso);
+  const month = getMonthMap(type, ym);
+  month[oldIso] = (month[oldIso] || []).map((x) => (x.id === item.id ? item : x));
+  return setData(`${type}:${ym}`, month);
+}
+
+// Expenses
+const getMonthExpenses = (ym) => getMonthMap('expenses', ym);
+const addExpense = (iso, expense) => addToDay('expenses', iso, expense);
+const removeExpense = (iso, id) => removeFromDay('expenses', iso, id);
+const updateExpense = (oldIso, newIso, expense) => updateInDay('expenses', oldIso, newIso, expense);
+
+// Income: { id, amount, source, note, createdAt, updatedAt }
+const INCOME_SOURCES = {
+  salary: { label: 'Salary', emoji: '💼' },
+  freelance: { label: 'Freelance', emoji: '💻' },
+  bonus: { label: 'Bonus', emoji: '🎉' },
+  interest: { label: 'Interest', emoji: '🏦' },
+  gift: { label: 'Gift', emoji: '🎁' },
+  refund: { label: 'Refund', emoji: '↩️' },
+  other: { label: 'Other', emoji: '🪙' },
+};
+const getMonthIncome = (ym) => getMonthMap('income', ym);
+const addIncome = (iso, item) => addToDay('income', iso, item);
+const removeIncome = (iso, id) => removeFromDay('income', iso, id);
+const updateIncome = (oldIso, newIso, item) => updateInDay('income', oldIso, newIso, item);
+
+
+/* ---------- Recurring expenses (ascend:recurring) ----------
+   [{ id, name, amount, categoryId, method, day, startDate, lastAdded: "YYYY-MM" | null }]
+   Each time the app opens, any due month is added once, with a fixed id
+   (r-<rule>-<YYYY-MM>) so it can never double up. lastAdded means a copy
+   you deleted doesn't come back. */
+
+function getRecurring() {
+  const saved = getData('recurring', []);
+  return Array.isArray(saved) ? saved : [];
+}
+
+function saveRecurring(list) {
+  return setData('recurring', list);
+}
+
+function nextMonth(ym) {
+  const [y, m] = ym.split('-').map(Number);
+  return m === 12 ? `${y + 1}-01` : `${y}-${String(m + 1).padStart(2, '0')}`;
+}
+
+// The date a rule falls on in a month (31st -> 30th/28th in short months)
+function recurringDateIn(rule, ym) {
+  const day = Math.min(rule.day, daysInMonth(`${ym}-01`));
+  return `${ym}-${String(day).padStart(2, '0')}`;
+}
+
+// Next date this rule will add an expense (the first month not added yet)
+function nextRecurringDate(rule) {
+  const ym = rule.lastAdded ? nextMonth(rule.lastAdded) : monthOf(rule.startDate);
+  const iso = recurringDateIn(rule, ym);
+  return iso < rule.startDate ? recurringDateIn(rule, nextMonth(ym)) : iso;
+}
+
+// Add everything due up to today. Returns [{ rule, iso }] for what was added.
+function applyRecurring(today = todayISO()) {
+  const rules = getRecurring();
+  const added = [];
+  let changed = false;
+
+  rules.forEach((rule) => {
+    let ym = rule.lastAdded ? nextMonth(rule.lastAdded) : monthOf(rule.startDate);
+    for (let guard = 0; guard < 24 && ym <= monthOf(today); guard += 1, ym = nextMonth(ym)) {
+      const iso = recurringDateIn(rule, ym);
+      if (iso < rule.startDate) continue;
+      if (iso > today) break;
+
+      const id = `r-${rule.id}-${ym}`;
+      const exists = (getMonthExpenses(ym)[iso] || []).some((x) => x.id === id);
+      if (!exists) {
+        const now = new Date().toISOString();
+        addExpense(iso, {
+          id, amount: rule.amount, categoryId: rule.categoryId, method: rule.method,
+          note: rule.name, recurringId: rule.id, createdAt: now, updatedAt: now,
+        });
+        added.push({ rule, iso });
+      }
+      rule.lastAdded = ym;
+      changed = true;
+    }
+  });
+
+  if (changed) saveRecurring(rules);
+  return added;
+}
+
+// Sum of a month's expenses, optionally for one category
+function monthSpent(month, categoryId = null) {
+  return Object.values(month).flat()
+    .filter((x) => !categoryId || x.categoryId === categoryId)
+    .reduce((sum, x) => sum + (Number(x.amount) || 0), 0);
+}
+
+// ₹450 or ₹349.50
+function formatAmount(n) {
+  const value = Number(n) || 0;
+  return formatINR(value, Number.isInteger(value) ? 0 : 2);
+}
+
+// Monday of the week that contains `iso` (weeks run Mon–Sun)
+function weekStartOf(iso) {
+  return addDays(iso, -((weekdayOf(iso) + 6) % 7));
+}
+
+function daysInMonth(iso) {
+  const [y, m] = iso.split('-').map(Number);
+  return new Date(Date.UTC(y, m, 0)).getUTCDate();
+}
+
+// Reads a day's expenses from the monthly shards, parsing each month once
+function makeExpenseReader() {
+  const months = {};
+  return (iso) => {
+    const ym = monthOf(iso);
+    if (!(ym in months)) months[ym] = getMonthExpenses(ym);
+    return months[ym][iso] || [];
+  };
+}
+
+
+/* ---------- Budgets (ascend:budgets) ----------
+   { total: 25000 | null, categories: { groceries: 4000, ... } }
+   The Food Delivery budget IS profile.foodDeliveryLimit, so there's one number. */
+
+const DEFAULT_HOME_MEAL_COST = 120;
+const BUDGET_AMBER_AT = 0.7;    // amber from 70% used
+const LEVEL_COLORS = { normal: 'var(--success)', amber: 'var(--gold)', ember: 'var(--danger)' };
+
+function getBudgets() {
+  const saved = getData('budgets', {}) || {};
+  const categories = { ...(saved.categories && typeof saved.categories === 'object' ? saved.categories : {}) };
+  const foodLimit = Number((getProfile() || {}).foodDeliveryLimit);
+  if (foodLimit > 0) categories[FOOD_DELIVERY_ID] = foodLimit;
+  else delete categories[FOOD_DELIVERY_ID];
+  return { total: Number(saved.total) > 0 ? Number(saved.total) : null, categories };
+}
+
+function saveBudgets({ total, categories }) {
+  const { [FOOD_DELIVERY_ID]: foodLimit, ...rest } = categories;
+  const ok = setData('budgets', { total: total || null, categories: rest });
+  return ok && Boolean(saveProfile({ foodDeliveryLimit: foodLimit }));
+}
+
+function getHomeMealCost() {
+  const n = Number(getSettings().homeMealCost);
+  return n > 0 ? n : DEFAULT_HOME_MEAL_COST;
+}
+
+// 'normal' under 70%, 'amber' from 70%, 'ember' from 100%. null when there's no budget.
+function budgetLevel(spent, limit) {
+  if (!(limit > 0)) return null;
+  const ratio = spent / limit;
+  if (ratio >= 1) return 'ember';
+  if (ratio >= BUDGET_AMBER_AT) return 'amber';
+  return 'normal';
+}
+
+const LEVEL_ICONS = {
+  normal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+  amber: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.01"/></svg>',
+  ember: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5L2.8 19.5h18.4z"/><path d="M12 10v4.5M12 17v.01"/></svg>',
+};
+
+// Thin meter: fill colour follows the level
+function meterHTML(spent, limit, level, { thin = false } = {}) {
+  const pct = limit > 0 ? Math.min(100, (spent / limit) * 100) : 0;
+  return `<div class="meter__track${thin ? ' meter__track--thin' : ''}" aria-hidden="true">
+    <div class="meter__fill" style="--value: ${pct}%; --meter-color: ${LEVEL_COLORS[level] || 'var(--accent)'}"></div>
+  </div>`;
+}
+
+
+/* ---------- Food delivery card (Money + Today) ---------- */
+
+function foodDeliveryStats(iso = todayISO()) {
+  const read = makeExpenseReader();
+  const isFood = (x) => x.categoryId === FOOD_DELIVERY_ID;
+
+  const month = getMonthExpenses(monthOf(iso));
+  const monthOrders = Object.values(month).flat().filter(isFood);
+  const spent = monthOrders.reduce((s, x) => s + (Number(x.amount) || 0), 0);
+
+  // This week: Monday up to today (may reach back into last month)
+  const weekOrders = [];
+  for (let d = weekStartOf(iso); d <= iso; d = addDays(d, 1)) weekOrders.push(...read(d).filter(isFood));
+
+  const mealCost = getHomeMealCost();
+  const limit = Number((getProfile() || {}).foodDeliveryLimit) || 0;
+  return {
+    spent,
+    limit,
+    level: budgetLevel(spent, limit),
+    pct: limit ? Math.round((spent / limit) * 100) : 0,
+    daysLeft: daysInMonth(iso) - Number(iso.slice(8)) + 1,
+    ordersMonth: monthOrders.length,
+    ordersWeek: weekOrders.length,
+    weekSpent: weekOrders.reduce((s, x) => s + (Number(x.amount) || 0), 0),
+    mealCost,
+    // Each order minus what a home meal would have cost (never below zero)
+    savedIfCooked: monthOrders.reduce((s, x) => s + Math.max(0, (Number(x.amount) || 0) - mealCost), 0),
+  };
+}
+
+// Kind but honest: says the number, then something useful
+function foodStatusText(s) {
+  if (!s.limit) return `${formatAmount(s.spent)} this month. Set a limit in Money budgets to track it.`;
+  if (s.level === 'ember') {
+    return s.spent === s.limit
+      ? 'Limit reached for this month. Home-cooked meals keep it right here.'
+      : `${formatAmount(s.spent - s.limit)} over this month’s limit. It happens. Every home-cooked meal from here still counts.`;
+  }
+  if (s.level === 'amber') {
+    return `${s.pct}% used with ${s.daysLeft} ${s.daysLeft === 1 ? 'day' : 'days'} to go. Worth slowing down.`;
+  }
+  return `${formatAmount(s.limit - s.spent)} left this month. Nicely on track.`;
+}
+
+// Fill a container with the card. mealCostControl: HTML for the "change ₹120" button or link.
+function renderFoodCard(el, { mealCostControl = '' } = {}) {
+  const s = foodDeliveryStats();
+  const level = s.level || 'normal';
+
+  const weekText = s.ordersWeek
+    ? `${formatAmount(s.weekSpent)} so far`
+    : 'None yet. Proud of you.';
+
+  let savedText;
+  if (!s.ordersMonth) savedText = 'No delivery this month, so every meal was a saving.';
+  else if (!s.savedIfCooked) savedText = `Your ${s.ordersMonth} ${s.ordersMonth === 1 ? 'order' : 'orders'} cost about what cooking would. Nice restraint.`;
+  else savedText = `If you’d cooked these ${s.ordersMonth} ${s.ordersMonth === 1 ? 'meal' : 'meals'} at home (about ${formatAmount(s.mealCost)} each), you’d have saved ${formatAmount(s.savedIfCooked)} this month.`;
+
+  el.innerHTML = `
+    <div class="food-card__head">
+      <h2 class="food-card__title" id="food-title"><span aria-hidden="true">🛵</span> Food delivery</h2>
+      <p class="food-card__amount">${formatAmount(s.spent)}${s.limit ? ` <span class="muted">of ${formatAmount(s.limit)}</span>` : ''}</p>
+    </div>
+    ${s.limit ? meterHTML(s.spent, s.limit, level) : ''}
+    <p class="meter__note is-${level}">${LEVEL_ICONS[level]}<span>${escapeHTML(foodStatusText(s))}</span></p>
+    <div class="grid-2">
+      <div class="tile">
+        <span class="tile__label">Orders this week</span>
+        <span class="tile__value">${s.ordersWeek}</span>
+        <span class="tile__note">${weekText}</span>
+      </div>
+      <div class="tile">
+        <span class="tile__label">If you’d cooked</span>
+        <span class="tile__value">${formatAmount(s.savedIfCooked)}</span>
+        <span class="tile__note">saved this month</span>
+      </div>
+    </div>
+    <p class="muted">${escapeHTML(savedText)}</p>
+    ${mealCostControl.replace('{cost}', formatAmount(s.mealCost))}`;
+}
+
+
+/* ---------- No-spend days ----------
+   A no-spend day has no spending outside "essential" categories (rent, bills,
+   health, investments). Counts back from yesterday, never before you started. */
+
+function isNoSpendDay(list) {
+  return !list.some((x) => !findCategory(x.categoryId).essential);
+}
+
+// { count, todayClean }: count = no-spend days in a row up to yesterday
+function noSpendStreak(iso = todayISO()) {
+  const read = makeExpenseReader();
+  const profile = getProfile() || {};
+  const start = profile.onboardedOn || profile.createdOn || iso;
+  let count = 0;
+  for (let i = 1; i <= 800; i += 1) {
+    const day = addDays(iso, -i);
+    if (day < start || !isNoSpendDay(read(day))) break;
+    count += 1;
+  }
+  return { count, todayClean: isNoSpendDay(read(iso)) };
+}
+
+
+/* ---------- Quick-add expense sheet (Today + Money) ----------
+   openExpenseSheet({ onChange })                 -> add
+   openExpenseSheet({ expense, iso, onChange })   -> edit (with Delete)
+   Built once per page, the first time it opens. */
+
+let xp = null;   // the sheet's elements + state
+
+const KEYPAD_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '0', 'back'];
+const BACKSPACE_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M21 5H9l-6 7 6 7h12z"/><path d="M17 9l-6 6M11 9l6 6"/></svg>';
+
+function buildExpenseSheet(categories) {
+  const dialog = document.createElement('dialog');
+  dialog.className = 'sheet';
+  dialog.id = 'expense-sheet';
+  dialog.setAttribute('aria-labelledby', 'xp-title');
+
+  const tiles = categories.map((c) => `
+    <label class="cat-tile" style="--swatch: ${habitColorCSS(c)}">
+      <input type="radio" name="xp-category" value="${escapeHTML(c.id)}" aria-label="${escapeHTML(c.name)}">
+      <span class="cat-tile__emoji" aria-hidden="true">${escapeHTML(c.emoji || '')}</span>
+      <span class="cat-tile__name" aria-hidden="true">${escapeHTML(c.short || c.name)}</span>
+    </label>`).join('');
+
+  const methods = Object.entries(PAYMENT_METHODS).map(([id, label]) => `
+    <label class="method-option">
+      <input type="radio" name="xp-method" value="${id}">
+      <span>${label}</span>
+    </label>`).join('');
+
+  const keys = KEYPAD_KEYS.map((k) => (k === 'back'
+    ? `<button type="button" class="key-btn" data-key="back" aria-label="Delete last digit">${BACKSPACE_SVG}</button>`
+    : `<button type="button" class="key-btn" data-key="${k}"${k === '.' ? ' aria-label="Decimal point"' : ''}>${k}</button>`)).join('');
+
+  dialog.innerHTML = `
+    <form class="sheet__form" id="xp-form" novalidate>
+      <div class="sheet__scroll">
+        <div class="xp-head">
+          <h2 id="xp-title" tabindex="-1">Add expense</h2>
+          <button type="button" class="btn btn--ghost" id="xp-cancel">Cancel</button>
+        </div>
+
+        <div class="amount-box">
+          <span class="sr-only" id="xp-amount-label">Amount</span>
+          <output class="amount-display is-empty" id="xp-amount" aria-labelledby="xp-amount-label" aria-live="polite">₹0</output>
+          <p class="field-error" id="xp-amount-error" hidden></p>
+        </div>
+
+        <fieldset class="cat-grid">
+          <legend class="sr-only">Category</legend>
+          ${tiles}
+        </fieldset>
+        <p class="field-error" id="xp-category-error" hidden></p>
+
+        <fieldset class="method-row">
+          <legend class="sr-only">Paid with</legend>
+          ${methods}
+        </fieldset>
+
+        <div class="keypad" role="group" aria-label="Amount keypad">${keys}</div>
+
+        <details class="xp-more" id="xp-more">
+          <summary>Add a note or change the date</summary>
+          <div class="stack">
+            <div class="field">
+              <label class="label" for="xp-note">Note <span class="muted">(optional)</span></label>
+              <input class="input" id="xp-note" type="text" maxlength="60" autocomplete="off" placeholder="e.g. Dinner with friends">
+            </div>
+            <div class="field">
+              <label class="label" for="xp-date">Date</label>
+              <input class="input" id="xp-date" type="date">
+            </div>
+          </div>
+        </details>
+
+        <button type="button" class="btn btn--ghost btn--block" id="xp-delete" hidden>Delete expense</button>
+      </div>
+
+      <div class="sheet__footer">
+        <button class="btn btn--primary btn--block" type="submit" id="xp-save">Save expense</button>
+      </div>
+    </form>`;
+
+  document.body.appendChild(dialog);
+
+  const $ = (id) => dialog.querySelector(`#${id}`);
+  xp = {
+    dialog,
+    form: $('xp-form'),
+    title: $('xp-title'),
+    amount: $('xp-amount'),
+    amountError: $('xp-amount-error'),
+    categoryError: $('xp-category-error'),
+    note: $('xp-note'),
+    date: $('xp-date'),
+    more: $('xp-more'),
+    save: $('xp-save'),
+    del: $('xp-delete'),
+    state: null,
+  };
+
+  // Keypad taps
+  dialog.querySelector('.keypad').addEventListener('click', (e) => {
+    const key = e.target.closest('[data-key]');
+    if (key) pressAmountKey(key.dataset.key);
+  });
+
+  // Hardware keyboard: digits, ".", Backspace, Enter (not while typing a note)
+  dialog.addEventListener('keydown', (e) => {
+    if (e.target.matches('input[type="text"], input[type="date"]')) return;
+    if (/^[0-9]$/.test(e.key) || e.key === '.') {
+      e.preventDefault();
+      pressAmountKey(e.key);
+    } else if (e.key === 'Backspace') {
+      e.preventDefault();
+      pressAmountKey('back');
+    }
+  });
+
+  dialog.addEventListener('change', (e) => {
+    if (e.target.name === 'xp-category') xp.categoryError.hidden = true;
+  });
+
+  $('xp-cancel').addEventListener('click', () => dialog.close());
+  dialog.addEventListener('click', (e) => {
+    if (e.target === dialog) dialog.close();       // tap on the dimmed backdrop
+  });
+  dialog.addEventListener('close', () => {
+    document.body.style.overflow = '';
+  });
+
+  xp.form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    saveExpenseFromSheet();
+  });
+
+  // Delete: two taps to confirm
+  xp.del.addEventListener('click', () => {
+    if (!xp.del.classList.contains('is-confirming')) {
+      xp.del.classList.add('is-confirming');
+      xp.del.textContent = `Tap again to delete ${formatAmount(xp.state.expense.amount)}`;
+      setTimeout(resetDeleteButton, 4000);
+      return;
+    }
+    const { expense, iso, onChange } = xp.state;
+    if (!removeExpense(iso, expense.id)) {
+      showToast('Couldn’t delete. Check that your browser allows storage.', { type: 'danger' });
+      return;
+    }
+    dialog.close();
+    showToast(`Deleted ${formatAmount(expense.amount)} on ${findCategory(expense.categoryId).name}.`, { type: 'info' });
+    if (onChange) onChange();
+  });
+}
+
+function resetDeleteButton() {
+  if (!xp) return;
+  xp.del.classList.remove('is-confirming');
+  xp.del.textContent = 'Delete expense';
+}
+
+// Typed amount as text, e.g. "2450.5". Max 7 digits before the point, 2 after.
+function pressAmountKey(key) {
+  let t = xp.state.amountText;
+  if (key === 'back') {
+    t = t.slice(0, -1);
+  } else if (key === '.') {
+    if (!t.includes('.')) t = `${t || '0'}.`;
+  } else {
+    const [whole, decimals] = t.split('.');
+    if (decimals !== undefined) {
+      if (decimals.length < 2) t += key;
+    } else if (whole === '0') {
+      t = key;                                     // no leading zeros
+    } else if (whole.length < 7) {
+      t += key;
+    }
+  }
+  xp.state.amountText = t;
+  xp.amountError.hidden = true;
+  updateAmountDisplay();
+}
+
+function typedAmount() {
+  const n = parseFloat(xp.state.amountText);
+  return Number.isFinite(n) ? Math.round(n * 100) / 100 : 0;
+}
+
+// "₹2,450.5" while typing; the Save button names the amount
+function updateAmountDisplay() {
+  const t = xp.state.amountText;
+  const [whole, decimals] = t.split('.');
+  const shown = t ? `₹${formatIndianNumber(Number(whole || 0))}${decimals !== undefined ? `.${decimals}` : ''}` : '₹0';
+  xp.amount.textContent = shown;
+  xp.amount.classList.toggle('is-empty', !t);
+  const amount = typedAmount();
+  xp.save.textContent = xp.state.expense
+    ? 'Save changes'
+    : (amount > 0 ? `Save ${formatAmount(amount)}` : 'Save expense');
+}
+
+async function openExpenseSheet({ expense = null, iso = null, onChange = null } = {}) {
+  const categories = await loadCategories();
+  if (!xp) buildExpenseSheet(categories);
+
+  const today = todayISO();
+  xp.state = { expense, iso, onChange, amountText: expense ? String(expense.amount) : '' };
+
+  xp.title.textContent = expense ? 'Edit expense' : 'Add expense';
+  xp.amountError.hidden = true;
+  xp.categoryError.hidden = true;
+
+  xp.form.querySelectorAll('input[name="xp-category"]').forEach((input) => {
+    input.checked = Boolean(expense) && input.value === expense.categoryId;
+  });
+  const method = (expense && expense.method) || getSettings().lastPaymentMethod || 'upi';
+  xp.form.querySelectorAll('input[name="xp-method"]').forEach((input) => {
+    input.checked = input.value === method;
+  });
+
+  xp.note.value = (expense && expense.note) || '';
+  xp.date.max = today;
+  xp.date.value = iso || today;
+  xp.more.open = Boolean(expense && (expense.note || iso !== today));
+  showFieldError(xp.date, '');
+
+  xp.del.hidden = !expense;
+  resetDeleteButton();
+  updateAmountDisplay();
+
+  document.body.style.overflow = 'hidden';
+  xp.dialog.showModal();
+  xp.title.focus();
+}
+
+function saveExpenseFromSheet() {
+  const { expense: existing, iso: oldIso, onChange } = xp.state;
+  const amount = typedAmount();
+  const checkedCategory = xp.form.querySelector('input[name="xp-category"]:checked');
+  const method = (xp.form.querySelector('input[name="xp-method"]:checked') || {}).value || 'upi';
+  const date = xp.date.value;
+  const today = todayISO();
+
+  let ok = true;
+  if (amount <= 0) {
+    xp.amountError.textContent = 'Enter an amount with the keypad.';
+    xp.amountError.hidden = false;
+    ok = false;
+  }
+  if (!checkedCategory) {
+    xp.categoryError.textContent = 'Pick a category.';
+    xp.categoryError.hidden = false;
+    ok = false;
+  }
+  if (!isValidISO(date) || date > today) {
+    xp.more.open = true;
+    showFieldError(xp.date, 'Pick today or an earlier date.');
+    ok = false;
+  }
+  if (!ok) {
+    haptic(30);
+    return;
+  }
+
+  const now = new Date().toISOString();
+  const expense = {
+    id: existing ? existing.id : newId('x'),
+    amount,
+    categoryId: checkedCategory.value,
+    method,
+    note: xp.note.value.trim().replace(/\s+/g, ' '),
+    createdAt: existing ? existing.createdAt : now,
+    updatedAt: now,
+  };
+
+  const saved = existing ? updateExpense(oldIso, date, expense) : addExpense(date, expense);
+  if (!saved) {
+    showToast('Couldn’t save. Check that your browser allows storage.', { type: 'danger' });
+    return;
+  }
+
+  updateSettings({ lastPaymentMethod: method });
+  xp.dialog.close();
+  haptic(15);
+  showToast(expenseSavedMessage(expense, date, Boolean(existing)), { type: 'success', duration: 3600 });
+  if (onChange) onChange();
+}
+
+// Food delivery gets a gentle, specific nudge about this month's limit
+function expenseSavedMessage(expense, iso, edited) {
+  const category = findCategory(expense.categoryId);
+  const base = `${formatAmount(expense.amount)} on ${category.name} ${edited ? 'updated' : 'saved'}.`;
+  if (expense.categoryId !== FOOD_DELIVERY_ID || monthOf(iso) !== monthOf(todayISO())) return base;
+
+  const s = foodDeliveryStats();
+  if (!s.limit) return base;
+  if (s.level === 'ember' && s.spent > s.limit) {
+    return `${base} That’s ${formatAmount(s.spent - s.limit)} over this month’s limit. A fresh start is one meal away.`;
+  }
+  if (s.level === 'amber' || s.level === 'ember') {
+    return `${base} ${s.pct}% of your limit used with ${s.daysLeft} days to go.`;
+  }
+  return `${base} ${formatAmount(s.spent)} of your ${formatAmount(s.limit)} limit used this month.`;
+}
+
+
 /* ---------- 11. Start-up (runs on every page) ---------- */
 
 // Page name from the URL: "/money.html" or "/money" -> "money", "/" -> "index"
@@ -946,6 +1591,9 @@ function currentPageName() {
   else if (done && page === 'onboarding') location.replace('index.html');
 })();
 
+// Recurring expenses due by today are added before any page draws
+const recurringAddedOnLoad = hasProfile() ? applyRecurring() : [];
+
 // Clear a field's error as soon as the user starts fixing it
 document.addEventListener('input', (e) => {
   if (e.target.matches && e.target.matches('[aria-invalid="true"]')) showFieldError(e.target, '');
@@ -956,4 +1604,12 @@ document.addEventListener('DOMContentLoaded', () => {
   addAmbientBackground();
   ensureToastRegion();
   if (document.body.dataset.nav !== 'off') renderBottomNav();
+
+  // Let you know when recurring expenses were added in the background
+  if (recurringAddedOnLoad.length) {
+    const first = recurringAddedOnLoad[0];
+    const more = recurringAddedOnLoad.length - 1;
+    showToast(`Added ${first.rule.name} (${formatAmount(first.rule.amount)}) for ${formatDate(first.iso, { day: 'numeric', month: 'short' })}${more ? ` and ${more} more recurring` : ''}. You can edit it in Money.`,
+      { type: 'info', duration: 5000 });
+  }
 });
