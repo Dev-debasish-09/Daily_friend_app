@@ -114,6 +114,78 @@
     .session-item .btn.is-confirming { color: var(--danger-text); }
 
     .time-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    /* ----- Weekly view ----- */
+    .week-hero { display: flex; flex-direction: column; gap: 4px; }
+    .week-hero__total { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; }
+    .week-hero__value {
+      font-family: var(--font-head);
+      font-size: 2.75rem;
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.02em;       /* proportional digits: it's a standalone number */
+    }
+    .week-delta { display: flex; align-items: center; gap: 6px; font-weight: 700; }
+    .week-delta svg { flex: none; width: 16px; height: 16px; }
+    .week-delta.is-up { color: var(--success-text); }
+    .week-delta.is-down { color: var(--muted); }
+
+    .week-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 16px;
+      font-size: var(--fs-sm);
+      color: var(--muted);
+      font-weight: 700;
+    }
+    .week-legend span { display: inline-flex; align-items: center; gap: 8px; }
+    .key { display: inline-block; border-radius: 0 3px 3px 0; }
+    .key--this { width: 18px; height: 12px; background: var(--accent); }
+    .key--last { width: 18px; height: 4px; background: var(--chart-last); }
+
+    .week-chart { position: relative; }
+    .week-svg { display: block; width: 100%; height: auto; overflow: visible; }
+    .week-svg .bar-this { fill: var(--accent); }
+    .week-svg .bar-last { fill: var(--chart-last); }
+    .week-svg .row-name { fill: var(--ink); font-family: var(--font-ui); font-size: 14px; font-weight: 700; }
+    .week-svg .row-value { fill: var(--ink); font-family: var(--font-ui); font-size: 13px; font-weight: 800; }
+    .week-svg .row-hit { fill: transparent; }
+    .week-svg .row:focus { outline: none; }
+    .week-svg .row:focus-visible .row-hit { stroke: var(--focus); stroke-width: 2; }
+    .week-svg .row.is-active .row-hit { fill: var(--accent-soft); }
+
+    /* Tooltip (hover, tap or keyboard focus) */
+    .chart-tip {
+      position: absolute;
+      z-index: 2;
+      max-width: 240px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: var(--toast-bg);
+      color: var(--toast-text);
+      font-size: var(--fs-sm);
+      line-height: 1.4;
+      box-shadow: var(--shadow-tile);
+      pointer-events: none;
+    }
+    .chart-tip strong { display: block; }
+
+    /* Table view twin of the chart */
+    .table-view summary {
+      display: flex;
+      align-items: center;
+      min-height: var(--tap);
+      font-weight: 700;
+      color: var(--accent-text);
+      cursor: pointer;
+    }
+    .data-table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
+    .data-table th, .data-table td { padding: 8px 4px; border-bottom: 1px solid var(--line); text-align: right; }
+    .data-table th:first-child, .data-table td:first-child { text-align: left; }
+    .data-table thead th { color: var(--muted); font-weight: 800; }
+    .data-table td { font-variant-numeric: tabular-nums; }
+    .data-table td:not(:first-child) { white-space: nowrap; }   /* keep "40h 20m" on one line */
+    .data-table tfoot td { font-weight: 800; border-bottom: 0; }
   </style>
 </head>
 
@@ -162,6 +234,35 @@
       <h2 id="h-timeline">Today’s timeline</h2>
       <div id="strip-wrap"></div>
       <ol class="session-list" id="session-list" aria-label="Today’s sessions"></ol>
+    </section>
+
+    <!-- Weekly view -->
+    <section class="card stack-lg" aria-labelledby="h-week">
+      <div class="stack">
+        <h2 id="h-week">This week</h2>
+        <p class="muted" id="week-range"></p>
+      </div>
+
+      <div class="week-hero">
+        <p class="week-hero__total">
+          <span class="week-hero__value" id="week-total">0m</span>
+          <span class="muted">focused so far</span>
+        </p>
+        <p class="week-delta" id="week-delta"></p>
+        <p class="muted" id="week-last-total"></p>
+      </div>
+
+      <div class="stack" id="week-chart-wrap">
+        <div class="week-legend">
+          <span><i class="key key--this" aria-hidden="true"></i>This week</span>
+          <span><i class="key key--last" aria-hidden="true"></i><span id="legend-last">Last week, same days</span></span>
+        </div>
+        <div class="week-chart" id="week-chart"></div>
+        <details class="table-view">
+          <summary>Show as a table</summary>
+          <div id="week-table"></div>
+        </details>
+      </div>
     </section>
 
     <!-- Manual past entry -->

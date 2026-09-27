@@ -643,6 +643,210 @@ mForm.addEventListener('submit', (e) => {
 });
 
 
+/* ---------- Weekly view ----------
+   Weeks run Monday to Sunday. Minutes come from the habit logs (timers,
+   past entries and Today's +15 buttons all count). "This week so far" is
+   compared with last week over the same days, so Wednesday meets Wednesday. */
+
+const UP_ARROW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 19V5M6 11l6-6 6 6"/></svg>';
+const DOWN_ARROW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 5v14M6 13l6 6 6-6"/></svg>';
+
+const weekChart = document.getElementById('week-chart');
+let weekRows = [];   // kept for the tooltip
+
+// Monday of the week that contains `iso`
+function weekStartOf(iso) {
+  return addDays(iso, -((weekdayOf(iso) + 6) % 7));
+}
+
+// Minutes per duration habit over `days` days from `fromIso`
+function minutesByHabit(fromIso, days, readDay) {
+  const totals = {};
+  for (let i = 0; i < days; i += 1) {
+    const day = readDay(addDays(fromIso, i));
+    Object.entries(day).forEach(([id, entry]) => {
+      const habit = findHabit(id);
+      if (!habit || habit.type !== 'duration') return;
+      totals[id] = (totals[id] || 0) + (Number(entry.value) || 0);
+    });
+  }
+  return totals;
+}
+
+const sumValues = (obj) => Object.values(obj).reduce((a, b) => a + b, 0);
+
+// "+3h 30m" / "−45m" / "same"
+function signedMinutes(diff) {
+  if (diff === 0) return 'same';
+  return `${diff > 0 ? '+' : '−'}${formatMinutes(Math.abs(diff))}`;
+}
+
+function renderWeekly() {
+  const readDay = makeLogReader();
+  const thisStart = weekStartOf(today);
+  const lastStart = addDays(thisStart, -7);
+  const daysSoFar = daysBetween(thisStart, today) + 1;          // Mon = 1 ... Sun = 7
+  const dayName = formatDate(today, { weekday: 'long' });
+
+  const thisWeek = minutesByHabit(thisStart, daysSoFar, readDay);
+  const lastSame = minutesByHabit(lastStart, daysSoFar, readDay);
+  const lastFull = minutesByHabit(lastStart, 7, readDay);
+  const totalThis = sumValues(thisWeek);
+  const totalLastSame = sumValues(lastSame);
+  const totalLastFull = sumValues(lastFull);
+
+  document.getElementById('week-range').textContent =
+    `${formatDate(thisStart, { weekday: 'short', day: 'numeric', month: 'short' })} – ${formatDate(addDays(thisStart, 6), { weekday: 'short', day: 'numeric', month: 'short' })}`;
+  document.getElementById('week-total').textContent = formatMinutes(totalThis);
+  document.getElementById('legend-last').textContent =
+    daysSoFar === 7 ? 'Last week' : `Last week, Mon to ${formatDate(today, { weekday: 'short' })}`;
+
+  // Comparison line: proud when up, gentle when down
+  const delta = document.getElementById('week-delta');
+  const diff = totalThis - totalLastSame;
+  delta.className = 'week-delta';
+  if (totalThis === 0 && totalLastSame === 0) {
+    delta.textContent = 'A fresh week. Your first timer starts the climb.';
+  } else if (totalLastSame === 0) {
+    delta.classList.add('is-up');
+    delta.innerHTML = `${UP_ARROW}<span>Nothing logged last week by ${dayName}, so every minute is a gain.</span>`;
+  } else if (Math.abs(diff) < 5) {
+    delta.textContent = `Level with last week by ${dayName}.`;
+  } else if (diff > 0) {
+    delta.classList.add('is-up');
+    delta.innerHTML = `${UP_ARROW}<span>${formatMinutes(diff)} more than last week by ${dayName}. Proud of you.</span>`;
+  } else {
+    delta.classList.add('is-down');
+    const ahead = daysSoFar === 7 ? 'A fresh week starts tomorrow.' : 'Fresh days ahead.';
+    delta.innerHTML = `${DOWN_ARROW}<span>${formatMinutes(-diff)} less than last week by ${dayName}. ${ahead}</span>`;
+  }
+  document.getElementById('week-last-total').textContent =
+    totalLastFull ? `Last week in total: ${formatMinutes(totalLastFull)}.` : '';
+
+  // Rows: active duration habits, plus archived ones that have time in either week
+  weekRows = habits
+    .filter((h) => h.type === 'duration'
+      && (isHabitActiveOn(h, today) || thisWeek[h.id] || lastSame[h.id]))
+    .map((h) => ({ habit: h, now: thisWeek[h.id] || 0, before: lastSame[h.id] || 0 }))
+    .sort((a, b) => b.now - a.now || b.before - a.before);
+
+  const wrap = document.getElementById('week-chart-wrap');
+  if (!weekRows.length || (totalThis === 0 && totalLastSame === 0)) {
+    wrap.hidden = true;
+    return;
+  }
+  wrap.hidden = false;
+  drawWeekChart(dayName, daysSoFar);
+  drawWeekTable(dayName, daysSoFar, totalThis, totalLastSame);
+}
+
+// Bar with a 4px rounded end on the right and a square end at the baseline
+function barPath(x, y, w, h, r) {
+  if (w <= 0) return '';
+  const rr = Math.min(r, w, h / 2);
+  return `M${x} ${y}h${w - rr}a${rr} ${rr} 0 0 1 ${rr} ${rr}v${h - 2 * rr}a${rr} ${rr} 0 0 1 -${rr} ${rr}h-${w - rr}z`;
+}
+
+function rowSummary(row, dayName, daysSoFar) {
+  const lastLabel = daysSoFar === 7 ? 'last week' : `last week by ${dayName}`;
+  return `${row.habit.name}: ${formatMinutes(row.now)} this week, ${formatMinutes(row.before)} ${lastLabel} (${signedMinutes(row.now - row.before)}).`;
+}
+
+function drawWeekChart(dayName, daysSoFar) {
+  const W = 320;
+  const plotW = 236;          // leaves room for the value label at the bar tip
+  const rowH = 56;
+  const barH = 16;            // thin marks (<= 24px)
+  const lastH = 4;
+  const max = Math.max(60, ...weekRows.map((r) => Math.max(r.now, r.before)));
+  const x = (min) => (min / max) * plotW;
+
+  let rows = '';
+  weekRows.forEach((row, i) => {
+    const { habit } = row;
+    const y0 = i * rowH;
+    const yBar = y0 + 22;
+    const yLast = yBar + barH + 3;
+    const wNow = x(row.now);
+    const name = habit.name.length > 30 ? `${habit.name.slice(0, 29)}…` : habit.name;
+
+    rows += `
+      <g class="row" tabindex="0" role="img" data-row="${i}" aria-label="${escapeHTML(rowSummary(row, dayName, daysSoFar))}">
+        <rect class="row-hit" x="-4" y="${y0}" width="${W + 8}" height="${rowH - 6}" rx="10"/>
+        <circle cx="5" cy="${y0 + 9}" r="5" style="fill: ${habitColorCSS(habit)}"/>
+        <text class="row-name" x="16" y="${y0 + 14}">${escapeHTML(`${habit.emoji ? `${habit.emoji} ` : ''}${name}`)}</text>
+        <path class="bar-this" d="${barPath(0, yBar, wNow, barH, 4)}"/>
+        <text class="row-value" x="${wNow + 6}" y="${yBar + 12}">${formatMinutes(row.now)}</text>
+        <path class="bar-last" d="${barPath(0, yLast, x(row.before), lastH, 2)}"/>
+      </g>`;
+  });
+
+  weekChart.innerHTML = `
+    <svg class="week-svg" viewBox="0 0 ${W} ${weekRows.length * rowH - 6}" role="group"
+      aria-label="Hours per habit this week, compared with last week" focusable="false">${rows}</svg>
+    <div class="chart-tip" id="chart-tip" hidden></div>`;
+}
+
+function drawWeekTable(dayName, daysSoFar, totalThis, totalLastSame) {
+  const lastHead = daysSoFar === 7 ? 'Last week' : `Last week to ${formatDate(today, { weekday: 'short' })}`;
+  const body = weekRows.map((r) => `
+    <tr>
+      <td>${escapeHTML(`${r.habit.emoji ? `${r.habit.emoji} ` : ''}${r.habit.name}`)}</td>
+      <td>${formatMinutes(r.now)}</td>
+      <td>${formatMinutes(r.before)}</td>
+      <td>${signedMinutes(r.now - r.before)}</td>
+    </tr>`).join('');
+
+  document.getElementById('week-table').innerHTML = `
+    <table class="data-table">
+      <caption class="sr-only">Minutes per habit this week and last week</caption>
+      <thead><tr><th scope="col">Habit</th><th scope="col">This week</th><th scope="col">${lastHead}</th><th scope="col">Change</th></tr></thead>
+      <tbody>${body}</tbody>
+      <tfoot><tr><td>Total</td><td>${formatMinutes(totalThis)}</td><td>${formatMinutes(totalLastSame)}</td><td>${signedMinutes(totalThis - totalLastSame)}</td></tr></tfoot>
+    </table>`;
+}
+
+// Tooltip on hover, tap or keyboard focus (never the only way to read a value)
+function showTip(rowEl) {
+  const tip = document.getElementById('chart-tip');
+  if (!tip || !rowEl) return;
+  const row = weekRows[Number(rowEl.dataset.row)];
+  if (!row) return;
+
+  weekChart.querySelectorAll('.row.is-active').forEach((el) => el.classList.remove('is-active'));
+  rowEl.classList.add('is-active');
+
+  const dayName = formatDate(today, { weekday: 'long' });
+  const lastLabel = daysBetween(weekStartOf(today), today) === 6 ? 'Last week' : `Last week by ${dayName}`;
+  tip.innerHTML = `
+    <strong>${escapeHTML(row.habit.name)}</strong>
+    This week: ${formatMinutes(row.now)}<br>
+    ${lastLabel}: ${formatMinutes(row.before)}<br>
+    Change: ${signedMinutes(row.now - row.before)}`;
+  tip.hidden = false;
+
+  // Sit just above the row, kept inside the card
+  const wrapRect = weekChart.getBoundingClientRect();
+  const rowRect = rowEl.getBoundingClientRect();
+  const left = Math.min(Math.max(0, rowRect.left - wrapRect.left + 24), wrapRect.width - tip.offsetWidth);
+  let top = rowRect.top - wrapRect.top - tip.offsetHeight - 6;
+  if (top < -40) top = rowRect.bottom - wrapRect.top + 6;
+  tip.style.left = `${left}px`;
+  tip.style.top = `${top}px`;
+}
+
+function hideTip() {
+  const tip = document.getElementById('chart-tip');
+  if (tip) tip.hidden = true;
+  weekChart.querySelectorAll('.row.is-active').forEach((el) => el.classList.remove('is-active'));
+}
+
+weekChart.addEventListener('pointerover', (e) => showTip(e.target.closest('.row')));
+weekChart.addEventListener('pointerleave', hideTip);
+weekChart.addEventListener('focusin', (e) => showTip(e.target.closest('.row')));
+weekChart.addEventListener('focusout', hideTip);
+
+
 /* ---------- Start ---------- */
 
 function renderAll() {
@@ -650,6 +854,7 @@ function renderAll() {
   renderModePicker();
   renderHabitRows();
   renderTimeline();
+  renderWeekly();
 }
 
 async function init() {

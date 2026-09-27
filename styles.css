@@ -38,6 +38,7 @@
   --mountain-near: #3D3A6B;
   --mountain-far: #8C86C4;
   --sky-top: #C9C3F2;             /* summit sky on Today */
+  --chart-last: #8E8AAE;          /* "last week" bars: de-emphasis grey, 3:1 on cards (validated) */
   --sky-bottom: #F6A58C;
 
   /* Raw RGB for tinted shadows and lines */
@@ -141,6 +142,7 @@
   --mountain-near: #0E0D22;
   --mountain-far: #3A3772;
   --sky-top: #1E1C45;
+  --chart-last: #B4B1CC;
   --sky-bottom: #6A4A7E;
 
   --ink-rgb: 236 234 247;
