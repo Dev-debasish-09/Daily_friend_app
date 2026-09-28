@@ -8,31 +8,97 @@
    13. Motion + reduced motion
    ========================================================= */
 
-/* ---------- 1. Fonts (Google Fonts for now; self-host later) ---------- */
-@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@1,400&family=Nunito:wght@400;600;700;800&family=Sora:wght@500;600;700;800&display=swap");
+/* ---------- 1. Fonts (self-hosted in /fonts so they work offline) ----------
+   Variable fonts: one file covers every weight. latin-ext adds ₹ and accents. */
+@font-face {
+  font-family: "Sora";
+  font-style: normal;
+  font-weight: 500 800;
+  font-display: swap;
+  src: url("fonts/sora-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Sora";
+  font-style: normal;
+  font-weight: 500 800;
+  font-display: swap;
+  src: url("fonts/sora-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Nunito";
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url("fonts/nunito-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Nunito";
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url("fonts/nunito-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* Fraunces italic: only for the daily quote */
+@font-face {
+  font-family: "Fraunces";
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("fonts/fraunces-italic-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
 
 
 /* ---------- 2. Dawn theme (default) ---------- */
-:root {
+/* [data-theme="dawn"] lets a small preview show Dawn inside the Night theme */
+:root,
+[data-theme="dawn"] {
   /* Brand colors */
   --bg-top: #F4F1FA;
   --bg-bottom: #FBE3D6;
   --ink: #2B2A4A;                 /* main text, never pure black */
-  --muted: #6B6890;
+  --muted: #656188;               /* a touch darker than #6B6890 so small text passes AA on tinted tiles */
   --accent: #5B4BDB;              /* violet fill */
   --on-accent: #FFFFFF;           /* text on accent fill */
   --accent-text: #5B4BDB;         /* accent used as text/links */
-  --accent-soft: rgb(91 75 219 / 0.12);
+  --accent-soft: rgb(91 75 219 / 0.10);
   --gold: #F2B544;
   --on-gold: #2B2A4A;
   --peach: #F6A58C;
   --lavender: #C9C3F2;
+  --on-lavender: #2B2A4A;         /* text on a lavender fill, both themes */
   --success: #2F7D6D;             /* pine green */
   --on-success: #FFFFFF;
+  --success-text: #276B5D;        /* slightly deeper so small text passes AA on glass */
   --danger: #C8453F;              /* ember, overspend */
   --on-danger: #FFFFFF;
+  --danger-text: #B23A35;
   --mountain-near: #3D3A6B;
   --mountain-far: #8C86C4;
+  --sky-top: #C9C3F2;             /* summit sky on Today */
+  --trail-line: rgb(255 255 255 / 0.55);   /* dashed trail on the Goals mountain */
+  --sky-dusk: #E4DEF6;            /* Today's sky near the horizon before the sun rises */
+  --star-color: #FFFFFF;
+  --star-strength: 0.7;           /* how bright the stars are at a 0% score */
+  --on-mountain: #FFFFFF;         /* text on the near range (Today hero) */
+  --on-mountain-muted: rgb(255 255 255 / 0.8);
+  --chart-last: #8E8AAE;          /* "last week" bars: de-emphasis grey, 3:1 on cards (validated) */
+  /* Categorical chart slots (dataviz reference palette, validated on ASCEND cards) */
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #eda100;
+  --series-5: #e87ba4;
+  --series-6: #008300;
+  /* Gold coins (Money signature) */
+  --coin-face: #F2B544;
+  --coin-edge: #C98A1E;
+  --coin-rim: #F8D27E;
+  --sky-bottom: #F6A58C;
 
   /* Raw RGB for tinted shadows and lines */
   --ink-rgb: 43 42 74;
@@ -47,6 +113,7 @@
   --input-bg: rgb(255 255 255 / 0.8);
   --nav-bg: rgb(255 255 255 / 0.78);
   --menu-bg: rgb(255 255 255 / 0.94);
+  --sheet-bg: #FBF9FE;           /* solid surface for bottom sheets */
   --line: rgb(var(--ink-rgb) / 0.14);
   --focus: #5B4BDB;
 
@@ -118,19 +185,38 @@
   --bg-top: #14132B;
   --bg-bottom: #262450;
   --ink: #ECEAF7;
-  --muted: #A9A6CC;
+  --muted: #B4B1D6;               /* lighter than #A9A6CC so it passes AA on tinted tiles */
   --accent: #8B7CFF;
   --on-accent: #14132B;           /* dark text: white on #8B7CFF fails AA */
-  --accent-text: #A99DFF;         /* lighter violet so text passes AA */
-  --accent-soft: rgb(139 124 255 / 0.18);
+  --accent-text: #B6ACFF;         /* lighter violet so text passes AA, even on accent-soft */
+  --accent-soft: rgb(139 124 255 / 0.14);
   --gold: #F5C263;
   --on-gold: #14132B;
   --success: #5FC2A8;
   --on-success: #14132B;
+  --success-text: #6DCDB3;
   --danger: #FF8A80;
   --on-danger: #14132B;
+  --danger-text: #FF9A91;
   --mountain-near: #0E0D22;
   --mountain-far: #3A3772;
+  --sky-top: #1E1C45;
+  --sky-dusk: #2E2B63;
+  --star-color: #ECEAF7;
+  --star-strength: 0.95;
+  --on-mountain: #ECEAF7;
+  --on-mountain-muted: rgb(236 234 247 / 0.78);
+  --chart-last: #B4B1CC;
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-4: #c98500;
+  --series-5: #d55181;
+  --series-6: #008300;
+  --coin-face: #F5C263;
+  --coin-edge: #B57A12;
+  --coin-rim: #FADB93;
+  --sky-bottom: #6A4A7E;
 
   --ink-rgb: 236 234 247;
   --shadow-rgb: 5 4 18;
@@ -142,6 +228,7 @@
   --input-bg: rgb(255 255 255 / 0.08);
   --nav-bg: rgb(30 29 64 / 0.82);
   --menu-bg: rgb(35 33 74 / 0.97);
+  --sheet-bg: #1E1C42;
   --focus: #C9C3F2;
 
   --toast-bg: #ECEAF7;
@@ -238,6 +325,11 @@ code {
 }
 
 :focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Headings we move focus to (for screen readers) aren't buttons, so no ring */
+[tabindex="-1"]:focus {
   outline: none;
 }
 
@@ -640,6 +732,669 @@ input[type="date"].input::-webkit-date-and-time-value {
   padding-left: 36px;
 }
 
+/* Error message under a field (added by showFieldError in shared.js) */
+.field-error {
+  margin: 0;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--danger-text);
+}
+
+.input[aria-invalid="true"],
+.select[aria-invalid="true"],
+.textarea[aria-invalid="true"] {
+  border-color: var(--danger-text);
+}
+
+/* Big tappable radio cards (e.g. theme choice) */
+.choices {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.choices legend {
+  padding: 0;
+  margin-bottom: 6px;
+}
+
+.choice {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 72px;
+  padding: 12px 16px;
+  background: var(--tile-bg);
+  border: 2px solid var(--line);
+  border-radius: var(--radius-tile);
+  cursor: pointer;
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) ease,
+    background-color var(--dur-fast) ease;
+}
+
+.choice:active { transform: scale(0.98); }
+
+.choice:has(input:checked) {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.choice input {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.choice__text { min-width: 0; }
+.choice__title { display: block; font-weight: 800; }
+.choice__desc  { display: block; font-size: var(--fs-sm); color: var(--muted); }
+
+/* Small pill buttons (+15, Custom, toggles). Still 48px tall. */
+.chip-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: var(--tap);
+  min-height: var(--tap);
+  padding: 0 16px;
+  background: var(--input-bg);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-pill);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 0.9375rem;
+  font-weight: 800;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) ease,
+    border-color var(--dur-fast) ease;
+}
+
+.chip-btn:active { transform: scale(0.95); }
+
+.chip-btn[aria-expanded="true"],
+.chip-btn[aria-pressed="true"] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+.chip-btn--gold[aria-pressed="true"] {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--on-gold);
+}
+
+/* − 2 + stepper for counts */
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px;
+  background: var(--input-bg);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-pill);
+}
+
+.stepper__btn {
+  width: var(--tap);
+  height: var(--tap);
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--accent-text);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform var(--dur-fast) var(--ease-out), background-color var(--dur-fast) ease;
+}
+
+.stepper__btn:active { transform: scale(0.9); background: var(--accent-soft); }
+.stepper__btn[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; }
+
+.stepper__value {
+  min-width: 2.5ch;
+  text-align: center;
+  font-family: var(--font-head);
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Round 48px icon button (↑ ↓ etc.) */
+.icon-btn {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: var(--tap);
+  height: var(--tap);
+  padding: 0;
+  background: var(--input-bg);
+  border: 1.5px solid var(--line);
+  border-radius: 50%;
+  color: var(--ink);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.icon-btn svg { width: 20px; height: 20px; }
+.icon-btn:active { transform: scale(0.92); }
+.icon-btn[aria-disabled="true"] { opacity: 0.35; cursor: not-allowed; }
+
+/* Colour swatch radio buttons */
+.swatch-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.swatch-picker legend { padding: 0; margin-bottom: 8px; }
+.swatch-option { position: relative; width: var(--tap); height: var(--tap); }
+.swatch-option input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.swatch-option__dot {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--swatch);
+  box-shadow: inset 0 0 0 1px var(--line);
+  pointer-events: none;
+}
+/* Selected: a ring (not just colour) so it's clear for everyone */
+.swatch-option input:checked + .swatch-option__dot {
+  box-shadow: 0 0 0 3px var(--sheet-bg), 0 0 0 6px var(--ink);
+}
+.swatch-option input:focus-visible + .swatch-option__dot {
+  outline: 3px solid var(--focus);
+  outline-offset: 7px;
+}
+
+/* Bottom sheet (<dialog class="sheet">) for editors */
+.sheet {
+  width: 100%;
+  max-width: 480px;
+  max-height: 92dvh;
+  margin: auto auto 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+  background: var(--sheet-bg);
+  color: var(--ink);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+.sheet[open] { animation: sheet-up 260ms var(--ease-out); }
+/* ::backdrop can't read theme variables in every browser, so it uses a fixed ink tint */
+.sheet::backdrop { background: rgb(20 19 43 / 0.5); }
+
+.sheet__inner {
+  max-height: 92dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 24px max(var(--gutter), env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) max(var(--gutter), env(safe-area-inset-left));
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Slide only (no fade), so the sheet is always visible even if the animation is skipped */
+@keyframes sheet-up {
+  from { transform: translateY(32px); }
+  to   { transform: none; }
+}
+
+/* Sheet with a pinned footer (scrolling body + always-visible Save) */
+.sheet__form {
+  display: flex;
+  flex-direction: column;
+  max-height: 92dvh;
+}
+#expense-sheet { max-height: 96dvh; }
+#expense-sheet .sheet__form { max-height: 96dvh; }
+
+.sheet__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 12px max(var(--gutter), env(safe-area-inset-right)) 12px max(var(--gutter), env(safe-area-inset-left));
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.sheet__scroll > * { flex-shrink: 0; }   /* scroll the sheet; never squash its sections */
+
+.sheet__footer {
+  padding: 12px max(var(--gutter), env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) max(var(--gutter), env(safe-area-inset-left));
+  background: var(--sheet-bg);
+  border-top: 1px solid var(--line);
+}
+
+
+/* ----- Quick-add expense sheet ----- */
+.xp-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.xp-head .btn { margin-right: -12px; }
+
+.amount-box { text-align: center; }
+
+.amount-display {
+  display: block;
+  font-family: var(--font-head);
+  font-size: 2.5rem;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+}
+.amount-display.is-empty { color: var(--muted); }
+
+/* Category tiles: 4 across, radio buttons underneath */
+.cat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.cat-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 54px;
+  padding: 4px;
+  background: var(--tile-bg);
+  border: 2px solid var(--line);
+  border-radius: var(--radius-input);
+  text-align: center;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform var(--dur-fast) var(--ease-out), border-color var(--dur-fast) ease, background-color var(--dur-fast) ease;
+}
+.cat-tile:active { transform: scale(0.95); }
+.cat-tile input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
+.cat-tile__emoji { font-size: 1.375rem; line-height: 1.1; }
+.cat-tile__name { font-size: 0.75rem; font-weight: 800; line-height: 1.15; overflow-wrap: normal; hyphens: none; }
+
+/* Narrow phones: 3 tiles across so names never break mid-word */
+@media (max-width: 359px) {
+  .cat-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+.cat-tile:has(input:checked) {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  box-shadow: inset 0 -4px 0 var(--swatch);
+}
+.cat-tile:has(input:focus-visible) { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+/* UPI / Card / Cash */
+.method-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  min-width: 0;
+  margin: 0;
+  padding: 4px;
+  background: var(--tile-bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+}
+.method-option { position: relative; }
+.method-option input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
+.method-option span {
+  display: grid;
+  place-items: center;
+  min-height: var(--tap);
+  border-radius: var(--radius-pill);
+  font-weight: 800;
+  pointer-events: none;
+}
+.method-option input:checked + span { background: var(--accent); color: var(--on-accent); }
+.method-option input:focus-visible + span { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+/* Big number keypad */
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+.key-btn {
+  display: grid;
+  place-items: center;
+  min-height: var(--tap);
+  background: var(--input-bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-input);
+  color: var(--ink);
+  font-family: var(--font-head);
+  font-size: 1.5rem;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: transform var(--dur-fast) var(--ease-out), background-color var(--dur-fast) ease;
+}
+.key-btn:active { transform: scale(0.94); background: var(--accent-soft); }
+.key-btn svg { width: 26px; height: 26px; }
+
+/* Short screens: tighten the sheet so the keypad stays in view */
+@media (max-height: 700px) {
+  .amount-display { font-size: 2rem; }
+  .cat-tile__emoji { font-size: 1.125rem; }
+  #xp-title { font-size: var(--fs-lg); }
+
+  /* Categories become one row you swipe sideways */
+  .cat-grid {
+    display: flex;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    padding: 2px 2px 6px;
+    margin: 0 -2px;
+  }
+  .cat-tile {
+    flex: 0 0 76px;
+    min-height: 56px;
+    scroll-snap-align: start;
+  }
+}
+
+.xp-more summary {
+  display: flex;
+  align-items: center;
+  min-height: var(--tap);
+  font-weight: 700;
+  color: var(--accent-text);
+  cursor: pointer;
+}
+.xp-more[open] summary { margin-bottom: 8px; }
+#xp-delete.is-confirming { color: var(--danger-text); background: var(--accent-soft); }
+
+/* ----- Meters: spent vs budget. Colour + icon + words, never colour alone ----- */
+.meter__track {
+  height: 10px;
+  overflow: hidden;
+  background: var(--line);
+  border-radius: var(--radius-pill);
+}
+.meter__track--thin { height: 6px; }
+.meter__fill {
+  width: var(--value, 0%);
+  height: 100%;
+  background: var(--meter-color, var(--accent));
+  border-radius: inherit;
+  transition: width var(--dur-med) var(--ease-out);
+}
+.meter__note {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+}
+.meter__note svg { flex: none; width: 16px; height: 16px; margin-top: 2px; }
+.meter__note.is-normal { color: var(--success-text); }
+.meter__note.is-amber  { color: var(--ink); }          /* gold text would fail contrast */
+.meter__note.is-amber svg { color: var(--gold); }
+.meter__note.is-ember  { color: var(--danger-text); }
+
+/* Food delivery card (Money + Today) */
+.food-card { display: flex; flex-direction: column; gap: 12px; }
+.food-card__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+}
+.food-card__title { font-size: var(--fs-lg); }
+.food-card__amount { font-family: var(--font-head); font-size: var(--fs-lg); font-weight: 700; }
+.food-card__amount .muted { font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: 700; }
+.food-card .tile__value { font-size: 1.375rem; }
+
+/* ----- Charts: tooltip, table view, legend ----- */
+.chart-tip {
+  position: absolute;
+  z-index: 2;
+  max-width: 240px;
+  padding: 10px 12px;
+  border-radius: var(--radius-input);
+  background: var(--toast-bg);
+  color: var(--toast-text);
+  font-size: var(--fs-sm);
+  line-height: 1.4;
+  box-shadow: var(--shadow-tile);
+  pointer-events: none;
+}
+.chart-tip strong { display: block; font-size: var(--fs-md); }
+
+.table-view summary {
+  display: flex;
+  align-items: center;
+  min-height: var(--tap);
+  font-weight: 700;
+  color: var(--accent-text);
+  cursor: pointer;
+}
+.data-table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
+.data-table th, .data-table td { padding: 8px 4px; border-bottom: 1px solid var(--line); text-align: right; }
+.data-table th:first-child, .data-table td:first-child { text-align: left; }
+.data-table thead th { color: var(--muted); font-weight: 800; }
+.data-table td { font-variant-numeric: tabular-nums; }
+.data-table td:not(:first-child) { white-space: nowrap; }
+.data-table tfoot td { font-weight: 800; border-bottom: 0; }
+
+.chart-legend { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.chart-legend li { display: flex; align-items: center; gap: 10px; font-size: var(--fs-sm); }
+.chart-legend__key { flex: none; width: 12px; height: 12px; border-radius: 3px; }
+.chart-legend__name { flex: 1; min-width: 0; font-weight: 700; }
+.chart-legend__value { flex: none; font-weight: 800; font-variant-numeric: tabular-nums; }
+.chart-legend__pct { flex: none; width: 3.5ch; text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* Floating quick-add button (sits above the bottom nav) */
+.fab {
+  position: fixed;
+  z-index: 45;
+  right: max(var(--gutter), env(safe-area-inset-right), calc((100vw - 480px) / 2 + var(--gutter)));
+  bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 14px);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 56px;
+  padding: 0 20px 0 16px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-family: var(--font-ui);
+  font-size: var(--fs-md);
+  font-weight: 800;
+  box-shadow: var(--shadow-btn), 0 10px 24px rgb(var(--shadow-rgb) / 0.2);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.fab svg { width: 22px; height: 22px; }
+.fab:active { transform: scale(0.95); }
+
+/* Leave room so the button never covers the last content */
+body.has-fab .page {
+  padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 96px);
+}
+
+/* Confetti layer (created by confetti() in shared.js) */
+.confetti-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* Small label pill */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  background: var(--accent-soft);
+  border-radius: var(--radius-pill);
+  color: var(--accent-text);
+  font-size: var(--fs-xs);
+  font-weight: 800;
+}
+
+.badge--gold {
+  background: var(--gold);
+  color: var(--on-gold);
+}
+
+/* Thin progress bar: set --value on the bar, e.g. style="--value: 66%" */
+.progress {
+  height: 6px;
+  overflow: hidden;
+  background: var(--line);
+  border-radius: var(--radius-pill);
+}
+
+.progress__bar {
+  width: var(--value, 0%);
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--gold));
+  border-radius: inherit;
+  transition: width var(--dur-med) var(--ease-out);
+}
+
+
+/* Summit flag art (Wall of Wins + proud moments). Set the flag colour with --flag. */
+.flag-art { display: block; width: 100%; height: auto; }
+.flag-art__peak { fill: var(--mountain-near); }
+.flag-art__snow { fill: var(--lavender); }
+.flag-art__pole { stroke: var(--ink); stroke-width: 2.5; stroke-linecap: round; }
+.flag-art__flag { fill: var(--flag, var(--gold)); }
+.flag-art__rays { fill: var(--gold); opacity: 0.45; transform-origin: 60px 44px; }
+.flag-art.is-locked .flag-art__peak { fill: none; stroke: var(--line); stroke-width: 2; stroke-dasharray: 4 4; }
+.flag-art.is-locked .flag-art__snow,
+.flag-art.is-locked .flag-art__flag { display: none; }
+.flag-art.is-locked .flag-art__pole { stroke: var(--line); }
+
+/* Proud moment: gold card for milestones, badges and level-ups (proudMoment in shared.js) */
+.proud {
+  width: min(360px, calc(100% - 2 * var(--gutter)));
+  margin: auto;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-card);
+  background: var(--sheet-bg);
+  color: var(--ink);
+  box-shadow: var(--shadow-card), inset 0 0 0 2px var(--gold);
+  text-align: center;
+}
+.proud::backdrop { background: rgb(20 19 43 / 0.55); }
+.proud[open] { animation: proud-pop 420ms var(--ease-out); }
+.proud__inner { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 24px 20px 20px; }
+.proud__art { width: 120px; }
+.proud[open] .flag-art__rays { animation: rays-spin 1.2s var(--ease-out); }
+.proud__title { font-size: var(--fs-xl); overflow-wrap: anywhere; }
+.proud .btn { margin-top: 8px; }
+
+@keyframes proud-pop {
+  0%   { transform: scale(0.9); }
+  60%  { transform: scale(1.03); }
+  100% { transform: none; }
+}
+@keyframes rays-spin {
+  from { transform: scale(0.4) rotate(-30deg); opacity: 0; }
+  to   { transform: none; opacity: 0.45; }
+}
+
+/* 1–5 picker (mood, energy): five big radio tiles */
+.rating {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.rating legend { padding: 0; margin-bottom: 8px; }
+.rating__option { position: relative; }
+.rating__option input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.rating__face {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 60px;
+  padding: 4px 2px;
+  background: var(--tile-bg);
+  border: 2px solid var(--line);
+  border-radius: var(--radius-input);
+  pointer-events: none;
+  transition: border-color var(--dur-fast) ease, background-color var(--dur-fast) ease, transform var(--dur-fast) var(--ease-out);
+}
+.rating__emoji { font-size: 1.375rem; line-height: 1.1; }
+.rating__word { font-size: 0.75rem; font-weight: 800; line-height: 1.1; }
+.rating__option input:checked + .rating__face { border-color: var(--accent); background: var(--accent-soft); }
+.rating__option input:focus-visible + .rating__face { outline: 3px solid var(--focus); outline-offset: 2px; }
+.rating__option:active .rating__face { transform: scale(0.95); }
+
+
+/* ----- Shared page parts (were copied into several pages) ----- */
+/* Small uppercase label above a group of cards */
+.section-title {
+  font-family: var(--font-ui);
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+/* Card heading with something on the right (a button, arrows) */
+.card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+/* A fieldset with no box */
+.plain-fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
+.plain-fieldset legend { padding: 0; margin-bottom: 8px; }
+/* "Tap again to delete" state */
+.sheet-delete.is-confirming { color: var(--danger-text); background: var(--accent-soft); }
+
 
 /* ---------- 10. Toast ---------- */
 .toast-region {
@@ -684,6 +1439,29 @@ input[type="date"].input::-webkit-date-and-time-value {
   border-radius: 50%;
   background: var(--toast-info);
 }
+
+.toast__text { flex: 1; min-width: 0; }
+
+/* Optional button inside a toast ("Refresh", "Back up") */
+.toast__action {
+  flex: none;
+  min-height: var(--tap);
+  margin: -8px -8px -8px 0;
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--toast-text);
+  font-family: var(--font-ui);
+  font-size: var(--fs-md);
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  pointer-events: auto;
+  touch-action: manipulation;
+}
+.toast__action:focus-visible { outline-color: var(--toast-text); }
 
 .toast--success .toast__dot { background: var(--toast-success); }
 .toast--danger .toast__dot  { background: var(--toast-danger); }
@@ -792,7 +1570,7 @@ input[type="date"].input::-webkit-date-and-time-value {
   gap: 12px;
   min-height: var(--tap);
   padding: 0 14px;
-  border-radius: 14px;
+  border-radius: var(--radius-input);
   color: var(--ink);
   font-weight: 700;
   text-decoration: none;
@@ -820,13 +1598,23 @@ input[type="date"].input::-webkit-date-and-time-value {
 
 
 /* ---------- 12. Utilities ---------- */
+.stack-tight { display: flex; flex-direction: column; gap: 4px; }
 .stack    { display: flex; flex-direction: column; gap: 12px; }
 .stack-lg { display: flex; flex-direction: column; gap: 20px; }
 .row      { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
 .grid-2   { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 
-.text-success { color: var(--success); }
-.text-danger  { color: var(--danger); }
+.text-success { color: var(--success-text); }
+.text-danger  { color: var(--danger-text); }
+
+/* Pages without the bottom nav (e.g. onboarding) don't need the extra space */
+body[data-nav="off"] .page {
+  padding-bottom: calc(env(safe-area-inset-bottom) + 32px);
+}
+
+body[data-nav="off"] .toast-region {
+  bottom: calc(env(safe-area-inset-bottom) + 16px);
+}
 .text-accent  { color: var(--accent-text); }
 
 /* Hidden visually, still read by screen readers */
@@ -869,6 +1657,14 @@ input[type="date"].input::-webkit-date-and-time-value {
 
   .btn:active:not(:disabled),
   .segmented button:active,
+  .choice:active,
+  .chip-btn:active,
+  .icon-btn:active,
+  .cat-tile:active,
+  .key-btn:active,
+  .fab:active,
+  .stepper__btn:active,
+  .rating__option:active .rating__face,
   .bottom-nav__item:active { transform: none; }
 
   .toast { transform: none; }

@@ -1,0 +1,6 @@
+# Files that stay in the repo but are not deployed to the live site
+CLAUDE.md
+README.md
+style-guide.html
+style-guide.js
+.gitignore

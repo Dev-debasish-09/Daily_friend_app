@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- ASCEND app icon: the sun rising over the summit.
+       Full-bleed, and everything important sits inside the central 80% circle,
+       so the same art works as a maskable icon. -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5B4BDB"/>
+      <stop offset="0.55" stop-color="#C9C3F2"/>
+      <stop offset="1" stop-color="#F6A58C"/>
+    </linearGradient>
+    <radialGradient id="glow">
+      <stop offset="0" stop-color="#F2B544" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="#F2B544" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#sky)"/>
+  <circle cx="256" cy="214" r="160" fill="url(#glow)"/>
+  <circle cx="256" cy="214" r="76" fill="#F2B544"/>
+  <path d="M0 512V318l84-40 70 22 72-52 72 38 76-50 80 34 58-18v260z" fill="#8C86C4"/>
+  <path d="M0 512V376l112-72 70 40 74-108 82 94 64-36 110 74v144z" fill="#3D3A6B"/>
+  <path d="M256 236l30 42-16-6-14 12-14-13-16 6z" fill="#C9C3F2"/>
+</svg>

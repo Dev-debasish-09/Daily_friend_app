@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "notes": "Expense categories for the quick-add sheet, in tile order. color uses the habit colour names (violet|lavender|gold|peach|pine|ember|mountain). short is an optional tile label when the name is too long for a tile. essential: true means spending here does not break a no-spend day (planned or necessary costs).",
+  "categories": [
+    { "id": "food-delivery", "name": "Food Delivery", "emoji": "🛵", "color": "ember" },
+    { "id": "groceries", "name": "Groceries", "emoji": "🥦", "color": "pine" },
+    { "id": "rent", "name": "Rent", "emoji": "🏠", "color": "mountain", "essential": true },
+    { "id": "travel", "name": "Travel", "emoji": "🚕", "color": "gold" },
+    { "id": "shopping", "name": "Shopping", "emoji": "🛍️", "color": "peach" },
+    { "id": "subscriptions", "name": "Subscriptions", "short": "Subs", "emoji": "📺", "color": "lavender" },
+    { "id": "bills", "name": "Bills", "emoji": "💡", "color": "gold", "essential": true },
+    { "id": "health", "name": "Health", "emoji": "💊", "color": "pine", "essential": true },
+    { "id": "education", "name": "Education", "emoji": "🎓", "color": "violet" },
+    { "id": "family", "name": "Family", "emoji": "🏡", "color": "peach" },
+    { "id": "investments", "name": "Investments", "short": "Invest", "emoji": "📈", "color": "violet", "essential": true },
+    { "id": "other", "name": "Other", "emoji": "🧾", "color": "mountain" }
+  ]
+}

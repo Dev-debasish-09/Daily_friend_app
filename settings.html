@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en-IN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#F4F1FA">
+  <title>Settings · ASCEND</title>
+
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="ASCEND">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="stylesheet" href="styles.css">
+
+  <script src="shared.js"></script>
+  <script src="settings.js" defer></script>
+
+  <!-- Styles only Settings needs -->
+  <style>
+    .quote-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .quote-list:empty { display: none; }
+
+    .quote-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 6px 10px 16px;
+      background: var(--tile-bg);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-tile);
+    }
+    .quote-item__text { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+    .quote-item .btn { flex: none; padding: 12px 14px; }
+    .quote-item .btn.is-confirming { color: var(--danger-text); }
+
+    /* ----- Habit manager ----- */
+    .list-title {
+      font-family: var(--font-ui);
+      font-size: var(--fs-xs);
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .habit-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .habit-item {
+      display: grid;
+      grid-template-columns: 40px minmax(0, 1fr);
+      align-items: center;
+      gap: 10px 12px;
+      padding: 12px;
+      background: var(--tile-bg);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-tile);
+    }
+
+    .habit-item__badge {
+      display: grid;
+      place-items: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--swatch);
+      font-size: 1.25rem;
+      line-height: 1;
+    }
+
+    .habit-item__text { display: flex; flex-direction: column; min-width: 0; }
+    .habit-item__name { font-weight: 800; overflow-wrap: anywhere; }
+    .habit-item__meta { font-size: var(--fs-sm); color: var(--muted); }
+
+    .habit-item__actions {
+      grid-column: 1 / -1;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+    .habit-item__actions .btn { padding: 12px 20px; }
+
+    /* Editor sheet */
+    .sheet .choice { min-height: 56px; }
+    .sheet-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    #archive-btn.is-confirming { color: var(--danger-text); background: var(--accent-soft); }
+    .emoji-picks { display: flex; flex-wrap: wrap; gap: 6px; }
+    .emoji-picks .chip-btn { padding: 0; font-size: 1.25rem; }
+
+    /* ----- Your data ----- */
+    .backup-status { font-weight: 700; }
+    .backup-status.is-due { color: var(--ink); }
+    .file-btn { position: relative; }
+    .file-btn:has(input:focus-visible) { outline: 3px solid var(--focus); outline-offset: 3px; }
+    .import-warning { display: flex; align-items: flex-start; gap: 8px; font-weight: 700; color: var(--danger-text); }
+    .import-warning svg { flex: none; width: 18px; height: 18px; margin-top: 2px; }
+  </style>
+</head>
+
+<body data-page="settings">
+  <main class="page" id="main">
+
+    <header class="stack rise-in">
+      <p class="eyebrow">More</p>
+      <h1>Settings</h1>
+      <p class="muted">Change your details anytime.</p>
+    </header>
+
+    <!-- Profile -->
+    <section class="card" aria-labelledby="h-profile">
+      <form class="stack-lg" id="profile-form" novalidate>
+        <h2 id="h-profile">Your profile</h2>
+
+        <div class="field">
+          <label class="label" for="name">Your name</label>
+          <input class="input" id="name" name="name" type="text" autocomplete="name"
+                 autocapitalize="words" maxlength="40" required>
+        </div>
+
+        <div class="field">
+          <label class="label" for="dob">Date of birth</label>
+          <input class="input" id="dob" name="dob" type="date" min="1940-01-01" required>
+        </div>
+
+        <div class="field">
+          <label class="label" for="exam">ISS exam date</label>
+          <input class="input" id="exam" name="exam" type="date" aria-describedby="exam-hint" required>
+          <p class="hint" id="exam-hint"></p>
+        </div>
+
+        <div class="field">
+          <label class="label" for="limit">Monthly food delivery limit</label>
+          <div class="input-group">
+            <span class="input-group__prefix" aria-hidden="true">₹</span>
+            <input class="input" id="limit" name="limit" type="text" inputmode="numeric"
+                   autocomplete="off" required>
+          </div>
+        </div>
+
+        <button class="btn btn--primary btn--block" type="submit">Save changes</button>
+      </form>
+    </section>
+
+    <!-- Habits: add, edit, reorder, archive -->
+    <section class="card stack-lg" aria-labelledby="h-habits">
+      <div class="stack">
+        <h2 id="h-habits">Your habits</h2>
+        <p class="muted">The order here is the order on Today, within each priority group.</p>
+      </div>
+
+      <ul class="habit-list" id="habit-list" aria-label="Active habits">
+        <li class="muted">Loading your habits…</li>
+      </ul>
+      <button class="btn btn--primary btn--block" type="button" id="add-habit">Add habit</button>
+
+      <div class="stack" id="archived-wrap" hidden>
+        <h3 class="list-title" id="h-archived">Archived</h3>
+        <p class="muted">Their history is kept. Restore one anytime.</p>
+        <ul class="habit-list" id="archived-list" aria-labelledby="h-archived"></ul>
+      </div>
+
+      <!-- Announces moves to screen readers -->
+      <p class="sr-only" id="habit-status" aria-live="polite"></p>
+    </section>
+
+    <!-- Your own quotes -->
+    <section class="card stack-lg" aria-labelledby="h-quotes">
+      <div class="stack">
+        <h2 id="h-quotes">Your quotes</h2>
+        <p class="muted">Your own lines show on Today about one day in three.</p>
+      </div>
+
+      <form class="stack" id="quote-form" novalidate>
+        <div class="field">
+          <label class="label" for="quote-input">New quote</label>
+          <textarea class="textarea" id="quote-input" maxlength="200"
+            placeholder="e.g. The ISS rank is built in the quiet hours." aria-describedby="quote-count"></textarea>
+          <p class="hint" id="quote-count">0 of 200 characters</p>
+        </div>
+        <button class="btn btn--primary btn--block" type="submit">Add quote</button>
+      </form>
+
+      <ul class="quote-list" id="quote-list" aria-label="Your saved quotes"></ul>
+    </section>
+
+    <!-- Appearance -->
+    <section class="card stack" aria-labelledby="h-theme">
+      <h2 id="h-theme">Theme</h2>
+      <p class="muted">Changes right away.</p>
+      <div class="segmented" role="group" aria-label="Theme">
+        <button type="button" data-theme-choice="dawn" aria-pressed="false">Dawn</button>
+        <button type="button" data-theme-choice="night" aria-pressed="false">Night</button>
+      </div>
+    </section>
+
+    <!-- Your data: backups and exports -->
+    <section class="card stack-lg" id="data" aria-labelledby="h-data">
+      <div class="stack">
+        <h2 id="h-data">Your data</h2>
+        <p class="muted">Everything lives on this phone only. A backup file keeps your climb safe if you change phones or clear your browser.</p>
+        <p class="backup-status" id="backup-status"></p>
+      </div>
+
+      <div class="stack">
+        <button class="btn btn--primary btn--block" type="button" id="export-json">Back up all data (JSON)</button>
+        <div class="grid-2">
+          <button class="btn btn--secondary" type="button" id="export-expenses">Expenses CSV</button>
+          <button class="btn btn--secondary" type="button" id="export-time">Time CSV</button>
+        </div>
+        <p class="hint">CSV files open in Excel or Google Sheets.</p>
+      </div>
+
+      <div class="stack">
+        <h3 class="list-title">Restore</h3>
+        <label class="btn btn--secondary btn--block file-btn">
+          <input class="sr-only" type="file" id="import-file" accept=".json,application/json">
+          Restore from a backup file
+        </label>
+        <p class="hint">You’ll see what’s inside before anything changes.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Restore preview + confirm -->
+  <dialog class="sheet" id="import-sheet" aria-labelledby="import-title">
+    <form class="sheet__form" id="import-form" novalidate>
+      <div class="sheet__scroll">
+        <div class="xp-head">
+          <h2 id="import-title" tabindex="-1">Restore this backup?</h2>
+          <button type="button" class="btn btn--ghost" data-close>Cancel</button>
+        </div>
+        <p class="muted" id="import-meta"></p>
+        <table class="data-table" id="import-table">
+          <caption class="sr-only">What’s in the backup, compared with this phone</caption>
+          <thead><tr><th scope="col">Data</th><th scope="col">In backup</th><th scope="col">On this phone</th></tr></thead>
+          <tbody id="import-rows"></tbody>
+        </table>
+        <p class="import-warning" id="import-warning">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5L2.8 19.5h18.4z"/><path d="M12 10v4.5M12 17v.01"/></svg>
+          <span>Restoring replaces everything on this phone with the backup.</span>
+        </p>
+        <label class="choice">
+          <input type="checkbox" id="import-safety" checked>
+          <span class="choice__text">
+            <span class="choice__title">Save a copy of this phone’s data first</span>
+            <span class="choice__desc">Downloads a backup file, just in case.</span>
+          </span>
+        </label>
+      </div>
+      <div class="sheet__footer">
+        <button class="btn btn--primary btn--block" type="submit">Replace my data with this backup</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Habit editor (bottom sheet) -->
+  <dialog class="sheet" id="habit-sheet" aria-labelledby="sheet-title">
+    <form class="sheet__inner" id="habit-form" novalidate>
+      <h2 id="sheet-title" tabindex="-1">Add habit</h2>
+
+      <div class="field">
+        <label class="label" for="hb-name">Name</label>
+        <input class="input" id="hb-name" type="text" maxlength="40" autocomplete="off"
+               autocapitalize="sentences" placeholder="e.g. Read 10 pages">
+      </div>
+
+      <div class="field">
+        <label class="label" for="hb-emoji">Emoji <span class="muted">(optional)</span></label>
+        <input class="input" id="hb-emoji" type="text" maxlength="16" autocomplete="off" placeholder="📚">
+        <div class="emoji-picks" id="emoji-picks" role="group" aria-label="Quick emoji picks"></div>
+      </div>
+
+      <fieldset class="swatch-picker" id="color-picker">
+        <legend class="label">Colour</legend>
+      </fieldset>
+
+      <fieldset class="choices" id="type-field">
+        <legend class="label">Type</legend>
+        <label class="choice">
+          <input type="radio" name="type" value="duration">
+          <span class="choice__text">
+            <span class="choice__title">Duration</span>
+            <span class="choice__desc">Minutes, with +15 / +30 / +60 buttons.</span>
+          </span>
+        </label>
+        <label class="choice">
+          <input type="radio" name="type" value="count">
+          <span class="choice__text">
+            <span class="choice__title">Count</span>
+            <span class="choice__desc">A number, with − / + buttons.</span>
+          </span>
+        </label>
+        <label class="choice">
+          <input type="radio" name="type" value="boolean">
+          <span class="choice__text">
+            <span class="choice__title">Yes / no</span>
+            <span class="choice__desc">One tap when it’s done.</span>
+          </span>
+        </label>
+        <p class="hint" id="type-locked" hidden>Type can’t change after a habit is created, so its history stays accurate.</p>
+      </fieldset>
+
+      <div class="field" id="unit-field">
+        <label class="label" for="hb-unit">Unit <span class="muted">(optional)</span></label>
+        <input class="input" id="hb-unit" type="text" maxlength="20" autocomplete="off" placeholder="e.g. problem, page, video">
+      </div>
+
+      <!-- Targets for duration and count -->
+      <div class="grid-2" id="number-targets">
+        <div class="field">
+          <label class="label" for="hb-weekday" id="hb-weekday-label">Weekday target</label>
+          <input class="input" id="hb-weekday" type="text" inputmode="numeric" autocomplete="off" aria-describedby="hb-weekday-hint">
+          <p class="hint" id="hb-weekday-hint"></p>
+        </div>
+        <div class="field">
+          <label class="label" for="hb-weekend" id="hb-weekend-label">Weekend target</label>
+          <input class="input" id="hb-weekend" type="text" inputmode="numeric" autocomplete="off" aria-describedby="hb-weekend-hint">
+          <p class="hint" id="hb-weekend-hint"></p>
+        </div>
+      </div>
+
+      <!-- Targets for yes/no -->
+      <div class="field" id="yesno-targets">
+        <fieldset class="choices">
+          <legend class="label">Track it on</legend>
+          <label class="choice">
+            <input type="checkbox" id="hb-yes-weekday">
+            <span class="choice__text"><span class="choice__title">Weekdays</span></span>
+          </label>
+          <label class="choice">
+            <input type="checkbox" id="hb-yes-weekend">
+            <span class="choice__text"><span class="choice__title">Weekends</span></span>
+          </label>
+        </fieldset>
+      </div>
+
+      <div class="field" id="minimum-field">
+        <label class="label" for="hb-minimum">Minimum version <span class="muted">(optional)</span></label>
+        <input class="input" id="hb-minimum" type="text" maxlength="40" autocomplete="off"
+               placeholder="e.g. 10 pushups" aria-describedby="hb-minimum-hint">
+        <p class="hint" id="hb-minimum-hint">The smallest version for hard days. It earns 50% and keeps the streak alive.</p>
+      </div>
+
+      <div class="field">
+        <label class="label" for="hb-priority">Priority</label>
+        <div class="select-wrap">
+          <select class="select" id="hb-priority">
+            <option value="non-negotiable">Non-negotiable (counts 3×)</option>
+            <option value="important">Important (counts 2×)</option>
+            <option value="bonus">Bonus (counts 1×)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="sheet-actions">
+        <button class="btn btn--secondary" type="button" id="cancel-habit">Cancel</button>
+        <button class="btn btn--primary" type="submit">Save habit</button>
+      </div>
+      <button class="btn btn--ghost btn--block" type="button" id="archive-btn" hidden>Archive habit</button>
+    </form>
+  </dialog>
+</body>
+</html>

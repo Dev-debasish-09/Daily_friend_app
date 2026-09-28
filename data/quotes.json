@@ -1,0 +1,1466 @@
+{
+  "version": 1,
+  "notes": "Original ASCEND lines. One is picked per day by a seed from the date (pickDaily in shared.js). Themes: discipline, learning, money, health, climbing.",
+  "quotes": [
+    {
+      "theme": "discipline",
+      "text": "Discipline is choosing what you want most over what you want now."
+    },
+    {
+      "theme": "discipline",
+      "text": "Motivation starts the climb. Habit finishes it."
+    },
+    {
+      "theme": "discipline",
+      "text": "You don’t need a perfect day. You need a day you showed up for."
+    },
+    {
+      "theme": "discipline",
+      "text": "The plan works when you work the plan, one block at a time."
+    },
+    {
+      "theme": "discipline",
+      "text": "Small promises kept to yourself build a big kind of trust."
+    },
+    {
+      "theme": "discipline",
+      "text": "Do the hard hour first. The rest of the day gets lighter."
+    },
+    {
+      "theme": "discipline",
+      "text": "Consistency beats intensity when the finish line is years away."
+    },
+    {
+      "theme": "discipline",
+      "text": "Tired is a feeling. Done is a fact. Aim for done."
+    },
+    {
+      "theme": "discipline",
+      "text": "The version of you at 30 is built by what you repeat at 24."
+    },
+    {
+      "theme": "discipline",
+      "text": "Show up on the boring days. That’s where the gap opens."
+    },
+    {
+      "theme": "discipline",
+      "text": "Start before you feel ready. Readiness arrives mid-task."
+    },
+    {
+      "theme": "discipline",
+      "text": "One focused hour beats four distracted ones."
+    },
+    {
+      "theme": "discipline",
+      "text": "Your phone can wait. Your future can’t."
+    },
+    {
+      "theme": "discipline",
+      "text": "Protect your morning and your morning will protect your day."
+    },
+    {
+      "theme": "discipline",
+      "text": "A streak is just a promise you keep one more time."
+    },
+    {
+      "theme": "discipline",
+      "text": "When it’s hard, shrink the task, not the commitment."
+    },
+    {
+      "theme": "discipline",
+      "text": "The minimum still counts. The chain still holds."
+    },
+    {
+      "theme": "discipline",
+      "text": "Excuses are loud. Progress is quiet. Choose quiet."
+    },
+    {
+      "theme": "discipline",
+      "text": "Discipline is a skill. Every day you practise it, it gets easier."
+    },
+    {
+      "theme": "discipline",
+      "text": "Decide once, then stop negotiating with yourself."
+    },
+    {
+      "theme": "discipline",
+      "text": "Late nights borrow energy from tomorrow’s climb."
+    },
+    {
+      "theme": "discipline",
+      "text": "What you do after office hours decides your next ten years."
+    },
+    {
+      "theme": "discipline",
+      "text": "Routine is freedom in disguise: fewer choices, more energy."
+    },
+    {
+      "theme": "discipline",
+      "text": "Start the timer. Momentum will do the rest."
+    },
+    {
+      "theme": "discipline",
+      "text": "Discipline isn’t punishment. It’s respect for your own goals."
+    },
+    {
+      "theme": "discipline",
+      "text": "You won’t always feel like it. Do it kindly anyway."
+    },
+    {
+      "theme": "discipline",
+      "text": "The hard part isn’t the work. It’s starting the work."
+    },
+    {
+      "theme": "discipline",
+      "text": "Win the next thirty minutes. Then win the next thirty."
+    },
+    {
+      "theme": "discipline",
+      "text": "Your calendar is a mirror of your priorities."
+    },
+    {
+      "theme": "discipline",
+      "text": "Missed yesterday? Today is a fresh climb, not a debt."
+    },
+    {
+      "theme": "discipline",
+      "text": "Good days are planned. Great days are repeated."
+    },
+    {
+      "theme": "discipline",
+      "text": "Keep the promise small enough to keep, and keep it."
+    },
+    {
+      "theme": "discipline",
+      "text": "The summit doesn’t care how you felt. It cares that you climbed."
+    },
+    {
+      "theme": "discipline",
+      "text": "A clear desk and a clear plan are half the work."
+    },
+    {
+      "theme": "discipline",
+      "text": "Count the hours honestly. Then make each one sharper."
+    },
+    {
+      "theme": "discipline",
+      "text": "Your future self is watching. Give them something to thank you for."
+    },
+    {
+      "theme": "discipline",
+      "text": "Delay the scroll. Earn the rest."
+    },
+    {
+      "theme": "discipline",
+      "text": "Tiny effort every day compounds like interest."
+    },
+    {
+      "theme": "discipline",
+      "text": "Structure is what carries you when willpower runs out."
+    },
+    {
+      "theme": "discipline",
+      "text": "Say no to good things so you can say yes to the right one."
+    },
+    {
+      "theme": "discipline",
+      "text": "The weekend is where the gap gets built. Twelve hours, one at a time."
+    },
+    {
+      "theme": "discipline",
+      "text": "Finish what you start today, even if it’s small."
+    },
+    {
+      "theme": "discipline",
+      "text": "Progress hides inside repetition. Keep repeating."
+    },
+    {
+      "theme": "discipline",
+      "text": "You are not behind. You are on your own route up."
+    },
+    {
+      "theme": "discipline",
+      "text": "Focus is a muscle. Train it with one task at a time."
+    },
+    {
+      "theme": "discipline",
+      "text": "Comfort is a nice place to rest, not to live."
+    },
+    {
+      "theme": "discipline",
+      "text": "Be stubborn about the goal and flexible about the path."
+    },
+    {
+      "theme": "discipline",
+      "text": "The work you avoid is usually the work that matters."
+    },
+    {
+      "theme": "discipline",
+      "text": "Close the tabs. Open the book."
+    },
+    {
+      "theme": "discipline",
+      "text": "Energy follows action more often than action follows energy."
+    },
+    {
+      "theme": "discipline",
+      "text": "Let your routine carry the weight your mood can’t."
+    },
+    {
+      "theme": "discipline",
+      "text": "Five minutes of starting is worth an hour of planning to start."
+    },
+    {
+      "theme": "discipline",
+      "text": "Each checkmark is proof, not a hope."
+    },
+    {
+      "theme": "discipline",
+      "text": "Keep going quietly. Results will make the noise."
+    },
+    {
+      "theme": "discipline",
+      "text": "Rest is part of the plan. Quitting isn’t."
+    },
+    {
+      "theme": "discipline",
+      "text": "Hard days are where the habit grows its roots."
+    },
+    {
+      "theme": "discipline",
+      "text": "Discipline today, options tomorrow."
+    },
+    {
+      "theme": "discipline",
+      "text": "Your goal is far. Your next step is close. Take it."
+    },
+    {
+      "theme": "discipline",
+      "text": "Treat your study block like a meeting you can’t cancel."
+    },
+    {
+      "theme": "discipline",
+      "text": "Nobody else sees the early-morning effort. You will see its results."
+    },
+    {
+      "theme": "discipline",
+      "text": "Put the book on the pillow. Make the right choice the easy one."
+    },
+    {
+      "theme": "discipline",
+      "text": "One more page. One more problem. One more rep."
+    },
+    {
+      "theme": "discipline",
+      "text": "Consistency is a quiet kind of confidence."
+    },
+    {
+      "theme": "discipline",
+      "text": "Don’t break the chain for a mood that lasts ten minutes."
+    },
+    {
+      "theme": "discipline",
+      "text": "When you can’t do everything, do the non-negotiables."
+    },
+    {
+      "theme": "discipline",
+      "text": "Show up as you are. Leave a little better."
+    },
+    {
+      "theme": "discipline",
+      "text": "Winning the day starts with winning the first hour."
+    },
+    {
+      "theme": "discipline",
+      "text": "The gap between who you are and who you want to be is called practice."
+    },
+    {
+      "theme": "discipline",
+      "text": "Your effort is never wasted, even on the days it feels invisible."
+    },
+    {
+      "theme": "discipline",
+      "text": "Plan the week on Sunday. Live it one day at a time."
+    },
+    {
+      "theme": "discipline",
+      "text": "A focused person with a plan is hard to stop."
+    },
+    {
+      "theme": "discipline",
+      "text": "Be proud of the days you did it anyway."
+    },
+    {
+      "theme": "discipline",
+      "text": "The climb is long, so make each step light and steady."
+    },
+    {
+      "theme": "learning",
+      "text": "Every concept you master makes the next one cheaper to learn."
+    },
+    {
+      "theme": "learning",
+      "text": "Confusion is the feeling of your brain making room."
+    },
+    {
+      "theme": "learning",
+      "text": "Solve the problem slowly once. Then solve it fast forever."
+    },
+    {
+      "theme": "learning",
+      "text": "Revision is where learning turns into memory."
+    },
+    {
+      "theme": "learning",
+      "text": "The syllabus is big. Today’s topic is small. Start there."
+    },
+    {
+      "theme": "learning",
+      "text": "Statistics is patience with numbers. Be patient with yourself too."
+    },
+    {
+      "theme": "learning",
+      "text": "Understanding beats memorising, but practice beats both."
+    },
+    {
+      "theme": "learning",
+      "text": "One DSA problem a day is 365 problems a year."
+    },
+    {
+      "theme": "learning",
+      "text": "Mistakes in practice are gifts you won’t need in the exam."
+    },
+    {
+      "theme": "learning",
+      "text": "Read like you’ll have to teach it tomorrow."
+    },
+    {
+      "theme": "learning",
+      "text": "A good question is worth more than a fast answer."
+    },
+    {
+      "theme": "learning",
+      "text": "Your notes are letters to your exam-day self."
+    },
+    {
+      "theme": "learning",
+      "text": "Learning feels slow until the day it suddenly clicks."
+    },
+    {
+      "theme": "learning",
+      "text": "Stuck is a stage, not a verdict."
+    },
+    {
+      "theme": "learning",
+      "text": "Test yourself before the exam does."
+    },
+    {
+      "theme": "learning",
+      "text": "Depth first. Speed follows."
+    },
+    {
+      "theme": "learning",
+      "text": "Every chapter finished is a peak crossed."
+    },
+    {
+      "theme": "learning",
+      "text": "Distribution, estimation, inference: one idea at a time."
+    },
+    {
+      "theme": "learning",
+      "text": "Review yesterday’s work before starting today’s."
+    },
+    {
+      "theme": "learning",
+      "text": "The best learners are comfortable being beginners."
+    },
+    {
+      "theme": "learning",
+      "text": "Write it out by hand. The pen remembers."
+    },
+    {
+      "theme": "learning",
+      "text": "A wrong answer understood is better than a right answer guessed."
+    },
+    {
+      "theme": "learning",
+      "text": "Curiosity is the cheapest fuel there is."
+    },
+    {
+      "theme": "learning",
+      "text": "Learn one new thing today and connect it to one old thing."
+    },
+    {
+      "theme": "learning",
+      "text": "Practice papers are rehearsals for your best performance."
+    },
+    {
+      "theme": "learning",
+      "text": "Ask why until the formula makes sense."
+    },
+    {
+      "theme": "learning",
+      "text": "You’re not bad at it. You’re early at it."
+    },
+    {
+      "theme": "learning",
+      "text": "Machine learning is statistics with a bigger toolbox. You already own the basics."
+    },
+    {
+      "theme": "learning",
+      "text": "Master the fundamentals and the hard questions get softer."
+    },
+    {
+      "theme": "learning",
+      "text": "Twenty minutes of ML a day adds up to a new career skill."
+    },
+    {
+      "theme": "learning",
+      "text": "Words learned in context stay longer. Read widely."
+    },
+    {
+      "theme": "learning",
+      "text": "A GMAT sentence a day builds a sharper mind."
+    },
+    {
+      "theme": "learning",
+      "text": "Explain it simply, or you haven’t understood it yet."
+    },
+    {
+      "theme": "learning",
+      "text": "A little today, a little next week, a lot remembered."
+    },
+    {
+      "theme": "learning",
+      "text": "Measure progress by problems solved, not hours sat."
+    },
+    {
+      "theme": "learning",
+      "text": "Every expert was once stuck on the same page as you."
+    },
+    {
+      "theme": "learning",
+      "text": "Learning compounds. Keep the principal growing."
+    },
+    {
+      "theme": "learning",
+      "text": "Close one doubt before opening a new chapter."
+    },
+    {
+      "theme": "learning",
+      "text": "The exam rewards calm minds. Practise calm too."
+    },
+    {
+      "theme": "learning",
+      "text": "Sketch the idea before you code it."
+    },
+    {
+      "theme": "learning",
+      "text": "Patterns in DSA repeat. Learn the pattern, not just the problem."
+    },
+    {
+      "theme": "learning",
+      "text": "You learn most at the edge of what you can do."
+    },
+    {
+      "theme": "learning",
+      "text": "Read the question twice. Answer it once."
+    },
+    {
+      "theme": "learning",
+      "text": "Knowledge is the one investment nobody can take from you."
+    },
+    {
+      "theme": "learning",
+      "text": "Study the mistakes more than the marks."
+    },
+    {
+      "theme": "learning",
+      "text": "Make a mind map. Let the topics find each other."
+    },
+    {
+      "theme": "learning",
+      "text": "Hard topics become easy topics by visiting them often."
+    },
+    {
+      "theme": "learning",
+      "text": "A focused hour of practice teaches more than a day of reading."
+    },
+    {
+      "theme": "learning",
+      "text": "Keep a list of what you got wrong. It’s your best study guide."
+    },
+    {
+      "theme": "learning",
+      "text": "Every video watched with a pen in hand is worth three without."
+    },
+    {
+      "theme": "learning",
+      "text": "Don’t just consume. Try a problem right after."
+    },
+    {
+      "theme": "learning",
+      "text": "Probability is intuition trained by practice."
+    },
+    {
+      "theme": "learning",
+      "text": "Learning is climbing: switchbacks count as progress too."
+    },
+    {
+      "theme": "learning",
+      "text": "Teach a friend. Your gaps will show themselves."
+    },
+    {
+      "theme": "learning",
+      "text": "The goal isn’t to finish the book. It’s to own what’s inside."
+    },
+    {
+      "theme": "learning",
+      "text": "Good analysts ask better questions. So do good students."
+    },
+    {
+      "theme": "learning",
+      "text": "Understanding is quiet. It sneaks up on you mid-practice."
+    },
+    {
+      "theme": "learning",
+      "text": "Break big topics into bites you can finish today."
+    },
+    {
+      "theme": "learning",
+      "text": "Rest your brain so it can file away what you learned."
+    },
+    {
+      "theme": "learning",
+      "text": "Growth feels uncomfortable. That’s how you know it’s growth."
+    },
+    {
+      "theme": "learning",
+      "text": "Your past self couldn’t solve this. Look at you now."
+    },
+    {
+      "theme": "learning",
+      "text": "Steady study turns fear of the exam into familiarity."
+    },
+    {
+      "theme": "learning",
+      "text": "Make your weak topic your next strong topic."
+    },
+    {
+      "theme": "learning",
+      "text": "There is no shortcut through the syllabus, but there is a steady path."
+    },
+    {
+      "theme": "learning",
+      "text": "One solved past paper is worth ten skimmed ones."
+    },
+    {
+      "theme": "learning",
+      "text": "Quality of attention matters more than quantity of hours."
+    },
+    {
+      "theme": "learning",
+      "text": "When a concept clicks, write down why."
+    },
+    {
+      "theme": "learning",
+      "text": "Learning something hard at 24 makes everything after easier."
+    },
+    {
+      "theme": "learning",
+      "text": "Review your week like a scientist reviews data."
+    },
+    {
+      "theme": "learning",
+      "text": "Start with an example. The theory will make more sense."
+    },
+    {
+      "theme": "learning",
+      "text": "You don’t have to know it all. You have to keep learning it."
+    },
+    {
+      "theme": "learning",
+      "text": "Every problem you solve today is one you won’t fear tomorrow."
+    },
+    {
+      "theme": "learning",
+      "text": "The mind grows the way muscles do: with load and with rest."
+    },
+    {
+      "theme": "money",
+      "text": "Every rupee you don’t spend on delivery is a rupee working for you."
+    },
+    {
+      "theme": "money",
+      "text": "Cook once, eat twice, save more than you think."
+    },
+    {
+      "theme": "money",
+      "text": "Your savings rate matters more than your salary."
+    },
+    {
+      "theme": "money",
+      "text": "Small spends add up quietly. So do small savings."
+    },
+    {
+      "theme": "money",
+      "text": "Pay yourself first, then pay for everything else."
+    },
+    {
+      "theme": "money",
+      "text": "A home-cooked meal is a win for your wallet and your body."
+    },
+    {
+      "theme": "money",
+      "text": "Track every rupee for a month. You’ll be surprised where they go."
+    },
+    {
+      "theme": "money",
+      "text": "The best budget is the one you actually follow."
+    },
+    {
+      "theme": "money",
+      "text": "Money saved at 24 has years to grow before 30."
+    },
+    {
+      "theme": "money",
+      "text": "Wants can wait. Goals shouldn’t."
+    },
+    {
+      "theme": "money",
+      "text": "The app is designed to make you order. You’re designed to decide."
+    },
+    {
+      "theme": "money",
+      "text": "Before you order, drink water and wait ten minutes."
+    },
+    {
+      "theme": "money",
+      "text": "₹300 a day on delivery is over ₹1,00,000 a year. Choose wisely."
+    },
+    {
+      "theme": "money",
+      "text": "Financial freedom is built one unglamorous choice at a time."
+    },
+    {
+      "theme": "money",
+      "text": "An emergency fund is peace of mind you can bank."
+    },
+    {
+      "theme": "money",
+      "text": "Spend on what you value. Cut what you don’t."
+    },
+    {
+      "theme": "money",
+      "text": "Compounding rewards the patient. Start early, stay steady."
+    },
+    {
+      "theme": "money",
+      "text": "A budget isn’t a cage. It’s a map."
+    },
+    {
+      "theme": "money",
+      "text": "Needs first, goals second, wants last."
+    },
+    {
+      "theme": "money",
+      "text": "Every no to an impulse is a yes to your future."
+    },
+    {
+      "theme": "money",
+      "text": "Invest in skills. They pay dividends for life."
+    },
+    {
+      "theme": "money",
+      "text": "Wealth is mostly what you don’t see: the money you kept."
+    },
+    {
+      "theme": "money",
+      "text": "Round up your savings, not your spending."
+    },
+    {
+      "theme": "money",
+      "text": "Automate the saving so willpower isn’t needed."
+    },
+    {
+      "theme": "money",
+      "text": "Check your spending weekly, not when it’s too late."
+    },
+    {
+      "theme": "money",
+      "text": "Cheap habits make rich futures."
+    },
+    {
+      "theme": "money",
+      "text": "The cart can wait until tomorrow. It usually should."
+    },
+    {
+      "theme": "money",
+      "text": "Know your numbers. A data analyst should love their own data."
+    },
+    {
+      "theme": "money",
+      "text": "Money is a tool. Point it at your goals."
+    },
+    {
+      "theme": "money",
+      "text": "Lifestyle creep is quiet. Keep your eyes open."
+    },
+    {
+      "theme": "money",
+      "text": "Your future self would love an SIP more than a snack."
+    },
+    {
+      "theme": "money",
+      "text": "Treats are better when they’re planned."
+    },
+    {
+      "theme": "money",
+      "text": "A kitchen stocked with basics beats a phone full of delivery apps."
+    },
+    {
+      "theme": "money",
+      "text": "Saving is a habit, not a sacrifice."
+    },
+    {
+      "theme": "money",
+      "text": "Debt charges tomorrow for what you enjoy today."
+    },
+    {
+      "theme": "money",
+      "text": "Spend like you’re building something. You are."
+    },
+    {
+      "theme": "money",
+      "text": "Each week under your food limit is a small financial win."
+    },
+    {
+      "theme": "money",
+      "text": "Ask: will I remember this purchase in a month?"
+    },
+    {
+      "theme": "money",
+      "text": "Good returns start with not wasting the principal."
+    },
+    {
+      "theme": "money",
+      "text": "You earn money once. Save it and it keeps earning for you."
+    },
+    {
+      "theme": "money",
+      "text": "Before you buy, ask what it’s really worth to your goals."
+    },
+    {
+      "theme": "money",
+      "text": "A little discipline with money buys a lot of freedom later."
+    },
+    {
+      "theme": "money",
+      "text": "Make your money boring and your life interesting."
+    },
+    {
+      "theme": "money",
+      "text": "List what a month of savings could buy you. Let it pull you forward."
+    },
+    {
+      "theme": "money",
+      "text": "Delivery fees, surge fees, packing fees: the true cost is higher than the menu."
+    },
+    {
+      "theme": "money",
+      "text": "Cooking is a skill that pays you every day."
+    },
+    {
+      "theme": "money",
+      "text": "An evening walk costs nothing and beats an evening order."
+    },
+    {
+      "theme": "money",
+      "text": "Financial goals are just habits with a rupee sign."
+    },
+    {
+      "theme": "money",
+      "text": "Protect your income by protecting your health."
+    },
+    {
+      "theme": "money",
+      "text": "Save before you celebrate. Then celebrate a little."
+    },
+    {
+      "theme": "money",
+      "text": "A clear budget turns money worry into money confidence."
+    },
+    {
+      "theme": "money",
+      "text": "The goal isn’t to never spend. It’s to spend on purpose."
+    },
+    {
+      "theme": "money",
+      "text": "Money you don’t spend today gives you choices at 30."
+    },
+    {
+      "theme": "money",
+      "text": "Every limit you set is a gift to your future self."
+    },
+    {
+      "theme": "money",
+      "text": "Hungry and bored are different feelings. Only one needs food."
+    },
+    {
+      "theme": "money",
+      "text": "Plan tomorrow’s meals tonight and the apps lose their pull."
+    },
+    {
+      "theme": "money",
+      "text": "Invest in your net worth and your self-worth. Both compound."
+    },
+    {
+      "theme": "money",
+      "text": "Review subscriptions monthly. Cancel what you forgot you had."
+    },
+    {
+      "theme": "money",
+      "text": "The cheapest meal is the one you planned."
+    },
+    {
+      "theme": "money",
+      "text": "Spend less than you earn, invest the difference, repeat for years."
+    },
+    {
+      "theme": "money",
+      "text": "Big goals need a runway. Savings build the runway."
+    },
+    {
+      "theme": "money",
+      "text": "Small money choices, made daily, shape big money outcomes."
+    },
+    {
+      "theme": "money",
+      "text": "You don’t need more money to start saving. You need a start."
+    },
+    {
+      "theme": "money",
+      "text": "Every rupee has a job. Give it a good one."
+    },
+    {
+      "theme": "money",
+      "text": "Impulse fades in ten minutes. Savings last for years."
+    },
+    {
+      "theme": "money",
+      "text": "A good month isn’t one where you earned more. It’s one where you kept more."
+    },
+    {
+      "theme": "money",
+      "text": "Budgeting is forecasting your own life. You’re good at forecasting."
+    },
+    {
+      "theme": "money",
+      "text": "Cook something simple today. Your wallet will notice."
+    },
+    {
+      "theme": "money",
+      "text": "Financial peace comes from margin. Build margin."
+    },
+    {
+      "theme": "money",
+      "text": "Money spent on learning is rarely money wasted."
+    },
+    {
+      "theme": "money",
+      "text": "Your spending tells a story. Make it one you’re proud of."
+    },
+    {
+      "theme": "money",
+      "text": "Skip one order, fund one book."
+    },
+    {
+      "theme": "money",
+      "text": "Saving isn’t about less joy. It’s about longer joy."
+    },
+    {
+      "theme": "health",
+      "text": "Ten pushups on a hard day still count."
+    },
+    {
+      "theme": "health",
+      "text": "Sleep is a performance tool. Use it."
+    },
+    {
+      "theme": "health",
+      "text": "Your brain studies better in a body that moves."
+    },
+    {
+      "theme": "health",
+      "text": "Drink water before coffee. Your focus will thank you."
+    },
+    {
+      "theme": "health",
+      "text": "A short walk clears the mind faster than a long scroll."
+    },
+    {
+      "theme": "health",
+      "text": "Strength is built on the days you’d rather skip."
+    },
+    {
+      "theme": "health",
+      "text": "Eat like you’re fuelling a long climb. You are."
+    },
+    {
+      "theme": "health",
+      "text": "Stretch for five minutes. Your back sits through your ambition."
+    },
+    {
+      "theme": "health",
+      "text": "Rest isn’t lazy. It’s recovery."
+    },
+    {
+      "theme": "health",
+      "text": "Bed by 11:30 means a sharper mind by 7."
+    },
+    {
+      "theme": "health",
+      "text": "Health is the first asset on your balance sheet."
+    },
+    {
+      "theme": "health",
+      "text": "Move every hour. Sitting all day steals energy quietly."
+    },
+    {
+      "theme": "health",
+      "text": "Your body keeps score of your habits. Give it good ones."
+    },
+    {
+      "theme": "health",
+      "text": "Morning sunlight sets a better day in motion."
+    },
+    {
+      "theme": "health",
+      "text": "A strong body carries a busy mind further."
+    },
+    {
+      "theme": "health",
+      "text": "Workouts don’t need to be long. They need to happen."
+    },
+    {
+      "theme": "health",
+      "text": "Home-cooked food is fuel you can trust."
+    },
+    {
+      "theme": "health",
+      "text": "Deep breaths before deep work."
+    },
+    {
+      "theme": "health",
+      "text": "Screens off before bed, dreams on."
+    },
+    {
+      "theme": "health",
+      "text": "Energy is built, not found. Build it daily."
+    },
+    {
+      "theme": "health",
+      "text": "Protect your sleep like you protect your study time."
+    },
+    {
+      "theme": "health",
+      "text": "One healthy meal leads to the next one."
+    },
+    {
+      "theme": "health",
+      "text": "Your posture while studying is part of your training."
+    },
+    {
+      "theme": "health",
+      "text": "A good workout is a great mood lift."
+    },
+    {
+      "theme": "health",
+      "text": "Hydration is the easiest win of the day."
+    },
+    {
+      "theme": "health",
+      "text": "Rest days are where muscles and memories grow."
+    },
+    {
+      "theme": "health",
+      "text": "Be patient with your body. Progress is slow and real."
+    },
+    {
+      "theme": "health",
+      "text": "Eat more colours and fewer packets."
+    },
+    {
+      "theme": "health",
+      "text": "Walk while you think. Ideas like movement."
+    },
+    {
+      "theme": "health",
+      "text": "Regular exercise beats occasional heroics."
+    },
+    {
+      "theme": "health",
+      "text": "A tired mind often just needs a glass of water and a walk."
+    },
+    {
+      "theme": "health",
+      "text": "Health habits are the quiet foundation of every other goal."
+    },
+    {
+      "theme": "health",
+      "text": "Put the phone in another room at night. Sleep deeper."
+    },
+    {
+      "theme": "health",
+      "text": "Pushups today, confidence tomorrow."
+    },
+    {
+      "theme": "health",
+      "text": "Refill your energy daily. Nobody climbs on empty."
+    },
+    {
+      "theme": "health",
+      "text": "Take the stairs. Every step is a small climb."
+    },
+    {
+      "theme": "health",
+      "text": "Treat your body like the vehicle for your whole journey."
+    },
+    {
+      "theme": "health",
+      "text": "Wind down at night the way you warm up for a workout."
+    },
+    {
+      "theme": "health",
+      "text": "Five minutes of stretching beats zero minutes of perfect yoga."
+    },
+    {
+      "theme": "health",
+      "text": "Your best study sessions follow your best nights of sleep."
+    },
+    {
+      "theme": "health",
+      "text": "Fitness is a promise you keep to your older self."
+    },
+    {
+      "theme": "health",
+      "text": "Breathe, stretch, move. Then study."
+    },
+    {
+      "theme": "health",
+      "text": "Eat slowly. Your body needs time to say enough."
+    },
+    {
+      "theme": "health",
+      "text": "A calm mind is a healthy mind. Pause often."
+    },
+    {
+      "theme": "health",
+      "text": "Sweat a little every day."
+    },
+    {
+      "theme": "health",
+      "text": "Late-night snacks steal morning energy."
+    },
+    {
+      "theme": "health",
+      "text": "Your heart likes a daily walk as much as you like progress."
+    },
+    {
+      "theme": "health",
+      "text": "Health is the habit that keeps every other habit possible."
+    },
+    {
+      "theme": "health",
+      "text": "The minimum workout keeps the door open for tomorrow’s full one."
+    },
+    {
+      "theme": "health",
+      "text": "Sleep on time tonight. Tomorrow’s prep will be sharper."
+    },
+    {
+      "theme": "health",
+      "text": "Take breaks away from screens. Your eyes are climbing too."
+    },
+    {
+      "theme": "health",
+      "text": "Good food, good sleep, good work. In that order."
+    },
+    {
+      "theme": "health",
+      "text": "Build a body that can handle the life you want."
+    },
+    {
+      "theme": "health",
+      "text": "Stress shrinks with movement. Go move."
+    },
+    {
+      "theme": "health",
+      "text": "A glass of water and an open window can reset an afternoon."
+    },
+    {
+      "theme": "health",
+      "text": "Moving your body tells your mind it can handle more."
+    },
+    {
+      "theme": "health",
+      "text": "Strong legs, strong back, strong focus."
+    },
+    {
+      "theme": "health",
+      "text": "Your energy is your most limited resource. Guard it."
+    },
+    {
+      "theme": "health",
+      "text": "Recovery is where discipline pays you back."
+    },
+    {
+      "theme": "health",
+      "text": "Eat breakfast like it’s the first study block of the day."
+    },
+    {
+      "theme": "health",
+      "text": "The best workout is the one you’ll do today."
+    },
+    {
+      "theme": "health",
+      "text": "Early nights make early wins possible."
+    },
+    {
+      "theme": "health",
+      "text": "You’ll never regret the workout you finished."
+    },
+    {
+      "theme": "health",
+      "text": "Check in with your body, not just your to-do list."
+    },
+    {
+      "theme": "health",
+      "text": "Keep a water bottle on your desk. Sip between problems."
+    },
+    {
+      "theme": "health",
+      "text": "A healthy routine makes hard seasons bearable."
+    },
+    {
+      "theme": "health",
+      "text": "Mind and body climb together or not at all."
+    },
+    {
+      "theme": "health",
+      "text": "Hold a plank for a minute. Feel what focus really is."
+    },
+    {
+      "theme": "health",
+      "text": "Let the evening be slower so the morning can be stronger."
+    },
+    {
+      "theme": "health",
+      "text": "Health isn’t a goal you reach. It’s a habit you keep."
+    },
+    {
+      "theme": "health",
+      "text": "Be kind to your body. It’s carrying your dreams."
+    },
+    {
+      "theme": "health",
+      "text": "A little stronger every week is a lot stronger every year."
+    },
+    {
+      "theme": "health",
+      "text": "Tonight’s sleep is tomorrow’s discipline."
+    },
+    {
+      "theme": "climbing",
+      "text": "The summit is made of ordinary steps taken on ordinary days."
+    },
+    {
+      "theme": "climbing",
+      "text": "Look back sometimes. You’ve climbed further than you think."
+    },
+    {
+      "theme": "climbing",
+      "text": "Every mountain looks impossible from its base."
+    },
+    {
+      "theme": "climbing",
+      "text": "The view is earned one switchback at a time."
+    },
+    {
+      "theme": "climbing",
+      "text": "You don’t have to see the top to take the next step."
+    },
+    {
+      "theme": "climbing",
+      "text": "Slow climbers still reach the summit."
+    },
+    {
+      "theme": "climbing",
+      "text": "When the path gets steep, shorten your stride, not your goal."
+    },
+    {
+      "theme": "climbing",
+      "text": "Base camp isn’t failure. It’s preparation."
+    },
+    {
+      "theme": "climbing",
+      "text": "The sun rises for those already on the trail."
+    },
+    {
+      "theme": "climbing",
+      "text": "Your climb is yours alone. Compare only with yesterday."
+    },
+    {
+      "theme": "climbing",
+      "text": "Six years to thirty. Enough time to climb something great."
+    },
+    {
+      "theme": "climbing",
+      "text": "The mountain doesn’t move. You do."
+    },
+    {
+      "theme": "climbing",
+      "text": "Rest on the ledge, then keep climbing."
+    },
+    {
+      "theme": "climbing",
+      "text": "Every peak you reach reveals a higher one. Enjoy both."
+    },
+    {
+      "theme": "climbing",
+      "text": "Carry only what helps you climb."
+    },
+    {
+      "theme": "climbing",
+      "text": "A steady pace outlasts a fast start."
+    },
+    {
+      "theme": "climbing",
+      "text": "Fog hides the summit, not the path. Keep walking."
+    },
+    {
+      "theme": "climbing",
+      "text": "The hardest stretch is often just before the view opens."
+    },
+    {
+      "theme": "climbing",
+      "text": "Your footing today decides your height tomorrow."
+    },
+    {
+      "theme": "climbing",
+      "text": "Climbers plan for storms. So do achievers."
+    },
+    {
+      "theme": "climbing",
+      "text": "The trail is long. Pack patience."
+    },
+    {
+      "theme": "climbing",
+      "text": "You are closer to the top than you were yesterday."
+    },
+    {
+      "theme": "climbing",
+      "text": "Celebrate the ridges, not just the peak."
+    },
+    {
+      "theme": "climbing",
+      "text": "Great climbs start with small, unglamorous steps."
+    },
+    {
+      "theme": "climbing",
+      "text": "Altitude is earned, not given."
+    },
+    {
+      "theme": "climbing",
+      "text": "When you slip, grip tighter and keep going."
+    },
+    {
+      "theme": "climbing",
+      "text": "Sunrise from the summit is sweeter for the dark climb before it."
+    },
+    {
+      "theme": "climbing",
+      "text": "The rope that holds you is the routine you built."
+    },
+    {
+      "theme": "climbing",
+      "text": "Some days you climb. Some days you hold your ground. Both count."
+    },
+    {
+      "theme": "climbing",
+      "text": "The mountain teaches patience to those who keep showing up."
+    },
+    {
+      "theme": "climbing",
+      "text": "Look up for inspiration, down for footing, ahead for direction."
+    },
+    {
+      "theme": "climbing",
+      "text": "A summit is just a series of good decisions stacked high."
+    },
+    {
+      "theme": "climbing",
+      "text": "The climb shapes the climber."
+    },
+    {
+      "theme": "climbing",
+      "text": "Don’t rush the ascent. Make it steady and sure."
+    },
+    {
+      "theme": "climbing",
+      "text": "Your future is a summit you build as you climb it."
+    },
+    {
+      "theme": "climbing",
+      "text": "From the top, every hard step makes sense."
+    },
+    {
+      "theme": "climbing",
+      "text": "The higher you go, the clearer the air gets."
+    },
+    {
+      "theme": "climbing",
+      "text": "Nobody reaches the peak by staring at it."
+    },
+    {
+      "theme": "climbing",
+      "text": "Mark your progress. Every camp is a victory."
+    },
+    {
+      "theme": "climbing",
+      "text": "The path is steep because the view is worth it."
+    },
+    {
+      "theme": "climbing",
+      "text": "You were built for the climb, not just the view."
+    },
+    {
+      "theme": "climbing",
+      "text": "Keep your eyes on the trail and your heart on the summit."
+    },
+    {
+      "theme": "climbing",
+      "text": "Good climbers respect the mountain and trust their training."
+    },
+    {
+      "theme": "climbing",
+      "text": "Tough stretches pass. Keep your feet moving."
+    },
+    {
+      "theme": "climbing",
+      "text": "Each day won is a flag planted higher up."
+    },
+    {
+      "theme": "climbing",
+      "text": "A fresh climb starts every morning at sunrise."
+    },
+    {
+      "theme": "climbing",
+      "text": "Today you are the climber, the guide and the cheering crowd."
+    },
+    {
+      "theme": "climbing",
+      "text": "The mountain is patient. Be patient too."
+    },
+    {
+      "theme": "climbing",
+      "text": "Rest, breathe, then take ten more steps."
+    },
+    {
+      "theme": "climbing",
+      "text": "Most of climbing is simply staying on the path."
+    },
+    {
+      "theme": "climbing",
+      "text": "The top is not the end. It’s the proof."
+    },
+    {
+      "theme": "climbing",
+      "text": "Every season of effort leaves a trail others can follow."
+    },
+    {
+      "theme": "climbing",
+      "text": "When the peak seems far, count the steps behind you instead."
+    },
+    {
+      "theme": "climbing",
+      "text": "Even the tallest summit is climbed one footstep at a time."
+    },
+    {
+      "theme": "climbing",
+      "text": "Storms are part of the climb. So is the sunshine after them."
+    },
+    {
+      "theme": "climbing",
+      "text": "Your journey to 30 is a climb worth savouring."
+    },
+    {
+      "theme": "climbing",
+      "text": "Stand tall. You’ve come further than the version of you who started."
+    },
+    {
+      "theme": "climbing",
+      "text": "Momentum on the mountain comes from rhythm, not rush."
+    },
+    {
+      "theme": "climbing",
+      "text": "Keep climbing, even in the quiet hours when no one sees."
+    },
+    {
+      "theme": "climbing",
+      "text": "Each goal is a ridge on the way to the next."
+    },
+    {
+      "theme": "climbing",
+      "text": "Trust the trail you’ve mapped. Adjust when the weather changes."
+    },
+    {
+      "theme": "climbing",
+      "text": "The summit feels closer when you stop staring at the clouds."
+    },
+    {
+      "theme": "climbing",
+      "text": "Steep days build strong legs."
+    },
+    {
+      "theme": "climbing",
+      "text": "The mountain rewards those who return to it every day."
+    },
+    {
+      "theme": "climbing",
+      "text": "Every morning is base camp for a new ascent."
+    },
+    {
+      "theme": "climbing",
+      "text": "Plant your feet, set your eyes, move forward."
+    },
+    {
+      "theme": "climbing",
+      "text": "You don’t conquer mountains. You keep them company until you reach the top."
+    },
+    {
+      "theme": "climbing",
+      "text": "The view from the top belongs to the one who kept going."
+    },
+    {
+      "theme": "climbing",
+      "text": "Your climb inspires people you’ll never meet."
+    },
+    {
+      "theme": "climbing",
+      "text": "Breathe in the effort, breathe out the doubt."
+    },
+    {
+      "theme": "climbing",
+      "text": "Summits aren’t reached in leaps. They’re reached in loops of practice."
+    },
+    {
+      "theme": "climbing",
+      "text": "The sun will rise again tomorrow. Be on the trail when it does."
+    },
+    {
+      "theme": "climbing",
+      "text": "Keep climbing. The best view is still ahead."
+    }
+  ]
+}

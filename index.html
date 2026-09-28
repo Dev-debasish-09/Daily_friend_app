@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="en-IN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#F4F1FA">
+  <title>Today · ASCEND</title>
+
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="ASCEND">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="stylesheet" href="styles.css">
+
+  <script src="shared.js"></script>
+  <script src="index.js" defer></script>
+
+  <!-- Styles only Today needs -->
+  <style>
+    /* ----- Summit hero (Today's signature) -----
+       Full-bleed scene at the top of the page. --score (0 to 1) is set by index.js:
+       the sun rises, the stars fade and the horizon warms as today's score grows. */
+    .hero {
+      --score: 0;
+      position: relative;
+      /* Break out of the page padding: edge to edge, under the status bar */
+      margin: calc(-1 * (env(safe-area-inset-top) + 20px)) calc(-1 * max(var(--gutter), env(safe-area-inset-right))) 0 calc(-1 * max(var(--gutter), env(safe-area-inset-left)));
+      height: calc(min(122vw, 540px) + env(safe-area-inset-top));
+      overflow: hidden;
+      border-radius: 0 0 var(--radius-card) var(--radius-card);
+      box-shadow: var(--shadow-card);
+      isolation: isolate;
+    }
+    @media (min-width: 481px) {
+      .hero { margin-left: 0; margin-right: 0; border-radius: var(--radius-card); margin-top: 0; height: 540px; }
+    }
+
+    .summit { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; }
+
+    .sky-top    { stop-color: var(--sky-top); }
+    .sky-dusk   { stop-color: var(--sky-dusk); }
+    .warm-clear { stop-color: var(--peach); stop-opacity: 0; }
+    .warm-peach { stop-color: var(--peach); stop-opacity: 0.75; }
+    .warm-gold  { stop-color: var(--gold); stop-opacity: 0.9; }
+    .glow-in    { stop-color: var(--gold); stop-opacity: 0.85; }
+    .glow-out   { stop-color: var(--gold); stop-opacity: 0; }
+
+    /* The horizon warms as you climb */
+    .warmth { opacity: calc(var(--score) * 0.85); transition: opacity 1.4s var(--ease-out); }
+    /* Stars fade as the sun comes up */
+    .stars { fill: var(--star-color); opacity: calc((1 - var(--score)) * var(--star-strength)); transition: opacity 1.4s ease; }
+
+    /* 0% = below the ridge, 100% = high over the summit */
+    .sun {
+      transform: translateY(calc((1 - var(--score)) * 150px));
+      transition: transform 1.4s var(--ease-out);
+    }
+    .sun-glow { opacity: calc(0.25 + var(--score) * 0.75); transition: opacity 1.4s ease; }
+    .sun-core { fill: var(--peach); transform-box: fill-box; transform-origin: center; }
+    .sun-gold { fill: var(--gold); opacity: var(--score); transition: opacity 1.4s ease; }
+    /* A small pulse when your score goes up (user action only) */
+    .hero.is-pulsing .sun-core { animation: sun-pulse 600ms var(--ease-out); }
+    @keyframes sun-pulse {
+      0%   { transform: scale(1); }
+      40%  { transform: scale(1.12); }
+      100% { transform: scale(1); }
+    }
+
+    .rays {
+      fill: var(--gold);
+      opacity: 0;
+      transform: scale(0.5);
+      transform-box: view-box;
+      transform-origin: 180px 150px;   /* sun centre */
+      transition: opacity 0.6s ease, transform 0.6s var(--ease-out);
+    }
+
+    .range-far  { fill: var(--mountain-far); opacity: 0.55; }
+    .range-mid  { fill: var(--mountain-far); }
+    .range-near { fill: var(--mountain-near); }
+    .haze-clear { stop-color: var(--mountain-near); stop-opacity: 0; }
+    .haze-dark  { stop-color: var(--mountain-near); stop-opacity: 0.9; }
+    .ridge-gold { fill: none; stroke: var(--gold); stroke-width: 2.5; stroke-linejoin: round; opacity: 0; transition: opacity 0.8s ease; }
+
+    /* Day Won: full gold sunrise, rays, a gold edge on the ridge */
+    .hero.is-won { box-shadow: var(--shadow-card), 0 0 0 2px var(--gold); }
+    .hero.is-won .rays { opacity: 1; transform: scale(1); }
+    .hero.is-won .ridge-gold { opacity: 1; }
+    .hero.is-bursting .rays { animation: rays-burst 1.4s var(--ease-out); }
+    @keyframes rays-burst {
+      0%   { opacity: 0; transform: scale(0.4) rotate(-25deg); }
+      55%  { opacity: 1; transform: scale(1.18) rotate(4deg); }
+      100% { opacity: 1; transform: scale(1) rotate(0deg); }
+    }
+
+    /* The load moment: ranges rise one after another, then the sun climbs */
+    .hero.is-arriving .range-far  { animation: range-rise 900ms var(--ease-out) both; }
+    .hero.is-arriving .range-mid  { animation: range-rise 900ms var(--ease-out) 90ms both; }
+    .hero.is-arriving .range-near,
+    .hero.is-arriving .haze,
+    .hero.is-arriving .ridge-gold { animation: range-rise 900ms var(--ease-out) 180ms both; }
+    .hero.is-arriving .hero__sky  { animation: sky-in 700ms var(--ease-out) both; }
+    .hero.is-arriving .hero__stats { animation: sky-in 700ms var(--ease-out) 300ms both; }
+    .hero.is-arriving .sun { transition-delay: 250ms; }
+    @keyframes range-rise {
+      from { transform: translateY(26px); }
+      to   { transform: none; }
+    }
+    @keyframes sky-in {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    /* Text in the sky (greeting) */
+    .hero__sky {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      padding: calc(env(safe-area-inset-top) + 20px) max(20px, env(safe-area-inset-right)) 0 max(20px, env(safe-area-inset-left));
+    }
+    .hero__hello { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    .hero__hello h1 { font-size: var(--fs-2xl); overflow-wrap: anywhere; }
+    .hero__hello .badge { align-self: flex-start; background: var(--glass-bg); color: var(--ink); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+
+    /* Level ring in the sky: opens the Wall of Wins */
+    .level-ring {
+      flex: none;
+      position: relative;
+      display: grid;
+      place-items: center;
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: var(--glass-bg);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      box-shadow: var(--shadow-tile);
+      color: var(--ink);
+      text-decoration: none;
+      transition: transform var(--dur-fast) var(--ease-out);
+    }
+    .level-ring:active { transform: scale(0.94); }
+    .level-ring svg { position: absolute; inset: 3px; width: calc(100% - 6px); height: calc(100% - 6px); }
+    .level-ring__track { fill: none; stroke: var(--line); stroke-width: 3.5; }
+    .level-ring__fill { fill: none; stroke: var(--accent); stroke-width: 3.5; stroke-linecap: round; transition: stroke-dasharray var(--dur-med) var(--ease-out); }
+    .level-ring__num { font-family: var(--font-head); font-size: var(--fs-md); font-weight: 800; line-height: 1; }
+    .level-ring__label { position: absolute; top: calc(100% + 4px); font-size: 0.75rem; font-weight: 800; color: var(--ink); white-space: nowrap; }
+
+    /* Score and progress, sitting on the near range */
+    .hero__stats {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 0 max(20px, env(safe-area-inset-right)) 22px max(20px, env(safe-area-inset-left));
+      color: var(--on-mountain);
+    }
+    .hero__score { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; }
+    .hero__score .num-big { font-size: 3.25rem; color: var(--on-mountain); }
+    .hero__score-label { font-weight: 700; color: var(--on-mountain-muted); }
+    .hero__line { font-weight: 700; color: var(--on-mountain); }
+    .hero__line .dim { color: var(--on-mountain-muted); font-weight: 600; }
+    .hero__streak { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--on-mountain); }
+    .hero__streak svg { flex: none; width: 18px; height: 18px; color: var(--gold); }
+
+    @media (prefers-reduced-motion: reduce) {
+      .hero.is-arriving .range-far, .hero.is-arriving .range-mid, .hero.is-arriving .range-near,
+      .hero.is-arriving .ridge-gold, .hero.is-arriving .haze, .hero.is-arriving .hero__sky, .hero.is-arriving .hero__stats,
+      .hero.is-pulsing .sun-core { animation: none; }
+      .level-ring:active { transform: none; }
+    }
+
+    /* Daily quote card */
+    .quote-card {
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .quote-card blockquote { margin: 0; }
+
+    /* Streak under a habit's progress */
+    .habit__streak {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 2px;
+      font-size: var(--fs-xs);
+      font-weight: 800;
+      color: var(--accent-text);
+    }
+    .habit__streak svg { width: 14px; height: 14px; }
+
+    .group-title {
+      font-family: var(--font-ui);
+      font-size: var(--fs-xs);
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .checklist {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* One habit row (a .tile), with a thin stripe in the habit's colour */
+    .habit { gap: 12px; }
+    .habit::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 16px;
+      bottom: 16px;
+      width: 4px;
+      border-radius: 0 4px 4px 0;
+      background: var(--habit-color, transparent);
+    }
+    .habit__emoji { margin-right: 6px; }
+
+    .habit__head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .habit__check {
+      flex: none;
+      display: grid;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+      border: 2px solid var(--line);
+      border-radius: 50%;
+      color: transparent;
+      transition: background-color var(--dur-med) ease, border-color var(--dur-med) ease;
+    }
+    .habit__check svg { width: 16px; height: 16px; }
+
+    .habit__text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+    .habit__name {
+      font-family: var(--font-head);
+      font-size: var(--fs-md);
+      font-weight: 600;
+      line-height: 1.3;
+    }
+
+    .habit__progress {
+      font-size: var(--fs-sm);
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .habit__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    .habit__custom { display: flex; flex-direction: column; gap: 10px; }
+
+    /* Done state: pine check + pine outline */
+    .habit.is-done {
+      box-shadow: var(--shadow-tile), inset 0 0 0 1.5px var(--success);
+    }
+    .habit.is-done .habit__check {
+      background: var(--success);
+      border-color: var(--success);
+      color: var(--on-success);
+    }
+    .habit.is-done .habit__progress {
+      color: var(--success-text);
+      font-weight: 700;
+    }
+
+    /* Minimum kept (not full target): gold check */
+    .habit.is-kept .habit__check {
+      background: var(--gold);
+      border-color: var(--gold);
+      color: var(--on-gold);
+    }
+    .habit.is-kept .habit__progress { color: var(--ink); font-weight: 700; }
+
+    /* Yes/no habits: the whole row is one button */
+    .habit--toggle {
+      width: 100%;
+      min-height: 72px;
+      font: inherit;
+      color: inherit;
+      text-align: left;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: transform var(--dur-fast) var(--ease-out);
+    }
+    .habit--toggle:active { transform: scale(0.98); }
+
+    /* Little pop when a habit turns done (user action only) */
+    .habit.just-done { animation: done-pop 480ms var(--ease-out); }
+    .habit.just-done .habit__check { animation: check-pop 480ms var(--ease-out); }
+
+    @keyframes done-pop {
+      0%   { transform: scale(1); }
+      40%  { transform: scale(1.02); }
+      100% { transform: scale(1); }
+    }
+    /* The check draws itself */
+    .habit.just-done .habit__check path { stroke-dasharray: 22; animation: check-draw 420ms var(--ease-out) both; }
+    @keyframes check-draw {
+      from { stroke-dashoffset: 22; }
+      to   { stroke-dashoffset: 0; }
+    }
+
+    /* "+20 XP" floats up from the check */
+    .xp-float {
+      position: fixed;
+      z-index: 70;
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      background: var(--gold);
+      color: var(--on-gold);
+      font-family: var(--font-head);
+      font-size: var(--fs-sm);
+      font-weight: 800;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      animation: xp-float 900ms var(--ease-out) forwards;
+    }
+    @keyframes xp-float {
+      0%   { opacity: 0; transform: translate(-50%, -30%) scale(0.8); }
+      20%  { opacity: 1; transform: translate(-50%, -80%) scale(1); }
+      100% { opacity: 0; transform: translate(-50%, -220%) scale(1); }
+    }
+
+    @keyframes check-pop {
+      0%   { transform: scale(0.6); }
+      60%  { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+
+    /* Nightly reflection card */
+    .reflect-card { display: flex; flex-direction: column; gap: 10px; }
+    .reflect-card__faces { display: flex; flex-wrap: wrap; gap: 6px 14px; font-weight: 700; }
+    .reflect-card__done { display: flex; align-items: center; gap: 8px; }
+    .reflect-card .btn--ghost { align-self: flex-start; }
+    .reflect-card__done svg { flex: none; width: 20px; height: 20px; color: var(--success-text); }
+
+    @media (prefers-reduced-motion: reduce) {
+      .habit--toggle:active { transform: none; }
+    }
+  </style>
+</head>
+
+<body data-page="today" class="has-fab">
+  <main class="page" id="main">
+
+    <!-- Summit hero: the page's signature and its one load moment.
+         The sun rises with today's score; the ranges rise in on load. -->
+    <section class="hero" id="hero" aria-labelledby="hello">
+      <svg class="summit" viewBox="0 0 360 440" preserveAspectRatio="xMidYMax slice" role="img" aria-labelledby="summit-label" focusable="false">
+        <title id="summit-label">The sun is below the horizon</title>
+        <defs>
+          <linearGradient id="sky-gradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" class="sky-top"/>
+            <stop offset="1" class="sky-dusk"/>
+          </linearGradient>
+          <linearGradient id="warm-gradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0.25" class="warm-clear"/>
+            <stop offset="0.62" class="warm-peach"/>
+            <stop offset="0.8" class="warm-gold"/>
+          </linearGradient>
+          <!-- Dark haze at the foot of the ranges, so the score is always readable -->
+          <linearGradient id="haze-gradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" class="haze-clear"/>
+            <stop offset="0.5" class="haze-dark"/>
+          </linearGradient>
+          <radialGradient id="sun-glow-gradient">
+            <stop offset="0" class="glow-in"/>
+            <stop offset="1" class="glow-out"/>
+          </radialGradient>
+        </defs>
+
+        <rect width="360" height="440" fill="url(#sky-gradient)"/>
+        <g class="stars"><circle cx="28" cy="118" r="1.2"/><circle cx="64" cy="150" r="0.9"/><circle cx="96" cy="104" r="1.4"/><circle cx="132" cy="136" r="1"/><circle cx="214" cy="112" r="1.1"/><circle cx="246" cy="146" r="1.4"/><circle cx="288" cy="120" r="0.9"/><circle cx="318" cy="158" r="1.2"/><circle cx="340" cy="108" r="1"/><circle cx="20" cy="182" r="1"/><circle cx="84" cy="196" r="1.1"/><circle cx="300" cy="190" r="1"/><circle cx="152" cy="176" r="0.8"/><circle cx="230" cy="184" r="0.9"/><circle cx="48" cy="222" r="0.8"/><circle cx="330" cy="220" r="0.9"/></g>
+        <rect class="warmth" width="360" height="440" fill="url(#warm-gradient)"/>
+
+        <!-- Sun (drawn before the mountains so they hide it at low scores) -->
+        <g class="sun">
+          <g class="rays" id="rays"></g>
+          <circle class="sun-glow" cx="180" cy="150" r="110" fill="url(#sun-glow-gradient)"/>
+          <circle class="sun-core" cx="180" cy="150" r="30"/>
+          <circle class="sun-gold" cx="180" cy="150" r="30"/>
+        </g>
+
+        <!-- Three ranges; the near one holds the score and has the summit at the centre -->
+        <path class="range-far" d="M0 440V236l38-14 40 12 48-40 36 24 30-14 42 26 40-30 44 20 42-8v228z"/>
+        <path class="range-mid" d="M0 440V266l50-20 42 14 54-46 34 24 30-20 38 28 46-18 66 30v182z"/>
+        <path class="range-near" d="M0 440V270l56-16 48 12 76-62 56 40 46-14 78 32v168z"/>
+        <rect class="haze" y="210" width="360" height="230" fill="url(#haze-gradient)"/>
+        <path class="ridge-gold" d="M0 270l56-16 48 12 76-62 56 40 46-14 78 32"/>
+      </svg>
+
+      <div class="hero__sky">
+        <div class="hero__hello">
+          <p class="eyebrow" id="today-date"></p>
+          <h1 id="hello">Hello</h1>
+          <span class="badge" id="day-type">Weekday targets</span>
+        </div>
+        <a class="level-ring" id="level-card" href="wins.html" hidden>
+          <svg viewBox="0 0 46 46" aria-hidden="true" focusable="false">
+            <circle class="level-ring__track" cx="23" cy="23" r="20"/>
+            <circle class="level-ring__fill" id="level-bar" cx="23" cy="23" r="20" pathLength="100" stroke-dasharray="0 100" transform="rotate(-90 23 23)"/>
+          </svg>
+          <span class="level-ring__num" id="level-num" aria-hidden="true">1</span>
+          <span class="level-ring__label" id="level-title" aria-hidden="true">Level 1</span>
+        </a>
+      </div>
+
+      <div class="hero__stats">
+        <p class="hero__score">
+          <span class="num-big" id="score">0%</span>
+          <span class="hero__score-label" id="h-score">today’s score</span>
+          <span class="badge badge--gold" id="won-badge" hidden>Day won</span>
+        </p>
+        <p class="hero__line"><span id="done-summary"></span> <span class="dim" id="summary-message">Fresh climb today. One small step counts.</span></p>
+        <p class="hero__streak" id="win-streak">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/></svg>
+          <span id="win-streak-text">Win today to start a streak.</span>
+        </p>
+      </div>
+    </section>
+
+    <!-- Nightly reflection: a gentle prompt from 8 PM -->
+    <section class="card reflect-card" id="reflect-card" aria-labelledby="reflect-title" hidden></section>
+
+    <!-- Checklist (filled by index.js) -->
+    <div class="stack-lg" id="checklist">
+      <p class="muted">Loading your habits…</p>
+    </div>
+
+    <!-- Daily quote (Fraunces italic lives only here) -->
+    <figure class="card quote-card" id="quote-card" hidden>
+      <figcaption class="eyebrow" id="quote-label">Today’s line</figcaption>
+      <blockquote class="quote" id="quote-text"></blockquote>
+    </figure>
+
+    <!-- Food delivery (same card as on Money) -->
+    <section class="card food-card" id="food-card" aria-labelledby="food-title"></section>
+
+    <!-- Countdowns -->
+    <section class="stack" aria-labelledby="h-countdowns">
+      <h2 class="group-title" id="h-countdowns">Countdowns</h2>
+      <div class="grid-2">
+        <div class="tile">
+          <span class="tile__label">ISS exam</span>
+          <span class="tile__value" id="exam-days">–</span>
+          <span class="tile__note" id="exam-date"></span>
+        </div>
+        <div class="tile">
+          <span class="tile__label">Turning 30</span>
+          <span class="tile__value" id="thirty-days">–</span>
+          <span class="tile__note" id="thirty-date"></span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Quick-add an expense from Today (same sheet as the Money page) -->
+  <button class="fab" type="button" id="fab-expense" aria-label="Add expense">
+    <span aria-hidden="true">₹</span>
+    <span>Add expense</span>
+  </button>
+</body>
+</html>

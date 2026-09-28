@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en-IN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#F4F1FA">
+  <title>Insights · ASCEND</title>
+
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="ASCEND">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="stylesheet" href="styles.css">
+
+  <script src="shared.js"></script>
+  <script src="insights.js" defer></script>
+
+  <!-- Styles only Insights needs -->
+  <style>
+    .nav-pair { display: flex; gap: 8px; }
+    .icon-btn[aria-disabled="true"] { pointer-events: none; }
+
+    /* ----- Night sky (Insights signature) -----
+       The card always uses the Night tokens (data-theme="night" on the card),
+       so it's a night sky in both themes. */
+    .sky-card {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      background: linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
+      color: var(--ink);
+    }
+    .sky-year { font-family: var(--font-head); font-size: var(--fs-xl); font-weight: 800; font-variant-numeric: tabular-nums; }
+
+    .sky-wrap { position: relative; border-radius: var(--radius-input); touch-action: manipulation; cursor: pointer; }
+    .sky-wrap:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; }
+    .sky { display: block; width: 100%; height: auto; }
+    .sky-month { fill: var(--muted); font-family: var(--font-ui); font-size: 12px; font-weight: 800; }
+    .sky-tick { fill: var(--muted); font-family: var(--font-ui); font-size: 11px; font-weight: 700; }
+    .star { fill: var(--ink); }
+    .star--dust { fill: var(--muted); }
+    .star--won { fill: var(--gold); }
+    .star-glow-in  { stop-color: var(--gold); stop-opacity: 0.7; }
+    .star-glow-out { stop-color: var(--gold); stop-opacity: 0; }
+    .sky-today { fill: none; stroke: var(--lavender); stroke-width: 1.2; stroke-dasharray: 2 2; }
+    .sky-select { fill: none; stroke: var(--accent-text); stroke-width: 2; }
+
+    /* Stars light up once on load (the page's one load moment) */
+    .star-g { transform-box: fill-box; transform-origin: center; animation: star-in 520ms var(--ease-out) both; animation-delay: calc(var(--i) * 2ms); }
+    @keyframes star-in {
+      from { transform: scale(0); }
+      to   { transform: none; }
+    }
+
+    .sky-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: var(--fs-sm); font-weight: 700; color: var(--muted); }
+    .sky-legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .sky-legend svg { width: 14px; height: 14px; }
+
+    /* Selected day */
+    .day-panel { display: flex; flex-direction: column; gap: 12px; padding-top: 16px; border-top: 1px solid var(--line); }
+    .day-panel__head { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 4px 12px; }
+    .day-panel__date { font-family: var(--font-head); font-size: var(--fs-lg); font-weight: 700; }
+    .day-panel__score { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+    .day-habits { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: var(--fs-sm); }
+    .day-habits li { display: flex; align-items: flex-start; gap: 8px; }
+    .day-habits__mark { flex: none; width: 18px; font-weight: 800; text-align: center; }
+    .day-habits .is-done .day-habits__mark { color: var(--success-text); }
+    .day-habits .is-kept .day-habits__mark { color: var(--gold); }
+    .day-habits .is-open { color: var(--muted); }
+    .day-habits__name { flex: 1; min-width: 0; font-weight: 700; }
+    .day-habits__value { flex: none; font-variant-numeric: tabular-nums; }
+    .day-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .day-nav .btn { padding-inline: 12px; }
+
+    /* ----- Insights ----- */
+    .insight-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+    .insight { flex-direction: row; align-items: flex-start; gap: 12px; }
+    .insight__icon { flex: none; font-size: 1.375rem; line-height: 1.3; }
+    .insight__text { font-weight: 700; }
+
+    /* ----- Weekly review ----- */
+    .tile-btn {
+      width: 100%;
+      font: inherit;
+      color: var(--ink);
+      text-align: left;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: transform var(--dur-fast) var(--ease-out);
+    }
+    .tile-btn:active { transform: scale(0.97); }
+    .tile-btn .tile__value { font-size: 1.25rem; }
+    .grid-2 .tile__value { font-size: 1.375rem; }
+
+    .hours-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+    .hours-row { display: flex; flex-direction: column; gap: 6px; }
+    .hours-row__head { display: flex; justify-content: space-between; gap: 12px; font-weight: 700; }
+    .hours-row__value { flex: none; font-variant-numeric: tabular-nums; }
+    .hours-row .meter__fill { background: var(--bar-color, var(--accent)); }
+
+    /* ----- Report card ----- */
+    .grade-hero { display: flex; align-items: center; gap: 16px; }
+    .grade {
+      flex: none;
+      display: grid;
+      place-items: center;
+      width: 84px;
+      height: 84px;
+      border-radius: 50%;
+      background: var(--grade-bg, var(--accent-soft));
+      color: var(--grade-fg, var(--accent-text));
+      font-family: var(--font-head);
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .grade--a { --grade-bg: var(--success); --grade-fg: var(--on-success); }
+    .grade--b { --grade-bg: var(--accent); --grade-fg: var(--on-accent); }
+    .grade--c { --grade-bg: var(--gold); --grade-fg: var(--on-gold); }
+    .grade--d { --grade-bg: var(--lavender); --grade-fg: var(--on-lavender); }
+    .grade-hero__text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .grade-hero__avg { font-family: var(--font-head); font-weight: 700; }
+
+    .report { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
+    .report th, .report td { padding: 10px 4px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    .report thead th { color: var(--muted); font-weight: 800; }
+    .report td:nth-child(2) { color: var(--muted); white-space: nowrap; }
+    .report td:last-child, .report th:last-child { text-align: right; }
+    .report tbody th { font-weight: 700; }
+    .report tr:last-child th, .report tr:last-child td { border-bottom: 0; }
+    .mini-grade { font-family: var(--font-head); font-weight: 800; }
+    .comment { padding: 12px 14px; border-radius: var(--radius-input); background: var(--accent-soft); font-weight: 700; }
+
+    /* ----- Reflections (calm list) ----- */
+    .reflect-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+    .reflect-item { gap: 8px; }
+    .reflect-item__head { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; }
+    .reflect-item__date { font-family: var(--font-head); font-weight: 700; }
+    .reflect-item__faces { font-size: var(--fs-sm); font-weight: 700; color: var(--muted); }
+    .reflect-item__label { font-size: var(--fs-xs); font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+    .reflect-item p { overflow-wrap: anywhere; }
+    .day-reflection { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border-radius: var(--radius-input); background: var(--tile-bg); }
+
+    @media (prefers-reduced-motion: reduce) {
+      .star-g { animation: none; }
+      .tile-btn:active { transform: none; }
+    }
+  </style>
+</head>
+
+<body data-page="insights">
+  <main class="page" id="main">
+
+    <header class="stack">
+      <p class="eyebrow" id="year-eyebrow">Your year</p>
+      <h1>Insights</h1>
+      <p class="muted">Every star is a day you showed up.</p>
+    </header>
+
+    <!-- Night sky: every day of the year is a star -->
+    <section class="card sky-card" data-theme="night" aria-labelledby="h-sky">
+      <div class="card-head">
+        <div>
+          <h2 class="sr-only" id="h-sky">Year of stars</h2>
+          <p class="sky-year" id="sky-year" aria-live="polite">2026</p>
+        </div>
+        <div class="nav-pair">
+          <button class="icon-btn" type="button" id="year-prev" aria-label="Previous year">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M15 6l-6 6 6 6"/></svg>
+          </button>
+          <button class="icon-btn" type="button" id="year-next" aria-label="Next year">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 6l6 6-6 6"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="sky-wrap" id="sky-wrap" tabindex="0" role="group"
+        aria-label="Year of stars. Tap a star, or use the arrow keys, to see that day." aria-describedby="sky-summary">
+        <div id="sky-art"></div>
+      </div>
+
+      <div class="sky-legend" aria-hidden="true">
+        <span><svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="1.6" class="star" opacity="0.4"/></svg>Low score</span>
+        <span><svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="4" class="star"/></svg>High score</span>
+        <span><svg viewBox="0 0 14 14"><path class="star--won" d="M7 0.5l1.6 4.9 4.9 1.6-4.9 1.6L7 13.5l-1.6-4.9L0.5 7l4.9-1.6z"/></svg>Day won</span>
+      </div>
+      <p class="muted" id="sky-summary"></p>
+
+      <!-- The selected day -->
+      <div class="day-panel" id="day-panel" aria-live="polite"></div>
+    </section>
+
+    <!-- Plain-English insights (need 14 days of data) -->
+    <section class="stack" aria-labelledby="h-insights">
+      <h2 class="section-title" id="h-insights">What your data says</h2>
+      <div id="insights"></div>
+    </section>
+
+    <!-- Weekly review -->
+    <section class="card stack-lg" aria-labelledby="h-week">
+      <div class="card-head">
+        <div class="stack-tight">
+          <h2 id="h-week">Weekly review</h2>
+          <p class="muted" id="week-range"></p>
+        </div>
+        <div class="nav-pair">
+          <button class="icon-btn" type="button" id="week-prev" aria-label="Previous week">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M15 6l-6 6 6 6"/></svg>
+          </button>
+          <button class="icon-btn" type="button" id="week-next" aria-label="Next week">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 6l6 6-6 6"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="stack-lg" id="week-body"></div>
+    </section>
+
+    <!-- Monthly report card -->
+    <section class="card stack-lg" aria-labelledby="h-month">
+      <div class="card-head">
+        <div class="stack-tight">
+          <h2 id="h-month">Report card</h2>
+          <p class="muted" id="month-range"></p>
+        </div>
+        <div class="nav-pair">
+          <button class="icon-btn" type="button" id="month-prev" aria-label="Previous month">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M15 6l-6 6 6 6"/></svg>
+          </button>
+          <button class="icon-btn" type="button" id="month-next" aria-label="Next month">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 6l6 6-6 6"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="stack-lg" id="month-body"></div>
+    </section>
+
+    <!-- Past nightly reflections -->
+    <section class="stack" aria-labelledby="h-reflect">
+      <div class="stack-tight">
+        <h2 class="section-title" id="h-reflect">Reflections</h2>
+        <p class="muted">Your evening notes, newest first.</p>
+      </div>
+      <ul class="reflect-list" id="reflect-list"></ul>
+      <button class="btn btn--secondary btn--block" type="button" id="reflect-more" hidden>Show older reflections</button>
+    </section>
+
+  </main>
+</body>
+</html>

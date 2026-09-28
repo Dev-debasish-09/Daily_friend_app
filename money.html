@@ -1,0 +1,470 @@
+<!doctype html>
+<html lang="en-IN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#F4F1FA">
+  <title>Money · ASCEND</title>
+
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="ASCEND">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="stylesheet" href="styles.css">
+
+  <script src="shared.js"></script>
+  <script src="money.js" defer></script>
+
+  <!-- Styles only Money needs -->
+  <style>
+
+    /* ----- Coin hero (the Money signature) ----- */
+    .coin-hero { display: flex; flex-direction: column; gap: 14px; }
+    .coins { display: block; width: 100%; height: auto; }
+    .coin-face { fill: var(--coin-face); }
+    .coin-edge { fill: var(--coin-edge); }
+    .coin-rim { fill: none; stroke: var(--coin-rim); stroke-width: 1.5; }
+    .coin-shadow { fill: var(--ink); opacity: 0.08; }
+    .coin-ghost { fill: none; stroke: var(--line); stroke-width: 2; stroke-dasharray: 5 4; }
+
+    /* Coins stack up once on load (the page's one load moment) */
+    .coin { animation: coin-drop 420ms var(--ease-out) both; animation-delay: calc(var(--i) * 40ms); }
+    @keyframes coin-drop {
+      from { opacity: 0; transform: translateY(-26px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    .saved-line { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; }
+    .saved-line__value {
+      font-family: var(--font-head);
+      font-size: 2.5rem;
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+    }
+    .hero-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    #savings-rate { align-self: flex-start; }   /* hug the text inside the flex column */
+
+    /* No-spend streak line */
+    .streak-line {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+    }
+    .streak-line__count {
+      flex: none;
+      display: grid;
+      place-items: center;
+      min-width: 48px;
+      height: 48px;
+      padding: 0 8px;
+      border-radius: var(--radius-input);
+      background: var(--accent-soft);
+      color: var(--accent-text);
+      font-family: var(--font-head);
+      font-size: var(--fs-lg);
+      font-weight: 800;
+    }
+    .streak-line__text { display: flex; flex-direction: column; }
+    .streak-line__title { font-weight: 800; }
+    .streak-line__note { font-size: var(--fs-sm); color: var(--muted); }
+
+    /* ----- Charts ----- */
+    .chart-box { position: relative; }
+    .donut-wrap { display: grid; justify-items: center; gap: 16px; }
+    .donut { display: block; width: min(220px, 70%); height: auto; }
+    .donut circle.seg { fill: none; stroke-width: 26; cursor: pointer; transition: stroke-width var(--dur-fast) ease; }
+    .donut circle.seg:hover, .donut circle.seg:focus-visible, .donut circle.seg.is-active { stroke-width: 32; outline: none; }
+    .donut__total { fill: var(--ink); font-family: var(--font-head); font-size: 22px; font-weight: 800; }
+    .donut__label { fill: var(--muted); font-family: var(--font-ui); font-size: 12px; font-weight: 700; }
+    .donut-wrap .chart-legend { width: 100%; }
+
+    .line-chart { display: block; width: 100%; height: auto; touch-action: pan-y; }
+    .line-chart:focus { outline: none; }
+    .line-chart:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; border-radius: 8px; }
+    .lc-grid { stroke: var(--line); stroke-width: 1; }
+    .lc-axis { fill: var(--muted); font-family: var(--font-ui); font-size: 11px; font-weight: 700; }
+    .lc-line { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+    .lc-area { fill: var(--accent); opacity: 0.1; }
+    .lc-dot { fill: var(--accent); stroke: var(--sheet-bg); stroke-width: 2; }
+    .lc-end-label { fill: var(--ink); font-family: var(--font-ui); font-size: 12px; font-weight: 800; }
+    .lc-cross { stroke: var(--muted); stroke-width: 1; }
+
+    .cmp-svg { display: block; width: 100%; height: auto; }
+    .cmp-svg .bar-this { fill: var(--accent); }
+    .cmp-svg .bar-last { fill: var(--chart-last); }
+    .cmp-svg .row-name { fill: var(--ink); font-family: var(--font-ui); font-size: 14px; font-weight: 700; }
+    .cmp-svg .row-value { fill: var(--ink); font-family: var(--font-ui); font-size: 13px; font-weight: 800; }
+    .cmp-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: var(--fs-sm); color: var(--muted); font-weight: 700; }
+    .cmp-legend span { display: inline-flex; align-items: center; gap: 8px; }
+    .key { display: inline-block; border-radius: 0 3px 3px 0; }
+    .key--this { width: 18px; height: 12px; background: var(--accent); }
+    .key--last { width: 18px; height: 4px; background: var(--chart-last); }
+    .cmp-delta { font-weight: 700; }
+
+    /* ----- Budgets ----- */
+    .budget-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+    .budget-row { display: flex; flex-direction: column; gap: 6px; }
+    .budget-row__head { display: flex; justify-content: space-between; gap: 12px; font-weight: 700; }
+    .budget-row__amount { flex: none; font-variant-numeric: tabular-nums; }
+    .budget-row__amount .muted { font-weight: 600; }
+    .budget-total { display: flex; flex-direction: column; gap: 8px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+    .budget-total__head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+    .budget-total__value { font-family: var(--font-head); font-size: var(--fs-lg); font-weight: 700; }
+
+    /* Editor rows: label left, amount right */
+    .budget-field {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 132px;
+      align-items: center;
+      gap: 12px;
+    }
+    .budget-field .label { font-size: var(--fs-md); font-weight: 700; }
+    .budget-field .field-error { grid-column: 1 / -1; }
+
+    /* ----- Lists (expenses, income, recurring) ----- */
+    .day-group { display: flex; flex-direction: column; gap: 8px; }
+    .day-group__head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: var(--fs-xs);
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .xp-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+
+    .xp-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      min-height: 64px;
+      padding: 10px 12px;
+      background: var(--tile-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-tile);
+      box-shadow: var(--shadow-tile);
+      color: var(--ink);
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: transform var(--dur-fast) var(--ease-out);
+    }
+    .xp-row:active { transform: scale(0.98); }
+    .xp-row__badge {
+      flex: none;
+      display: grid;
+      place-items: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--accent-soft);
+      background: color-mix(in srgb, var(--swatch) 28%, transparent);
+      font-size: 1.25rem;
+    }
+    .xp-row__text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .xp-row__name { font-weight: 800; overflow-wrap: anywhere; }
+    .xp-row__meta { font-size: var(--fs-sm); color: var(--muted); overflow-wrap: anywhere; }
+    .xp-row__amount { flex: none; font-family: var(--font-head); font-weight: 700; font-variant-numeric: tabular-nums; }
+    .xp-row__amount.is-income { color: var(--success-text); }
+    .xp-row__chev { flex: none; width: 18px; height: 18px; color: var(--muted); }
+
+    @media (prefers-reduced-motion: reduce) {
+      .coin { animation: none; }
+      .xp-row:active { transform: none; }
+    }
+  </style>
+</head>
+
+<body data-page="money" class="has-fab">
+  <main class="page" id="main">
+
+    <header class="stack">
+      <p class="eyebrow" id="month-label"></p>
+      <h1>Money</h1>
+      <p class="muted">Every rupee you notice is a rupee you can direct.</p>
+    </header>
+
+    <!-- Coin hero: this month's savings -->
+    <section class="card coin-hero" aria-labelledby="h-saved">
+      <div id="coin-art"></div>
+      <div class="stack">
+        <p class="saved-line">
+          <span class="saved-line__value" id="saved-value">₹0</span>
+          <span class="muted" id="h-saved">saved this month</span>
+        </p>
+        <p class="badge" id="savings-rate" hidden></p>
+        <p id="saved-note" class="muted"></p>
+      </div>
+
+      <div class="hero-actions">
+        <button class="btn btn--primary" type="button" id="add-expense">Add expense</button>
+        <button class="btn btn--secondary" type="button" id="add-income">Add income</button>
+      </div>
+
+      <div class="streak-line">
+        <span class="streak-line__count" id="nospend-count">0</span>
+        <span class="streak-line__text">
+          <span class="streak-line__title" id="nospend-title">No-spend streak</span>
+          <span class="streak-line__note" id="nospend-note"></span>
+        </span>
+      </div>
+    </section>
+
+    <!-- Food delivery (same card as on Today) -->
+    <section class="card food-card" id="food-card" aria-labelledby="food-title"></section>
+
+    <!-- This month vs last month -->
+    <section class="card stack-lg" aria-labelledby="h-compare">
+      <div class="stack">
+        <h2 id="h-compare">This month vs last</h2>
+        <p class="muted" id="compare-range"></p>
+      </div>
+      <p class="cmp-delta" id="compare-delta"></p>
+      <div class="cmp-legend">
+        <span><i class="key key--this" aria-hidden="true"></i>This month</span>
+        <span><i class="key key--last" aria-hidden="true"></i><span id="compare-legend-last">Last month, same days</span></span>
+      </div>
+      <div class="chart-box" id="compare-chart"></div>
+      <details class="table-view">
+        <summary>Show as a table</summary>
+        <div id="compare-table"></div>
+      </details>
+    </section>
+
+    <!-- Spending charts (one filter scopes both) -->
+    <section class="stack-lg" aria-labelledby="h-charts">
+      <div class="stack">
+        <h2 class="section-title" id="h-charts">Where it went</h2>
+        <div class="segmented" role="group" aria-label="Which spending to chart" id="chart-filter">
+          <button type="button" data-filter="day" aria-pressed="true">Day-to-day</button>
+          <button type="button" data-filter="all" aria-pressed="false">All spending</button>
+        </div>
+        <p class="hint" id="chart-filter-hint">Leaves out rent, bills, health and investments.</p>
+      </div>
+
+      <div class="card stack-lg" aria-labelledby="h-donut">
+        <h2 id="h-donut">By category</h2>
+        <div class="donut-wrap chart-box" id="donut"></div>
+        <details class="table-view">
+          <summary>Show as a table</summary>
+          <div id="donut-table"></div>
+        </details>
+      </div>
+
+      <div class="card stack-lg" aria-labelledby="h-daily">
+        <div class="stack">
+          <h2 id="h-daily">Daily spending</h2>
+          <p class="muted" id="daily-note"></p>
+        </div>
+        <div class="chart-box" id="daily-chart"></div>
+        <details class="table-view">
+          <summary>Show as a table</summary>
+          <div id="daily-table"></div>
+        </details>
+      </div>
+    </section>
+
+    <!-- Budgets -->
+    <section class="card stack-lg" aria-labelledby="h-budgets">
+      <div class="card-head">
+        <h2 id="h-budgets">Budgets</h2>
+        <button class="btn btn--secondary" type="button" id="edit-budgets">Edit budgets</button>
+      </div>
+      <div class="budget-total" id="budget-total"></div>
+      <ul class="budget-list" id="budget-list" aria-label="Spending by category"></ul>
+    </section>
+
+    <!-- Recurring expenses -->
+    <section class="card stack-lg" aria-labelledby="h-recurring">
+      <div class="stack">
+        <h2 id="h-recurring">Recurring</h2>
+        <p class="muted">Rent, subscriptions and other fixed costs. They add themselves on their day each month.</p>
+      </div>
+      <ul class="xp-list" id="recurring-list"></ul>
+      <button class="btn btn--secondary btn--block" type="button" id="add-recurring">Add recurring expense</button>
+    </section>
+
+    <!-- Income this month -->
+    <section class="card stack-lg" aria-labelledby="h-income">
+      <div class="card-head">
+        <h2 id="h-income">Income</h2>
+        <span class="budget-total__value" id="income-total">₹0</span>
+      </div>
+      <ul class="xp-list" id="income-list"></ul>
+    </section>
+
+    <!-- This month's expenses, grouped by day -->
+    <section class="stack-lg" aria-labelledby="h-list">
+      <h2 id="h-list">Expenses this month</h2>
+      <div class="stack-lg" id="expense-days">
+        <p class="muted">Loading…</p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Quick add, always in reach -->
+  <button class="fab" type="button" id="fab-add" aria-label="Add expense">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg>
+    <span>Add</span>
+  </button>
+
+  <!-- Budget editor -->
+  <dialog class="sheet" id="budget-sheet" aria-labelledby="budget-title">
+    <form class="sheet__form" id="budget-form" novalidate>
+      <div class="sheet__scroll">
+        <div class="xp-head">
+          <h2 id="budget-title" tabindex="-1">Monthly budgets</h2>
+          <button type="button" class="btn btn--ghost" data-close>Cancel</button>
+        </div>
+        <p class="muted">Leave a category blank for no budget. Amber shows at 70%, ember at 100%.</p>
+
+        <div class="field">
+          <label class="label" for="b-total">Total monthly budget</label>
+          <div class="input-group">
+            <span class="input-group__prefix" aria-hidden="true">₹</span>
+            <input class="input" id="b-total" type="text" inputmode="numeric" autocomplete="off" placeholder="e.g. 25,000">
+          </div>
+        </div>
+
+        <fieldset class="stack plain-fieldset" id="b-categories">
+          <legend class="label">By category</legend>
+        </fieldset>
+
+        <div class="field">
+          <label class="label" for="b-meal">Cost of one home-cooked meal</label>
+          <div class="input-group">
+            <span class="input-group__prefix" aria-hidden="true">₹</span>
+            <input class="input" id="b-meal" type="text" inputmode="numeric" autocomplete="off" aria-describedby="b-meal-hint">
+          </div>
+          <p class="hint" id="b-meal-hint">Used for “if you’d cooked, you’d have saved”. Default ₹120.</p>
+        </div>
+      </div>
+      <div class="sheet__footer">
+        <button class="btn btn--primary btn--block" type="submit">Save budgets</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Income editor -->
+  <dialog class="sheet" id="income-sheet" aria-labelledby="income-title">
+    <form class="sheet__form" id="income-form" novalidate>
+      <div class="sheet__scroll">
+        <div class="xp-head">
+          <h2 id="income-title" tabindex="-1">Add income</h2>
+          <button type="button" class="btn btn--ghost" data-close>Cancel</button>
+        </div>
+
+        <div class="field">
+          <label class="label" for="in-amount">Amount</label>
+          <div class="input-group">
+            <span class="input-group__prefix" aria-hidden="true">₹</span>
+            <input class="input" id="in-amount" type="text" inputmode="decimal" autocomplete="off" placeholder="e.g. 65,000">
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="in-source">Source</label>
+          <div class="select-wrap"><select class="select" id="in-source"></select></div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="in-date">Date</label>
+          <input class="input" id="in-date" type="date">
+        </div>
+
+        <div class="field">
+          <label class="label" for="in-note">Note <span class="muted">(optional)</span></label>
+          <input class="input" id="in-note" type="text" maxlength="60" autocomplete="off" placeholder="e.g. September salary">
+        </div>
+
+        <button type="button" class="btn btn--ghost btn--block sheet-delete" id="in-delete" hidden>Delete income</button>
+      </div>
+      <div class="sheet__footer">
+        <button class="btn btn--primary btn--block" type="submit" id="in-save">Save income</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Recurring editor -->
+  <dialog class="sheet" id="recurring-sheet" aria-labelledby="rec-title">
+    <form class="sheet__form" id="recurring-form" novalidate>
+      <div class="sheet__scroll">
+        <div class="xp-head">
+          <h2 id="rec-title" tabindex="-1">Add recurring</h2>
+          <button type="button" class="btn btn--ghost" data-close>Cancel</button>
+        </div>
+
+        <div class="field">
+          <label class="label" for="rec-name">Name</label>
+          <input class="input" id="rec-name" type="text" maxlength="40" autocomplete="off" placeholder="e.g. Rent, Netflix">
+        </div>
+
+        <div class="field">
+          <label class="label" for="rec-amount">Amount each month</label>
+          <div class="input-group">
+            <span class="input-group__prefix" aria-hidden="true">₹</span>
+            <input class="input" id="rec-amount" type="text" inputmode="decimal" autocomplete="off" placeholder="e.g. 12,000">
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="rec-category">Category</label>
+          <div class="select-wrap"><select class="select" id="rec-category"></select></div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="rec-method">Paid with</label>
+          <div class="select-wrap">
+            <select class="select" id="rec-method">
+              <option value="upi">UPI</option>
+              <option value="card">Card</option>
+              <option value="cash">Cash</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="rec-day">Day of the month</label>
+          <input class="input" id="rec-day" type="text" inputmode="numeric" autocomplete="off" aria-describedby="rec-day-hint">
+          <p class="hint" id="rec-day-hint">1 to 31. In shorter months it lands on the last day.</p>
+        </div>
+
+        <fieldset class="choices" id="rec-start-field">
+          <legend class="label">Start</legend>
+          <label class="choice">
+            <input type="radio" name="rec-start" value="this">
+            <span class="choice__text">
+              <span class="choice__title">This month</span>
+              <span class="choice__desc" id="rec-start-this-desc">Adds this month’s too.</span>
+            </span>
+          </label>
+          <label class="choice">
+            <input type="radio" name="rec-start" value="next">
+            <span class="choice__text">
+              <span class="choice__title">Next month</span>
+              <span class="choice__desc">Already paid this month.</span>
+            </span>
+          </label>
+        </fieldset>
+        <p class="hint" id="rec-next" hidden></p>
+
+        <button type="button" class="btn btn--ghost btn--block sheet-delete" id="rec-delete" hidden>Stop this recurring expense</button>
+      </div>
+      <div class="sheet__footer">
+        <button class="btn btn--primary btn--block" type="submit">Save recurring</button>
+      </div>
+    </form>
+  </dialog>
+</body>
+</html>

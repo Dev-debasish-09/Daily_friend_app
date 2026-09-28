@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "notes": "Badges for the Wall of Wins, in display order. type: habitStreak (best current streak across your habits, in days) | habitTotal (sum of a habit's logged values; per divides it, e.g. 60 turns minutes into hours) | noFoodStreak (days in a row with no food delivery expense) | savingsTotal (rupees across savings goals) | milestones (goal milestones completed). A badge is earned when its value reaches target; it's then saved to ascend:wins with that day's date.",
+  "badges": [
+    { "id": "streak-7", "name": "7-day streak", "emoji": "🔥", "type": "habitStreak", "target": 7, "unit": "days",
+      "desc": "Keep any habit 7 days in a row.", "cheer": "A full week without a break. That’s a habit forming." },
+    { "id": "streak-30", "name": "30-day streak", "emoji": "🔥", "type": "habitStreak", "target": 30, "unit": "days",
+      "desc": "Keep any habit 30 days in a row.", "cheer": "A whole month, every single day. That’s who you are now." },
+    { "id": "streak-100", "name": "100-day streak", "emoji": "💯", "type": "habitStreak", "target": 100, "unit": "days",
+      "desc": "Keep any habit 100 days in a row.", "cheer": "100 days. Most people never get here. You did." },
+    { "id": "streak-365", "name": "365-day streak", "emoji": "👑", "type": "habitStreak", "target": 365, "unit": "days",
+      "desc": "Keep any habit every day for a year.", "cheer": "A full year without a break. Legendary." },
+    { "id": "dsa-100", "name": "100 DSA problems", "emoji": "🧩", "type": "habitTotal", "habitId": "dsa-problem", "target": 100, "unit": "problems",
+      "desc": "Solve 100 DSA problems.", "cheer": "100 problems solved. Interviews just got less scary." },
+    { "id": "study-500h", "name": "500 study hours", "emoji": "📚", "type": "habitTotal", "habitId": "iss-study", "per": 60, "target": 500, "unit": "hours",
+      "desc": "Log 500 hours of ISS study.", "cheer": "500 hours of ISS. That’s the work that clears exams." },
+    { "id": "no-delivery-30", "name": "30 days, no delivery", "emoji": "🥗", "type": "noFoodStreak", "target": 30, "unit": "days",
+      "desc": "Go 30 days in a row without ordering food delivery.", "cheer": "30 days of home food. Your wallet and your body both say thanks." },
+    { "id": "saved-10k", "name": "First ₹10,000 saved", "emoji": "🪙", "type": "savingsTotal", "target": 10000, "unit": "rupees",
+      "desc": "Put ₹10,000 into your savings goals.", "cheer": "Your first ₹10,000 set aside. The first one is the hardest." },
+    { "id": "first-milestone", "name": "First milestone", "emoji": "🚩", "type": "milestones", "target": 1, "unit": "milestones",
+      "desc": "Complete your first goal milestone.", "cheer": "Your first flag on the mountain. Many more to plant." }
+  ]
+}

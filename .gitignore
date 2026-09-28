@@ -1,0 +1,13 @@
+# Vercel CLI project link
+.vercel/
+
+# OS and editor clutter
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+
+# Personal backups exported from the app (they contain your data)
+ascend-backup-*.json
+ascend-expenses-*.csv
+ascend-time-*.csv
