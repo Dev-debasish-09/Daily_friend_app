@@ -1,0 +1,106 @@
+{
+  "version": 1,
+  "notes": "The climb from age 24 to the summit at 30. camps: four base camps in order; each runs from its 'from' date until the day before the next camp ('start' = the start of the climb, your 24th birthday). The last camp runs until your 30th birthday (the summit); 'to' is only used when no birthday is saved. starterGoals + starterSavings are copied into ascend:goals on first run, then you own them. level: year | quarter | month. habitId links a milestone to a habit in ascend:habits (optional).",
+  "camps": [
+    {
+      "id": "camp-1",
+      "number": 1,
+      "title": "Clear ISS",
+      "from": "start",
+      "focus": [
+        "ISS first: 4–5 hrs on weekdays, about 12 on weekends",
+        "Keep DSA, GMAT English and the workout alive, even at minimum",
+        "Cap food delivery and start the emergency fund"
+      ]
+    },
+    {
+      "id": "camp-2",
+      "number": 2,
+      "title": "Build the tech edge",
+      "from": "2027-07-01",
+      "focus": [
+        "Heavy DSA and Machine Learning",
+        "Start GMAT prep",
+        "Build a portfolio of data and ML projects"
+      ]
+    },
+    {
+      "id": "camp-3",
+      "number": 3,
+      "title": "Step up",
+      "from": "2028-01-01",
+      "focus": [
+        "Sit the GMAT",
+        "Move into a senior or lead role"
+      ]
+    },
+    {
+      "id": "camp-4",
+      "number": 4,
+      "title": "Lead and compound",
+      "from": "2029-01-01",
+      "to": "2032-12-31",
+      "focus": [
+        "Manager track",
+        "Hit your financial targets",
+        "Peak health"
+      ]
+    }
+  ],
+  "starterGoals": [
+    {
+      "id": "g-iss",
+      "title": "Clear the ISS exam",
+      "campId": "camp-1",
+      "milestones": [
+        { "id": "m-iss-exam", "title": "Clear ISS 2027", "level": "year", "targetDate": "2027-06-30", "habitId": "iss-study" },
+        { "id": "m-iss-pass1", "title": "Finish a first pass of the full syllabus", "level": "quarter", "targetDate": "2026-12-31", "habitId": "iss-study" },
+        { "id": "m-iss-papers", "title": "Solve 3 previous-year papers", "level": "month", "targetDate": "2026-10-31", "habitId": null }
+      ]
+    },
+    {
+      "id": "g-alive",
+      "title": "Keep DSA, English and fitness alive",
+      "campId": "camp-1",
+      "milestones": [
+        { "id": "m-dsa-oct", "title": "Solve 30 DSA problems", "level": "month", "targetDate": "2026-10-31", "habitId": "dsa-problem" },
+        { "id": "m-eng-oct", "title": "Watch 25 GMAT English videos", "level": "month", "targetDate": "2026-10-31", "habitId": "gmat-english-video" },
+        { "id": "m-fit-q4", "title": "Work out on 60 days this quarter", "level": "quarter", "targetDate": "2026-12-31", "habitId": "home-workout" }
+      ]
+    },
+    {
+      "id": "g-tech",
+      "title": "Tech edge and portfolio",
+      "campId": "camp-2",
+      "milestones": [
+        { "id": "m-dsa-300", "title": "Solve 300 DSA problems", "level": "year", "targetDate": "2027-12-31", "habitId": "dsa-problem" },
+        { "id": "m-portfolio", "title": "Ship 3 portfolio projects", "level": "year", "targetDate": "2027-12-31", "habitId": null },
+        { "id": "m-ml-course", "title": "Finish a full ML course", "level": "quarter", "targetDate": "2027-09-30", "habitId": "machine-learning" },
+        { "id": "m-gmat-start", "title": "Start GMAT prep with a diagnostic test", "level": "quarter", "targetDate": "2027-12-31", "habitId": "gmat-english-video" }
+      ]
+    },
+    {
+      "id": "g-step",
+      "title": "GMAT and the next role",
+      "campId": "camp-3",
+      "milestones": [
+        { "id": "m-gmat-exam", "title": "Sit the GMAT", "level": "year", "targetDate": "2028-09-30", "habitId": null },
+        { "id": "m-senior", "title": "Land a senior or lead role", "level": "year", "targetDate": "2028-12-31", "habitId": null }
+      ]
+    },
+    {
+      "id": "g-lead",
+      "title": "Manager, money and health",
+      "campId": "camp-4",
+      "milestones": [
+        { "id": "m-manager", "title": "Move into a manager role", "level": "year", "targetDate": "2030-12-31", "habitId": null },
+        { "id": "m-invested", "title": "Reach ₹25,00,000 invested", "level": "year", "targetDate": "2031-12-31", "habitId": null },
+        { "id": "m-10k", "title": "Run a 10K in peak shape", "level": "year", "targetDate": "2031-12-31", "habitId": "home-workout" }
+      ]
+    }
+  ],
+  "starterSavings": [
+    { "id": "sv-emergency", "name": "Emergency fund", "emoji": "🛟", "target": 300000, "targetDate": "2027-06-30" },
+    { "id": "sv-invest", "name": "Investments", "emoji": "📈", "target": 500000, "targetDate": "2028-12-31" }
+  ]
+}

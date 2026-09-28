@@ -7,6 +7,7 @@
    1. Storage   2. Settings + theme   3. Dates (Asia/Kolkata)
    4. Money (INR)   5. Profile   6. Form errors   7. Toast
    8. Background   9. Bottom nav   10. Habits + daily logs
+   (then time sessions, money, roadmap + goals + wins)
    11. Start-up + onboarding gate
    ========================================================= */
 
@@ -1570,6 +1571,73 @@ function expenseSavedMessage(expense, iso, edited) {
     return `${base} ${s.pct}% of your limit used with ${s.daysLeft} days to go.`;
   }
   return `${base} ${formatAmount(s.spent)} of your ${formatAmount(s.limit)} limit used this month.`;
+}
+
+
+/* ---------- Roadmap, goals + wins ----------
+   Camps and starter goals: data/roadmap.json.
+   ascend:goals = { goals: [goal], savings: [savingsGoal] }
+     goal:        { id, title, campId, createdOn, milestones: [milestone] }
+     milestone:   { id, title, level: 'year'|'quarter'|'month', targetDate, progress (0-100), habitId|null, doneOn|null }
+     savingsGoal: { id, name, emoji, target, saved, targetDate|null, deposits: [{ id, amount, date, note }], createdOn }
+   ascend:wins = [{ id, type, title, detail, date, sourceId, createdAt }], newest first */
+
+let roadmapCache = null;
+
+async function loadRoadmap() {
+  if (roadmapCache) return roadmapCache;
+  try {
+    const res = await fetch('data/roadmap.json', { cache: 'no-cache' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    roadmapCache = await res.json();
+  } catch (err) {
+    console.warn('[ascend] Could not load roadmap', err);
+    roadmapCache = {};
+  }
+  return roadmapCache;
+}
+
+// Goals + savings goals. On first run, copy the starters from roadmap.json.
+async function loadGoals() {
+  const saved = getData('goals', null);
+  if (saved && Array.isArray(saved.goals) && Array.isArray(saved.savings)) return saved;
+
+  const roadmap = await loadRoadmap();
+  const today = todayISO();
+  const starter = {
+    goals: (roadmap.starterGoals || []).map((g) => ({
+      ...g,
+      createdOn: today,
+      milestones: (g.milestones || []).map((m) => ({ progress: 0, habitId: null, doneOn: null, ...m })),
+    })),
+    savings: (roadmap.starterSavings || []).map((s) => ({
+      saved: 0, targetDate: null, deposits: [], ...s, createdOn: today,
+    })),
+  };
+  // Only save when the starters loaded, so a failed fetch tries again next time
+  if (starter.goals.length || starter.savings.length) setData('goals', starter);
+  return starter;
+}
+
+function saveGoals(data) {
+  return setData('goals', data);
+}
+
+function getWins() {
+  const saved = getData('wins', []);
+  return Array.isArray(saved) ? saved : [];
+}
+
+// Save a win once per source: completing the same milestone twice is still one win
+function addWin(win) {
+  const list = getWins();
+  if (win.sourceId && list.some((w) => w.sourceId === win.sourceId)) return true;
+  const entry = { id: newId('w'), date: todayISO(), createdAt: new Date().toISOString(), ...win };
+  return setData('wins', [entry, ...list]);
+}
+
+function removeWinFor(sourceId) {
+  return setData('wins', getWins().filter((w) => w.sourceId !== sourceId));
 }
 
 

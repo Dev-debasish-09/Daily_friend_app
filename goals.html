@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="en-IN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#F4F1FA">
+  <title>Goals · ASCEND</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="styles.css">
+
+  <script src="shared.js"></script>
+  <script src="goals.js" defer></script>
+
+  <!-- Styles only Goals needs -->
+  <style>
+    .section-title {
+      font-family: var(--font-ui);
+      font-size: var(--fs-xs);
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+
+    /* ----- The trail (Goals signature) ----- */
+    /* --climb (0 to 1) is set by goals.js: how far up the trail you are */
+    .trail-card { --climb: 0; padding: 0; overflow: hidden; }
+    .trail { display: block; width: 100%; height: auto; }
+
+    .trail .sky-top    { stop-color: var(--sky-top);    stop-opacity: 0.55; }
+    .trail .sky-bottom { stop-color: var(--sky-bottom); stop-opacity: 0.5; }
+    .trail .glow-in    { stop-color: var(--gold); stop-opacity: 0.8; }
+    .trail .glow-out   { stop-color: var(--gold); stop-opacity: 0; }
+    .summit-glow { opacity: calc(0.25 + var(--climb) * 0.75); }
+
+    .trail .range-far  { fill: var(--mountain-far); }
+    .trail .range-near { fill: var(--mountain-near); }
+    .trail .snow { fill: var(--lavender); opacity: 0.75; }
+
+    .trail-path {
+      fill: none;
+      stroke: rgb(255 255 255 / 0.55);
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-dasharray: 2 7;
+    }
+    .trail-walked {
+      fill: none;
+      stroke: var(--gold);
+      stroke-width: 4;
+      stroke-linecap: round;
+    }
+
+    .flag-pole { stroke: var(--ink); stroke-width: 2; stroke-linecap: round; }
+    [data-theme="night"] .flag-pole { stroke: var(--lavender); }
+    .flag { fill: var(--gold); }
+
+    /* Camp markers: gold once reached, hollow ahead */
+    .camp-dot { fill: var(--sheet-bg); stroke: var(--mountain-far); stroke-width: 2.5; }
+    .camp-num { fill: var(--ink); font-family: var(--font-head); font-size: 11px; font-weight: 800; }
+    .camp-marker.is-reached .camp-dot { fill: var(--gold); stroke: var(--sheet-bg); }
+    .camp-marker.is-reached .camp-num { fill: var(--on-gold); }
+
+    /* You (the climber) */
+    .climber-dot { fill: var(--accent); stroke: var(--sheet-bg); stroke-width: 3; }
+    .climber-core { fill: var(--on-accent); }
+    .climber-tag { fill: var(--accent); }
+    .climber-tag-text { fill: var(--on-accent); font-family: var(--font-ui); font-size: 11px; font-weight: 800; }
+
+    .trail-body { display: flex; flex-direction: column; gap: 12px; padding: 16px 20px 20px; }
+    .trail-body .tile__value { font-size: 1.375rem; }
+
+    /* ----- Base camps list ----- */
+    .camp-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+    .camp { gap: 10px; }
+    .camp__head { display: flex; align-items: center; gap: 12px; }
+    .camp__num {
+      flex: none;
+      display: grid;
+      place-items: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 2px solid var(--mountain-far);
+      font-family: var(--font-head);
+      font-weight: 800;
+    }
+    .camp.is-reached .camp__num { background: var(--gold); border-color: var(--gold); color: var(--on-gold); }
+    .camp.is-current { box-shadow: var(--shadow-tile), inset 0 0 0 2px var(--gold); }
+    .camp__text { flex: 1; min-width: 0; }
+    .camp__title { font-size: var(--fs-md); }
+    .camp__dates { font-size: var(--fs-sm); color: var(--muted); }
+    .camp__text .badge { margin-top: 6px; }
+    .camp__focus { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; font-size: var(--fs-sm); }
+    .badge--pine { background: var(--success); color: var(--on-success); }
+
+    /* ----- Goals + milestones ----- */
+    .goal { display: flex; flex-direction: column; gap: 14px; }
+    .goal__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .goal__head h3 { overflow-wrap: anywhere; }
+    .goal__bar { display: flex; align-items: center; gap: 12px; }
+    .goal__bar .progress { flex: 1; height: 10px; }
+    .goal__pct { flex: none; min-width: 4ch; text-align: right; font-family: var(--font-head); font-weight: 800; font-variant-numeric: tabular-nums; }
+    .level-title { font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: 800; color: var(--muted); }
+    .ms-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+
+    .ms-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      min-height: 64px;
+      padding: 10px 12px;
+      background: var(--tile-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-tile);
+      box-shadow: var(--shadow-tile);
+      color: var(--ink);
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: transform var(--dur-fast) var(--ease-out);
+    }
+    .ms-row:active { transform: scale(0.98); }
+    .ms-row.is-done { box-shadow: var(--shadow-tile), inset 0 0 0 1.5px var(--success); }
+
+    .ms-ring { flex: none; width: 40px; height: 40px; }
+    .ms-ring__track { fill: none; stroke: var(--line); stroke-width: 4; }
+    .ms-ring__fill { fill: none; stroke: var(--accent); stroke-width: 4; stroke-linecap: round; }
+    .ms-ring__done { fill: var(--success); }
+    .ms-ring__check { fill: none; stroke: var(--on-success); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+
+    .ms-row__text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .ms-row__name { font-weight: 800; overflow-wrap: anywhere; }
+    .ms-row__meta { font-size: var(--fs-sm); color: var(--muted); overflow-wrap: anywhere; }
+    .ms-row__pct { flex: none; font-family: var(--font-head); font-weight: 700; font-variant-numeric: tabular-nums; }
+    .ms-row.is-done .ms-row__pct { color: var(--success-text); }
+
+    /* ----- Savings goals ----- */
+    .savings { display: flex; flex-direction: column; gap: 12px; }
+    .savings__amount { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 8px; }
+    .savings__value { font-family: var(--font-head); font-size: var(--fs-2xl); font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; }
+    .savings.is-done { box-shadow: var(--shadow-card), inset 0 0 0 2px var(--gold); }
+
+    /* ----- Sheets ----- */
+    .plain-fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
+    .plain-fieldset legend { padding: 0; margin-bottom: 8px; }
+    .sheet-delete.is-confirming { color: var(--danger-text); background: var(--accent-soft); }
+    .range-row { display: flex; align-items: center; gap: 12px; }
+    .range { flex: 1; min-width: 0; min-height: var(--tap); margin: 0; accent-color: var(--accent); cursor: pointer; }
+    .range-value { flex: none; min-width: 4.5ch; text-align: right; font-family: var(--font-head); font-size: var(--fs-lg); font-weight: 800; font-variant-numeric: tabular-nums; }
+
+    /* ----- Proud moment ----- */
+    .proud {
+      width: min(360px, calc(100% - 2 * var(--gutter)));
+      margin: auto;
+      padding: 0;
+      border: 0;
+      border-radius: var(--radius-card);
+      background: var(--sheet-bg);
+      color: var(--ink);
+      box-shadow: var(--shadow-card), inset 0 0 0 2px var(--gold);
+      text-align: center;
+    }
+    .proud::backdrop { background: rgb(20 19 43 / 0.55); }
+    .proud[open] { animation: proud-pop 420ms var(--ease-out); }
+    .proud__inner { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 24px 20px 20px; }
+    .proud__art { width: 120px; height: auto; }
+    .proud__rays { fill: var(--gold); transform-origin: 60px 44px; }
+    .proud[open] .proud__rays { animation: rays-spin 1.2s var(--ease-out); }
+    .proud__title { font-size: var(--fs-xl); overflow-wrap: anywhere; }
+    .proud .btn { margin-top: 8px; }
+
+    @keyframes proud-pop {
+      0%   { transform: scale(0.9); }
+      60%  { transform: scale(1.03); }
+      100% { transform: none; }
+    }
+    @keyframes rays-spin {
+      from { transform: scale(0.4) rotate(-30deg); opacity: 0; }
+      to   { transform: none; opacity: 1; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .ms-row:active { transform: none; }
+    }
+  </style>
+</head>
+
+<body data-page="goals">
+  <main class="page" id="main">
+
+    <header class="stack">
+      <p class="eyebrow" id="age-line">Age 24 to 30</p>
+      <h1>Goals</h1>
+      <p class="muted">Four camps, one summit. Every milestone moves you up.</p>
+    </header>
+
+    <!-- The trail: mountain path from 24 to the summit at 30 (the page's one load moment) -->
+    <section class="card trail-card" id="trail-card" aria-labelledby="h-trail">
+      <div id="trail-art"></div>
+      <div class="trail-body">
+        <div class="stack">
+          <h2 id="h-trail">Your climb</h2>
+          <p class="muted" id="trail-sub"></p>
+        </div>
+        <div class="progress" aria-hidden="true"><div class="progress__bar" id="climb-bar"></div></div>
+        <div class="grid-2">
+          <div class="tile">
+            <span class="tile__label" id="next-label">Next camp</span>
+            <span class="tile__value" id="next-days">–</span>
+            <span class="tile__note" id="next-date"></span>
+          </div>
+          <div class="tile">
+            <span class="tile__label">Summit at 30</span>
+            <span class="tile__value" id="summit-days">–</span>
+            <span class="tile__note" id="summit-date"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Base camps -->
+    <section class="stack" aria-labelledby="h-camps">
+      <h2 class="section-title" id="h-camps">Base camps</h2>
+      <ol class="camp-list" id="camp-list"></ol>
+    </section>
+
+    <!-- Goals with yearly, quarterly and monthly milestones -->
+    <section class="stack-lg" aria-labelledby="h-goals">
+      <div class="stack">
+        <h2 class="section-title" id="h-goals">Goals and milestones</h2>
+        <p class="muted" id="goals-summary"></p>
+      </div>
+      <div class="stack-lg" id="goal-list">
+        <p class="muted">Loading your goals…</p>
+      </div>
+      <button class="btn btn--secondary btn--block" type="button" id="add-goal">Add goal</button>
+    </section>
+
+    <!-- Savings goals -->
+    <section class="stack-lg" aria-labelledby="h-savings">
+      <div class="stack">
+        <h2 class="section-title" id="h-savings">Savings goals</h2>
+        <p class="muted">Money set aside for the climb. Separate from your Money page spending.</p>
+      </div>
+      <div class="stack-lg" id="savings-list"></div>
+      <button class="btn btn--secondary btn--block" type="button" id="add-savings">Add savings goal</button>
+    </section>
+
+  </main>
+
+  <!-- Goal editor -->
+  <dialog class="sheet" id="goal-sheet" aria-labelledby="goal-title">
+    <form class="sheet__form" id="goal-form" novalidate>
+      <div class="sheet__scroll">
+        <div class="xp-head">
+          <h2 id="goal-title" tabindex="-1">Add goal</h2>
+          <button type="button" class="btn btn--ghost" data-close>Cancel</button>
+        </div>
+
+        <div class="field">
+          <label class="label" for="g-name">Goal</label>
+          <input class="input" id="g-name" type="text" maxlength="60" autocomplete="off" placeholder="e.g. Clear the ISS exam">
+        </div>
+
+        <div class="field">
+          <label class="label" for="g-camp">Base camp</label>
+          <div class="select-wrap"><select class="select" id="g-camp"></select></div>
+        </div>
+
+        <button type="button" class="btn btn--ghost btn--block sheet-delete" id="g-delete" hidden>Delete goal</button>
+      </div>
+      <div class="sheet__footer">
+        <button class="btn btn--primary btn--block" type="submit">Save goal</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Milestone editor -->
+  <dialog class="sheet" id="ms-sheet" aria-labelledby="ms-title">
+    <form class="sheet__form" id="ms-form" novalidate>
+      <div class="sheet__scroll">
+        <div class="xp-head">
+          <h2 id="ms-title" tabindex="-1">Add milestone</h2>
+          <button type="button" class="btn btn--ghost" data-close>Cancel</button>
+        </div>
+        <p class="muted" id="ms-goal-name"></p>
+
+        <div class="field">
+          <label class="label" for="ms-name">Milestone</label>
+          <input class="input" id="ms-name" type="text" maxlength="60" autocomplete="off" placeholder="e.g. Solve 30 DSA problems">
+        </div>
+
+        <fieldset class="plain-fieldset">
+          <legend class="label">Timeframe</legend>
+          <div class="method-row">
+            <label class="method-option"><input type="radio" name="ms-level" value="year"><span>Yearly</span></label>
+            <label class="method-option"><input type="radio" name="ms-level" value="quarter"><span>Quarterly</span></label>
+            <label class="method-option"><input type="radio" name="ms-level" value="month"><span>Monthly</span></label>
+          </div>
+        </fieldset>
+
+        <div class="field">
+          <label class="label" for="ms-date">Target date</label>
+          <input class="input" id="ms-date" type="date">
+        </div>
+
+        <div class="field">
+          <label class="label" for="ms-progress">Progress</label>
+          <div class="range-row">
+            <input class="range" id="ms-progress" type="range" min="0" max="100" step="5" value="0">
+            <output class="range-value" id="ms-progress-value" for="ms-progress">0%</output>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="ms-habit">Linked habit <span class="muted">(optional)</span></label>
+          <div class="select-wrap"><select class="select" id="ms-habit" aria-describedby="ms-habit-hint"></select></div>
+          <p class="hint" id="ms-habit-hint">Shows that habit’s streak next to this milestone.</p>
+        </div>
+
+        <button type="button" class="btn btn--gold btn--block" id="ms-complete">Mark complete</button>
+        <button type="button" class="btn btn--ghost btn--block sheet-delete" id="ms-delete" hidden>Delete milestone</button>
+      </div>
+      <div class="sheet__footer">
+        <button class="btn btn--primary btn--block" type="submit">Save milestone</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Savings goal editor -->
+  <dialog class="sheet" id="sv-sheet" aria-labelledby="sv-title">
+    <form class="sheet__form" id="sv-form" novalidate>
+      <div class="sheet__scroll">
+        <div class="xp-head">
+          <h2 id="sv-title" tabindex="-1">Add savings goal</h2>
+          <button type="button" class="btn btn--ghost" data-close>Cancel</button>
+        </div>
+
+        <div class="field">
+          <label class="label" for="sv-name">Name</label>
+          <input class="input" id="sv-name" type="text" maxlength="40" autocomplete="off" placeholder="e.g. Emergency fund">
+        </div>
+
+        <div class="field">
+          <label class="label" for="sv-target">Target amount</label>
+          <div class="input-group">
+            <span class="input-group__prefix" aria-hidden="true">₹</span>
+            <input class="input" id="sv-target" type="text" inputmode="numeric" autocomplete="off" placeholder="e.g. 3,00,000">
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="sv-saved">Saved so far</label>
+          <div class="input-group">
+            <span class="input-group__prefix" aria-hidden="true">₹</span>
+            <input class="input" id="sv-saved" type="text" inputmode="numeric" autocomplete="off" aria-describedby="sv-saved-hint">
+          </div>
+          <p class="hint" id="sv-saved-hint">Use Add money for new savings. Change this only to correct the total.</p>
+        </div>
+
+        <div class="field">
+          <label class="label" for="sv-date">Target date <span class="muted">(optional)</span></label>
+          <input class="input" id="sv-date" type="date" aria-describedby="sv-date-hint">
+          <p class="hint" id="sv-date-hint">With a date, you’ll see how much a month gets you there.</p>
+        </div>
+
+        <button type="button" class="btn btn--ghost btn--block sheet-delete" id="sv-delete" hidden>Delete savings goal</button>
+      </div>
+      <div class="sheet__footer">
+        <button class="btn btn--primary btn--block" type="submit">Save savings goal</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Add money to a savings goal -->
+  <dialog class="sheet" id="dep-sheet" aria-labelledby="dep-title">
+    <form class="sheet__form" id="dep-form" novalidate>
+      <div class="sheet__scroll">
+        <div class="xp-head">
+          <h2 id="dep-title" tabindex="-1">Add money</h2>
+          <button type="button" class="btn btn--ghost" data-close>Cancel</button>
+        </div>
+        <p class="muted" id="dep-status"></p>
+
+        <div class="field">
+          <label class="label" for="dep-amount">Amount</label>
+          <div class="input-group">
+            <span class="input-group__prefix" aria-hidden="true">₹</span>
+            <input class="input" id="dep-amount" type="text" inputmode="decimal" autocomplete="off" placeholder="e.g. 10,000">
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="dep-date">Date</label>
+          <input class="input" id="dep-date" type="date">
+        </div>
+
+        <div class="field">
+          <label class="label" for="dep-note">Note <span class="muted">(optional)</span></label>
+          <input class="input" id="dep-note" type="text" maxlength="60" autocomplete="off" placeholder="e.g. Saved from October salary">
+        </div>
+      </div>
+      <div class="sheet__footer">
+        <button class="btn btn--primary btn--block" type="submit" id="dep-save">Add money</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Proud moment: a milestone or savings goal reached -->
+  <dialog class="proud" id="proud" aria-labelledby="proud-title" aria-describedby="proud-text">
+    <div class="proud__inner">
+      <svg class="proud__art" viewBox="0 0 120 88" aria-hidden="true" focusable="false">
+        <g class="proud__rays">
+          <path d="M60 44 44 4h32z M60 44 96 12l8 22z M60 44 24 12l-8 22z" opacity="0.45"/>
+        </g>
+        <path class="range-near" d="M4 88 60 30l56 58z" style="fill: var(--mountain-near)"/>
+        <path d="M60 30 72 42l-6-2-6 5-6-5-6 2z" style="fill: var(--lavender)"/>
+        <path d="M60 30V6" style="stroke: var(--gold); stroke-width: 2.5; stroke-linecap: round"/>
+        <path d="M60 6l18 6-18 6z" style="fill: var(--gold)"/>
+      </svg>
+      <p class="eyebrow" id="proud-eyebrow">Milestone reached</p>
+      <h2 class="proud__title" id="proud-title" tabindex="-1"></h2>
+      <p id="proud-text"></p>
+      <p class="muted">Saved to your Wins.</p>
+      <button class="btn btn--primary btn--block" type="button" id="proud-close">Keep climbing</button>
+    </div>
+  </dialog>
+</body>
+</html>
