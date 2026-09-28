@@ -399,7 +399,7 @@ function goalCardHTML(goal, readDay) {
   return `
     <article class="card goal" aria-labelledby="${headingId}">
       <div class="goal__head">
-        <div class="stack" style="gap: 4px">
+        <div class="stack-tight">
           <p class="eyebrow">${camp ? `Camp ${camp.number} · ${escapeHTML(camp.title)}` : 'No camp'}</p>
           <h3 id="${headingId}">${escapeHTML(goal.title)}</h3>
         </div>

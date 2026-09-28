@@ -209,7 +209,9 @@ function render({ justDoneId = null, focusKey = null, riseIn = false } = {}) {
 
   const result = currentScore();
   if (riseIn) {
-    // Paint the sun at the horizon first, then let the transition lift it
+    // Ranges rise in, then the sun lifts from the horizon (the page's one load moment)
+    heroEl.classList.add('is-arriving');
+    setTimeout(() => heroEl.classList.remove('is-arriving'), 1800);
     requestAnimationFrame(() => requestAnimationFrame(() => renderHero(result, wins)));
   } else {
     renderHero(result, wins);
@@ -231,10 +233,41 @@ function winStreakText({ count, todayStatus }) {
   return `${days} in a row. Win today to make it ${count + 1}.`;
 }
 
+// The score number glides to its new value (instant with reduced motion)
+let shownScore = 0;
+let scoreFrame = null;
+
+function animateScore(to) {
+  const el = document.getElementById('score');
+  const from = shownScore;
+  shownScore = to;
+  cancelAnimationFrame(scoreFrame);
+  if (prefersReducedMotion() || from === to) {
+    el.textContent = `${to}%`;
+    return;
+  }
+  // Slower on the load moment (in step with the sun), quick after a tap
+  const duration = heroEl.classList.contains('is-arriving') ? 1400 : 500;
+  const start = performance.now();
+  const step = (now) => {
+    const t = Math.min(1, (now - start) / duration);
+    const eased = 1 - (1 - t) ** 3;
+    el.textContent = `${Math.round(from + (to - from) * eased)}%`;
+    if (t < 1) scoreFrame = requestAnimationFrame(step);
+  };
+  scoreFrame = requestAnimationFrame(step);
+}
+
+function pulseSun() {
+  heroEl.classList.remove('is-pulsing');
+  void heroEl.offsetWidth;                       // restart the animation
+  heroEl.classList.add('is-pulsing');
+}
+
 // 12 gold rays around the sun (hidden until Day Won)
 function drawRays() {
   const cx = 180;
-  const cy = 44;
+  const cy = 150;
   let shapes = '';
   for (let i = 0; i < 12; i += 1) {
     const a = (i / 12) * Math.PI * 2;
@@ -251,7 +284,8 @@ function renderHero(result, wins) {
 
   heroEl.style.setProperty('--score', (score / 100).toFixed(3));
   heroEl.classList.toggle('is-won', won);
-  document.getElementById('score').textContent = `${score}%`;
+  if (score > shownScore && !heroEl.classList.contains('is-arriving')) pulseSun();
+  animateScore(score);
   document.getElementById('won-badge').hidden = !won;
   document.getElementById('day-type').textContent = isWeekend(today) ? 'Weekend targets' : 'Weekday targets';
 
@@ -264,7 +298,7 @@ function renderHero(result, wins) {
 
   const minOnly = kept - done;
   document.getElementById('done-summary').textContent =
-    `${done} of ${total} done${minOnly > 0 ? ` · ${minOnly} minimum kept` : ''}`;
+    `${done} of ${total} done${minOnly > 0 ? ` (+${minOnly} minimum)` : ''} ·`;
 
   let message;
   if (score === 0 && kept === 0) message = 'Fresh climb today. One small step counts.';
@@ -324,6 +358,10 @@ function celebrate(habit, entry, target, result) {
 
   const minOnly = entry.min && entry.value < target;
   haptic(minOnly ? 15 : [20, 40, 20]);
+  if (check) {
+    const points = XP_RULES[habitPriority(habit)];
+    floatXP(check, minOnly ? Math.round(points / 2) : points);
+  }
 
   let message;
   if (habitPriority(habit) === 'non-negotiable' && result.nonNegKept) {
@@ -336,6 +374,20 @@ function celebrate(habit, entry, target, result) {
     message = `${habit.name} done. Nice work!`;
   }
   showToast(message, { type: 'success' });
+}
+
+// A small gold "+20 XP" that drifts up from the check and fades (decorative, hidden from screen readers)
+function floatXP(anchor, points) {
+  if (prefersReducedMotion()) return;
+  const r = anchor.getBoundingClientRect();
+  const tag = document.createElement('span');
+  tag.className = 'xp-float';
+  tag.setAttribute('aria-hidden', 'true');
+  tag.textContent = `+${points} XP`;
+  tag.style.left = `${r.left + r.width / 2}px`;
+  tag.style.top = `${r.top}px`;
+  document.body.appendChild(tag);
+  tag.addEventListener('animationend', () => tag.remove());
 }
 
 // The big one: bring the summit into view, burst the rays, big confetti, long buzz
@@ -436,10 +488,8 @@ listEl.addEventListener('submit', (e) => {
 function renderLevel() {
   const info = levelInfo(computeXP());
   document.getElementById('level-num').textContent = info.level;
-  document.getElementById('level-title').textContent = `Level ${info.level} · ${info.title}`;
-  document.getElementById('level-bar').style.setProperty('--value', `${((info.into / info.need) * 100).toFixed(1)}%`);
-  document.getElementById('level-note').textContent =
-    `${formatIndianNumber(info.toNext)} XP to Level ${info.level + 1}. See your Wall of Wins.`;
+  document.getElementById('level-title').textContent = 'Level';
+  document.getElementById('level-bar').setAttribute('stroke-dasharray', `${((info.into / info.need) * 100).toFixed(1)} 100`);
   document.getElementById('level-card').setAttribute('aria-label',
     `Level ${info.level}, ${info.title}. ${info.toNext} XP to the next level. Open the Wall of Wins.`);
   document.getElementById('level-card').hidden = false;
@@ -470,7 +520,7 @@ function renderReflection() {
         <span>${energy.emoji} Energy: ${energy.word}</span>
       </p>
       ${entry.improve ? `<p class="muted">Tomorrow: ${escapeHTML(entry.improve)}</p>` : ''}
-      <button class="btn btn--ghost" type="button" data-reflect="${iso}" style="align-self: flex-start">Edit reflection</button>`;
+      <button class="btn btn--ghost" type="button" data-reflect="${iso}">Edit reflection</button>`;
   } else {
     card.innerHTML = `
       <p class="eyebrow">Evening check-in</p>

@@ -590,8 +590,255 @@ async function initHabits() {
 }
 
 
+/* ---------- Your data: backup, CSV exports, restore ----------
+   Backup file: { app: "ascend", version: 1, exportedAt, data: { "profile": {...}, "logs:2026-09": {...}, ... } }
+   Keys are saved without the "ascend:" prefix, exactly as getData/setData use them. */
+
+const BACKUP_VERSION = 1;
+// Keys we accept from a backup: "profile", "habits", "logs:2026-09", ...
+const KEY_PATTERN = /^[a-z][a-z-]*(:\d{4}-\d{2})?$/;
+
+// Save text as a file download
+function downloadFile(filename, text, type) {
+  const blob = new Blob([text], { type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function backupObject() {
+  const data = {};
+  listDataKeys().forEach((key) => {
+    const value = getData(key, undefined);
+    if (value !== undefined) data[key] = value;
+  });
+  return { app: 'ascend', version: BACKUP_VERSION, exportedAt: new Date().toISOString(), data };
+}
+
+function exportBackup({ quiet = false } = {}) {
+  downloadFile(`ascend-backup-${todayISO()}.json`, JSON.stringify(backupObject(), null, 2), 'application/json');
+  updateSettings({ lastExportOn: todayISO() });
+  renderBackupStatus();
+  if (!quiet) showToast('Backup saved to your downloads. Your climb is safe.', { type: 'success' });
+}
+
+function renderBackupStatus() {
+  const el = document.getElementById('backup-status');
+  const last = getSettings().lastExportOn;
+  if (!last) {
+    el.textContent = 'No backup yet. One tap below makes your first.';
+    return;
+  }
+  const days = daysBetween(last, todayISO());
+  const when = days === 0 ? 'today' : days === 1 ? 'yesterday' : `${days} days ago`;
+  el.textContent = `Last backup: ${when} (${formatDate(last, { day: 'numeric', month: 'short', year: 'numeric' })}).`;
+  el.classList.toggle('is-due', days >= BACKUP_EVERY_DAYS);
+}
+
+// One CSV cell: quoted when needed. Cells starting with = + - @ get a ' so
+// Excel treats them as text, not formulas (numbers stay numbers).
+function csvCell(value) {
+  if (typeof value === 'number') return String(value);
+  let text = String(value ?? '');
+  if (/^[=+\-@]/.test(text)) text = `'${text}`;
+  return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+
+function toCSV(header, rows) {
+  // The BOM lets Excel read ₹ and emoji correctly
+  return `﻿${[header, ...rows].map((r) => r.map(csvCell).join(',')).join('\r\n')}\r\n`;
+}
+
+// Month shards for a type ("expenses", "logs"...), oldest first
+function shardKeys(type) {
+  return listDataKeys().filter((k) => k.startsWith(`${type}:`)).sort();
+}
+
+async function exportExpensesCSV() {
+  await loadCategories();
+  const rows = [];
+  shardKeys('expenses').forEach((key) => {
+    const month = getData(key, {}) || {};
+    Object.keys(month).sort().forEach((iso) => {
+      (month[iso] || []).forEach((x) => {
+        rows.push([iso, Number(x.amount) || 0, findCategory(x.categoryId).name, PAYMENT_METHODS[x.method] || '', x.note || '', x.recurringId ? 'Yes' : 'No']);
+      });
+    });
+  });
+  if (!rows.length) {
+    showToast('No expenses to export yet.', { type: 'info' });
+    return;
+  }
+  downloadFile(`ascend-expenses-${todayISO()}.csv`, toCSV(['Date', 'Amount (INR)', 'Category', 'Paid with', 'Note', 'Recurring'], rows), 'text/csv');
+  showToast(`${formatIndianNumber(rows.length)} expenses exported.`, { type: 'success' });
+}
+
+// One row per day per timed habit, from the daily logs (includes quick-add minutes, not just timers)
+async function exportTimeCSV() {
+  const list = await loadHabits();
+  const rows = [];
+  shardKeys('logs').forEach((key) => {
+    const month = getData(key, {}) || {};
+    Object.keys(month).sort().forEach((iso) => {
+      Object.entries(month[iso] || {}).forEach(([id, entry]) => {
+        const habit = list.find((h) => h.id === id);
+        if (!habit || habit.type !== 'duration') return;
+        const minutes = Number(entry.value) || 0;
+        if (!minutes) return;
+        rows.push([iso, habit.name, minutes, Math.round((minutes / 60) * 100) / 100, habitTarget(habit, iso)]);
+      });
+    });
+  });
+  if (!rows.length) {
+    showToast('No time logged yet.', { type: 'info' });
+    return;
+  }
+  downloadFile(`ascend-time-${todayISO()}.csv`, toCSV(['Date', 'Habit', 'Minutes', 'Hours', 'Target minutes'], rows), 'text/csv');
+  showToast(`${formatIndianNumber(rows.length)} days of time exported.`, { type: 'success' });
+}
+
+document.getElementById('export-json').addEventListener('click', () => exportBackup());
+document.getElementById('export-expenses').addEventListener('click', exportExpensesCSV);
+document.getElementById('export-time').addEventListener('click', exportTimeCSV);
+
+
+/* ----- Restore ----- */
+
+const importSheet = document.getElementById('import-sheet');
+const importFile = document.getElementById('import-file');
+let pendingBackup = null;
+
+importSheet.addEventListener('close', () => { document.body.style.overflow = ''; });
+importSheet.addEventListener('click', (e) => { if (e.target === importSheet) importSheet.close(); });
+importSheet.querySelectorAll('[data-close]').forEach((btn) => btn.addEventListener('click', () => importSheet.close()));
+
+// A plain summary of what a { key: value } data map holds
+function summarize(data) {
+  const sumDays = (type) => Object.entries(data)
+    .filter(([k]) => k.startsWith(`${type}:`))
+    .reduce((n, [, month]) => n + Object.keys(month || {}).length, 0);
+  const expenses = Object.entries(data)
+    .filter(([k]) => k.startsWith('expenses:'))
+    .flatMap(([, month]) => Object.values(month || {}).flat());
+  const goals = data.goals || {};
+  return {
+    name: (data.profile && data.profile.name) || '–',
+    habits: Array.isArray(data.habits) ? data.habits.length : 0,
+    logDays: sumDays('logs'),
+    expenses: expenses.length,
+    spent: expenses.reduce((s, x) => s + (Number(x && x.amount) || 0), 0),
+    reflections: sumDays('journal'),
+    milestones: (goals.goals || []).reduce((n, g) => n + (g.milestones || []).length, 0),
+    wins: Array.isArray(data.wins) ? data.wins.length : 0,
+  };
+}
+
+// Check the file is an ASCEND backup. Returns { backup } or { error }.
+function readBackup(text) {
+  let json;
+  try {
+    json = JSON.parse(text);
+  } catch (err) {
+    return { error: 'That file isn’t a readable backup. Pick the .json file ASCEND saved.' };
+  }
+  if (!json || json.app !== 'ascend' || typeof json.data !== 'object' || json.data === null) {
+    return { error: 'That doesn’t look like an ASCEND backup file.' };
+  }
+  if (Number(json.version) > BACKUP_VERSION) {
+    return { error: 'This backup is from a newer version of ASCEND. Update the app, then try again.' };
+  }
+  const keys = Object.keys(json.data);
+  if (!keys.length || !keys.every((k) => KEY_PATTERN.test(k))) {
+    return { error: 'This backup looks damaged, so nothing was changed.' };
+  }
+  if (!json.data.profile || !json.data.profile.name) {
+    return { error: 'This backup has no profile in it, so nothing was changed.' };
+  }
+  return { backup: json };
+}
+
+importFile.addEventListener('change', async () => {
+  const file = importFile.files && importFile.files[0];
+  importFile.value = '';                       // lets you pick the same file again
+  if (!file) return;
+  if (file.size > 20 * 1024 * 1024) {
+    showToast('That file is too big to be an ASCEND backup.', { type: 'danger' });
+    return;
+  }
+
+  const { backup, error } = readBackup(await file.text());
+  if (error) {
+    showToast(error, { type: 'danger', duration: 5000 });
+    return;
+  }
+  pendingBackup = backup;
+
+  // Preview: backup vs this phone, side by side
+  const inBackup = summarize(backup.data);
+  const current = {};
+  listDataKeys().forEach((k) => { current[k] = getData(k, null); });
+  const onPhone = summarize(current);
+  const rows = [
+    ['Name', inBackup.name, onPhone.name],
+    ['Habits', inBackup.habits, onPhone.habits],
+    ['Days of habit logs', inBackup.logDays, onPhone.logDays],
+    ['Expenses', `${inBackup.expenses} (${formatAmount(inBackup.spent)})`, `${onPhone.expenses} (${formatAmount(onPhone.spent)})`],
+    ['Reflections', inBackup.reflections, onPhone.reflections],
+    ['Milestones', inBackup.milestones, onPhone.milestones],
+    ['Wins', inBackup.wins, onPhone.wins],
+  ];
+  document.getElementById('import-rows').innerHTML = rows.map(([label, a, b]) =>
+    `<tr><td>${label}</td><td>${escapeHTML(String(a))}</td><td>${escapeHTML(String(b))}</td></tr>`).join('');
+
+  const saved = backup.exportedAt ? new Date(backup.exportedAt) : null;
+  document.getElementById('import-meta').textContent = saved && !Number.isNaN(saved.getTime())
+    ? `${file.name} · saved ${formatDate(toISODate(saved), { day: 'numeric', month: 'short', year: 'numeric' })}`
+    : file.name;
+
+  document.body.style.overflow = 'hidden';
+  importSheet.showModal();
+  document.getElementById('import-title').focus();
+});
+
+document.getElementById('import-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  if (!pendingBackup) return;
+
+  const safetyCopy = document.getElementById('import-safety').checked;
+  if (safetyCopy) exportBackup({ quiet: true });
+
+  // Replace everything. If any write fails, try to put the old data back.
+  const before = {};
+  listDataKeys().forEach((k) => { before[k] = getData(k, null); });
+  clearAllData();
+  const ok = Object.entries(pendingBackup.data).every(([key, value]) => setData(key, value));
+  if (!ok) {
+    clearAllData();
+    Object.entries(before).forEach(([key, value]) => setData(key, value));
+    importSheet.close();
+    showToast('Couldn’t restore. Your data is unchanged.', { type: 'danger', duration: 5000 });
+    return;
+  }
+
+  // Reload so every part of the app reads the restored data
+  // (a short pause first, so the safety download isn't cut off)
+  setTimeout(() => location.replace('settings.html?restored=1#data'), safetyCopy ? 800 : 0);
+});
+
+
 /* ---------- Start ---------- */
 fillForm();
 syncThemeButtons();
 renderQuoteList();
 initHabits();
+renderBackupStatus();
+
+if (new URLSearchParams(location.search).has('restored')) {
+  showToast('Backup restored. Welcome back to your climb.', { type: 'success', duration: 4000 });
+  history.replaceState(null, '', `${location.pathname}#data`);
+}

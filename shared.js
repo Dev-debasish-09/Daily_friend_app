@@ -51,6 +51,24 @@ function removeData(key) {
   }
 }
 
+// Every saved key, without the prefix: ['profile', 'habits', 'logs:2026-09', ...]
+function listDataKeys() {
+  try {
+    return Object.keys(localStorage)
+      .filter((k) => k.startsWith(APP_PREFIX))
+      .map((k) => k.slice(APP_PREFIX.length))
+      .sort();
+  } catch (err) {
+    console.warn('[ascend] Could not list keys', err);
+    return [];
+  }
+}
+
+// Remove every ASCEND key (used before restoring a backup)
+function clearAllData() {
+  return listDataKeys().every((key) => removeData(key));
+}
+
 // Monthly shard key for growing data.
 // shardKey('expenses', '2026-09-27') -> 'expenses:2026-09'
 function shardKey(type, isoDate = todayISO()) {
@@ -397,7 +415,8 @@ function ensureToastRegion() {
   return region;
 }
 
-function showToast(message, { type = 'info', duration = 2800 } = {}) {
+// action: { label, onClick } adds a button (e.g. "Refresh"); such toasts stay up longer
+function showToast(message, { type = 'info', duration = 2800, action = null } = {}) {
   const region = ensureToastRegion();
   region.replaceChildren();          // only one toast at a time
   clearTimeout(toastTimer);
@@ -410,18 +429,32 @@ function showToast(message, { type = 'info', duration = 2800 } = {}) {
   dot.setAttribute('aria-hidden', 'true');
 
   const text = document.createElement('span');
+  text.className = 'toast__text';
   text.textContent = message;
 
   toast.append(dot, text);
+  if (action) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'toast__action';
+    btn.textContent = action.label;
+    btn.addEventListener('click', () => {
+      hide();
+      action.onClick();
+    });
+    toast.appendChild(btn);
+  }
   region.appendChild(toast);
 
   void toast.offsetWidth;            // force layout so the slide-in plays
   toast.classList.add('is-visible');
 
-  toastTimer = setTimeout(() => {
+  function hide() {
+    clearTimeout(toastTimer);
     toast.classList.remove('is-visible');
     setTimeout(() => toast.remove(), 300);
-  }, duration);
+  }
+  toastTimer = setTimeout(hide, action ? Math.max(duration, 8000) : duration);
 }
 
 
@@ -2100,6 +2133,62 @@ function currentPageName() {
   else if (done && page === 'onboarding') location.replace('index.html');
 })();
 
+// "Back up your climb": if there's been no export for 7 days, at most once a week.
+// Waits a week after you start, so a new user isn't nagged on day one.
+const BACKUP_EVERY_DAYS = 7;
+
+function backupNudge() {
+  const settings = getSettings();
+  const today = todayISO();
+  const last = settings.lastExportOn || trackingStart();
+  if (daysBetween(last, today) < BACKUP_EVERY_DAYS) return;
+  if (settings.backupNudgedOn && daysBetween(settings.backupNudgedOn, today) < BACKUP_EVERY_DAYS) return;
+  if (document.querySelector('dialog[open]')) return;          // don't interrupt a sheet or proud moment
+
+  updateSettings({ backupNudgedOn: today });
+  showToast('Back up your climb. One tap saves all your data to a file.', {
+    type: 'info',
+    action: { label: 'Back up', onClick: () => { location.href = 'settings.html#data'; } },
+  });
+}
+
+/* ---------- Offline: service worker + "Update ready" ----------
+   sw.js caches the whole app. When a new version is installed it waits;
+   the toast's Refresh button tells it to take over, then the page reloads. */
+
+function registerServiceWorker() {
+  if (!('serviceWorker' in navigator)) return;
+  const hadController = Boolean(navigator.serviceWorker.controller);   // false on the very first visit
+
+  const offerUpdate = (worker) => showToast('Update ready. Refresh to get the newest ASCEND.', {
+    type: 'success',
+    action: { label: 'Refresh', onClick: () => worker.postMessage('SKIP_WAITING') },
+  });
+
+  navigator.serviceWorker.register('sw.js').then((reg) => {
+    if (reg.waiting && hadController) offerUpdate(reg.waiting);
+    reg.addEventListener('updatefound', () => {
+      const worker = reg.installing;
+      if (!worker) return;
+      worker.addEventListener('statechange', () => {
+        if (worker.state === 'installed' && navigator.serviceWorker.controller) offerUpdate(worker);
+      });
+    });
+    // Coming back to the app: check for a new version
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') reg.update().catch(() => {});
+    });
+  }).catch((err) => console.warn('[ascend] Service worker not registered', err));
+
+  // The new version took over: reload once (not on the first-ever install)
+  let reloading = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadController || reloading) return;
+    reloading = true;
+    location.reload();
+  });
+}
+
 // Recurring expenses due by today are added before any page draws
 const recurringAddedOnLoad = hasProfile() ? applyRecurring() : [];
 
@@ -2113,9 +2202,13 @@ document.addEventListener('DOMContentLoaded', () => {
   addAmbientBackground();
   ensureToastRegion();
   if (document.body.dataset.nav !== 'off') renderBottomNav();
+  if (currentPageName() !== 'style-guide') registerServiceWorker();
 
   // Badges or a level-up earned since the last visit (e.g. from a timer on Track)
   if (hasProfile()) setTimeout(checkProgress, 600);
+
+  // Gentle weekly nudge to back up (never on Settings, where the button is)
+  if (hasProfile() && currentPageName() !== 'settings') setTimeout(backupNudge, 3000);
 
   // Let you know when recurring expenses were added in the background
   if (recurringAddedOnLoad.length) {

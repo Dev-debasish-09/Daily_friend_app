@@ -6,8 +6,13 @@
   <meta name="theme-color" content="#F4F1FA">
   <title>Money · ASCEND</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="ASCEND">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="stylesheet" href="styles.css">
 
   <script src="shared.js"></script>
@@ -15,14 +20,6 @@
 
   <!-- Styles only Money needs -->
   <style>
-    .section-title {
-      font-family: var(--font-ui);
-      font-size: var(--fs-xs);
-      font-weight: 800;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
 
     /* ----- Coin hero (the Money signature) ----- */
     .coin-hero { display: flex; flex-direction: column; gap: 14px; }
@@ -66,7 +63,7 @@
       min-width: 48px;
       height: 48px;
       padding: 0 8px;
-      border-radius: 16px;
+      border-radius: var(--radius-input);
       background: var(--accent-soft);
       color: var(--accent-text);
       font-family: var(--font-head);
@@ -111,7 +108,6 @@
     .cmp-delta { font-weight: 700; }
 
     /* ----- Budgets ----- */
-    .card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
     .budget-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
     .budget-row { display: flex; flex-direction: column; gap: 6px; }
     .budget-row__head { display: flex; justify-content: space-between; gap: 12px; font-weight: 700; }
@@ -130,9 +126,6 @@
     }
     .budget-field .label { font-size: var(--fs-md); font-weight: 700; }
     .budget-field .field-error { grid-column: 1 / -1; }
-    .plain-fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
-    .plain-fieldset legend { padding: 0; margin-bottom: 8px; }
-    .sheet-delete.is-confirming { color: var(--danger-text); background: var(--accent-soft); }
 
     /* ----- Lists (expenses, income, recurring) ----- */
     .day-group { display: flex; flex-direction: column; gap: 8px; }
@@ -186,6 +179,7 @@
     .xp-row__chev { flex: none; width: 18px; height: 18px; color: var(--muted); }
 
     @media (prefers-reduced-motion: reduce) {
+      .coin { animation: none; }
       .xp-row:active { transform: none; }
     }
   </style>

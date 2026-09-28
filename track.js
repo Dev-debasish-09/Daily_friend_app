@@ -750,7 +750,7 @@ function rowSummary(row, dayName, daysSoFar) {
 function drawWeekChart(dayName, daysSoFar) {
   const W = 320;
   const plotW = 236;          // leaves room for the value label at the bar tip
-  const rowH = 56;
+  const rowH = 70;             // tall enough that each row is a 48px+ tap target at 320px
   const barH = 16;            // thin marks (<= 24px)
   const lastH = 4;
   const max = Math.max(60, ...weekRows.map((r) => Math.max(r.now, r.before)));

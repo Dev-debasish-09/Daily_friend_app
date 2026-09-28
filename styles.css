@@ -8,8 +8,49 @@
    13. Motion + reduced motion
    ========================================================= */
 
-/* ---------- 1. Fonts (Google Fonts for now; self-host later) ---------- */
-@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@1,400&family=Nunito:wght@400;600;700;800&family=Sora:wght@500;600;700;800&display=swap");
+/* ---------- 1. Fonts (self-hosted in /fonts so they work offline) ----------
+   Variable fonts: one file covers every weight. latin-ext adds ₹ and accents. */
+@font-face {
+  font-family: "Sora";
+  font-style: normal;
+  font-weight: 500 800;
+  font-display: swap;
+  src: url("fonts/sora-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Sora";
+  font-style: normal;
+  font-weight: 500 800;
+  font-display: swap;
+  src: url("fonts/sora-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Nunito";
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url("fonts/nunito-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Nunito";
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url("fonts/nunito-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* Fraunces italic: only for the daily quote */
+@font-face {
+  font-family: "Fraunces";
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("fonts/fraunces-italic-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
 
 
 /* ---------- 2. Dawn theme (default) ---------- */
@@ -20,15 +61,16 @@
   --bg-top: #F4F1FA;
   --bg-bottom: #FBE3D6;
   --ink: #2B2A4A;                 /* main text, never pure black */
-  --muted: #6B6890;
+  --muted: #656188;               /* a touch darker than #6B6890 so small text passes AA on tinted tiles */
   --accent: #5B4BDB;              /* violet fill */
   --on-accent: #FFFFFF;           /* text on accent fill */
   --accent-text: #5B4BDB;         /* accent used as text/links */
-  --accent-soft: rgb(91 75 219 / 0.12);
+  --accent-soft: rgb(91 75 219 / 0.10);
   --gold: #F2B544;
   --on-gold: #2B2A4A;
   --peach: #F6A58C;
   --lavender: #C9C3F2;
+  --on-lavender: #2B2A4A;         /* text on a lavender fill, both themes */
   --success: #2F7D6D;             /* pine green */
   --on-success: #FFFFFF;
   --success-text: #276B5D;        /* slightly deeper so small text passes AA on glass */
@@ -38,6 +80,12 @@
   --mountain-near: #3D3A6B;
   --mountain-far: #8C86C4;
   --sky-top: #C9C3F2;             /* summit sky on Today */
+  --trail-line: rgb(255 255 255 / 0.55);   /* dashed trail on the Goals mountain */
+  --sky-dusk: #E4DEF6;            /* Today's sky near the horizon before the sun rises */
+  --star-color: #FFFFFF;
+  --star-strength: 0.7;           /* how bright the stars are at a 0% score */
+  --on-mountain: #FFFFFF;         /* text on the near range (Today hero) */
+  --on-mountain-muted: rgb(255 255 255 / 0.8);
   --chart-last: #8E8AAE;          /* "last week" bars: de-emphasis grey, 3:1 on cards (validated) */
   /* Categorical chart slots (dataviz reference palette, validated on ASCEND cards) */
   --series-1: #2a78d6;
@@ -137,22 +185,27 @@
   --bg-top: #14132B;
   --bg-bottom: #262450;
   --ink: #ECEAF7;
-  --muted: #A9A6CC;
+  --muted: #B4B1D6;               /* lighter than #A9A6CC so it passes AA on tinted tiles */
   --accent: #8B7CFF;
   --on-accent: #14132B;           /* dark text: white on #8B7CFF fails AA */
-  --accent-text: #A99DFF;         /* lighter violet so text passes AA */
-  --accent-soft: rgb(139 124 255 / 0.18);
+  --accent-text: #B6ACFF;         /* lighter violet so text passes AA, even on accent-soft */
+  --accent-soft: rgb(139 124 255 / 0.14);
   --gold: #F5C263;
   --on-gold: #14132B;
   --success: #5FC2A8;
   --on-success: #14132B;
-  --success-text: #5FC2A8;
+  --success-text: #6DCDB3;
   --danger: #FF8A80;
   --on-danger: #14132B;
-  --danger-text: #FF8A80;
+  --danger-text: #FF9A91;
   --mountain-near: #0E0D22;
   --mountain-far: #3A3772;
   --sky-top: #1E1C45;
+  --sky-dusk: #2E2B63;
+  --star-color: #ECEAF7;
+  --star-strength: 0.95;
+  --on-mountain: #ECEAF7;
+  --on-mountain-muted: rgb(236 234 247 / 0.78);
   --chart-last: #B4B1CC;
   --series-1: #3987e5;
   --series-2: #d95926;
@@ -986,7 +1039,7 @@ input[type="date"].input::-webkit-date-and-time-value {
   padding: 4px;
   background: var(--tile-bg);
   border: 2px solid var(--line);
-  border-radius: 16px;
+  border-radius: var(--radius-input);
   text-align: center;
   cursor: pointer;
   touch-action: manipulation;
@@ -1045,7 +1098,7 @@ input[type="date"].input::-webkit-date-and-time-value {
   min-height: var(--tap);
   background: var(--input-bg);
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: var(--radius-input);
   color: var(--ink);
   font-family: var(--font-head);
   font-size: 1.5rem;
@@ -1140,7 +1193,7 @@ input[type="date"].input::-webkit-date-and-time-value {
   z-index: 2;
   max-width: 240px;
   padding: 10px 12px;
-  border-radius: 14px;
+  border-radius: var(--radius-input);
   background: var(--toast-bg);
   color: var(--toast-text);
   font-size: var(--fs-sm);
@@ -1177,7 +1230,7 @@ input[type="date"].input::-webkit-date-and-time-value {
 .fab {
   position: fixed;
   z-index: 45;
-  right: max(var(--gutter), calc((100vw - 480px) / 2 + var(--gutter)));
+  right: max(var(--gutter), env(safe-area-inset-right), calc((100vw - 480px) / 2 + var(--gutter)));
   bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 14px);
   display: inline-flex;
   align-items: center;
@@ -1313,7 +1366,7 @@ body.has-fab .page {
   padding: 4px 2px;
   background: var(--tile-bg);
   border: 2px solid var(--line);
-  border-radius: 16px;
+  border-radius: var(--radius-input);
   pointer-events: none;
   transition: border-color var(--dur-fast) ease, background-color var(--dur-fast) ease, transform var(--dur-fast) var(--ease-out);
 }
@@ -1322,6 +1375,25 @@ body.has-fab .page {
 .rating__option input:checked + .rating__face { border-color: var(--accent); background: var(--accent-soft); }
 .rating__option input:focus-visible + .rating__face { outline: 3px solid var(--focus); outline-offset: 2px; }
 .rating__option:active .rating__face { transform: scale(0.95); }
+
+
+/* ----- Shared page parts (were copied into several pages) ----- */
+/* Small uppercase label above a group of cards */
+.section-title {
+  font-family: var(--font-ui);
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+/* Card heading with something on the right (a button, arrows) */
+.card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+/* A fieldset with no box */
+.plain-fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
+.plain-fieldset legend { padding: 0; margin-bottom: 8px; }
+/* "Tap again to delete" state */
+.sheet-delete.is-confirming { color: var(--danger-text); background: var(--accent-soft); }
 
 
 /* ---------- 10. Toast ---------- */
@@ -1367,6 +1439,29 @@ body.has-fab .page {
   border-radius: 50%;
   background: var(--toast-info);
 }
+
+.toast__text { flex: 1; min-width: 0; }
+
+/* Optional button inside a toast ("Refresh", "Back up") */
+.toast__action {
+  flex: none;
+  min-height: var(--tap);
+  margin: -8px -8px -8px 0;
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--toast-text);
+  font-family: var(--font-ui);
+  font-size: var(--fs-md);
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  pointer-events: auto;
+  touch-action: manipulation;
+}
+.toast__action:focus-visible { outline-color: var(--toast-text); }
 
 .toast--success .toast__dot { background: var(--toast-success); }
 .toast--danger .toast__dot  { background: var(--toast-danger); }
@@ -1475,7 +1570,7 @@ body.has-fab .page {
   gap: 12px;
   min-height: var(--tap);
   padding: 0 14px;
-  border-radius: 14px;
+  border-radius: var(--radius-input);
   color: var(--ink);
   font-weight: 700;
   text-decoration: none;
@@ -1503,6 +1598,7 @@ body.has-fab .page {
 
 
 /* ---------- 12. Utilities ---------- */
+.stack-tight { display: flex; flex-direction: column; gap: 4px; }
 .stack    { display: flex; flex-direction: column; gap: 12px; }
 .stack-lg { display: flex; flex-direction: column; gap: 20px; }
 .row      { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }

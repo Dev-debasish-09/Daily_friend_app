@@ -6,8 +6,13 @@
   <meta name="theme-color" content="#F4F1FA">
   <title>Insights · ASCEND</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="ASCEND">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="stylesheet" href="styles.css">
 
   <script src="shared.js"></script>
@@ -15,15 +20,6 @@
 
   <!-- Styles only Insights needs -->
   <style>
-    .section-title {
-      font-family: var(--font-ui);
-      font-size: var(--fs-xs);
-      font-weight: 800;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-    .card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
     .nav-pair { display: flex; gap: 8px; }
     .icon-btn[aria-disabled="true"] { pointer-events: none; }
 
@@ -39,11 +35,11 @@
     }
     .sky-year { font-family: var(--font-head); font-size: var(--fs-xl); font-weight: 800; font-variant-numeric: tabular-nums; }
 
-    .sky-wrap { position: relative; border-radius: 16px; touch-action: manipulation; cursor: pointer; }
+    .sky-wrap { position: relative; border-radius: var(--radius-input); touch-action: manipulation; cursor: pointer; }
     .sky-wrap:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; }
     .sky { display: block; width: 100%; height: auto; }
-    .sky-month { fill: var(--muted); font-family: var(--font-ui); font-size: 11px; font-weight: 800; }
-    .sky-tick { fill: var(--muted); font-family: var(--font-ui); font-size: 10px; font-weight: 700; }
+    .sky-month { fill: var(--muted); font-family: var(--font-ui); font-size: 12px; font-weight: 800; }
+    .sky-tick { fill: var(--muted); font-family: var(--font-ui); font-size: 11px; font-weight: 700; }
     .star { fill: var(--ink); }
     .star--dust { fill: var(--muted); }
     .star--won { fill: var(--gold); }
@@ -124,7 +120,7 @@
     .grade--a { --grade-bg: var(--success); --grade-fg: var(--on-success); }
     .grade--b { --grade-bg: var(--accent); --grade-fg: var(--on-accent); }
     .grade--c { --grade-bg: var(--gold); --grade-fg: var(--on-gold); }
-    .grade--d { --grade-bg: var(--lavender); --grade-fg: #2B2A4A; }
+    .grade--d { --grade-bg: var(--lavender); --grade-fg: var(--on-lavender); }
     .grade-hero__text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
     .grade-hero__avg { font-family: var(--font-head); font-weight: 700; }
 
@@ -136,7 +132,7 @@
     .report tbody th { font-weight: 700; }
     .report tr:last-child th, .report tr:last-child td { border-bottom: 0; }
     .mini-grade { font-family: var(--font-head); font-weight: 800; }
-    .comment { padding: 12px 14px; border-radius: 16px; background: var(--accent-soft); font-weight: 700; }
+    .comment { padding: 12px 14px; border-radius: var(--radius-input); background: var(--accent-soft); font-weight: 700; }
 
     /* ----- Reflections (calm list) ----- */
     .reflect-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
@@ -146,7 +142,7 @@
     .reflect-item__faces { font-size: var(--fs-sm); font-weight: 700; color: var(--muted); }
     .reflect-item__label { font-size: var(--fs-xs); font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
     .reflect-item p { overflow-wrap: anywhere; }
-    .day-reflection { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border-radius: 16px; background: var(--tile-bg); }
+    .day-reflection { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border-radius: var(--radius-input); background: var(--tile-bg); }
 
     @media (prefers-reduced-motion: reduce) {
       .star-g { animation: none; }
@@ -206,7 +202,7 @@
     <!-- Weekly review -->
     <section class="card stack-lg" aria-labelledby="h-week">
       <div class="card-head">
-        <div class="stack" style="gap: 2px">
+        <div class="stack-tight">
           <h2 id="h-week">Weekly review</h2>
           <p class="muted" id="week-range"></p>
         </div>
@@ -225,7 +221,7 @@
     <!-- Monthly report card -->
     <section class="card stack-lg" aria-labelledby="h-month">
       <div class="card-head">
-        <div class="stack" style="gap: 2px">
+        <div class="stack-tight">
           <h2 id="h-month">Report card</h2>
           <p class="muted" id="month-range"></p>
         </div>
@@ -243,7 +239,7 @@
 
     <!-- Past nightly reflections -->
     <section class="stack" aria-labelledby="h-reflect">
-      <div class="stack" style="gap: 4px">
+      <div class="stack-tight">
         <h2 class="section-title" id="h-reflect">Reflections</h2>
         <p class="muted">Your evening notes, newest first.</p>
       </div>

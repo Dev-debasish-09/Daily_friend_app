@@ -6,8 +6,13 @@
   <meta name="theme-color" content="#F4F1FA">
   <title>Goals · ASCEND</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="ASCEND">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="stylesheet" href="styles.css">
 
   <script src="shared.js"></script>
@@ -15,15 +20,6 @@
 
   <!-- Styles only Goals needs -->
   <style>
-    .section-title {
-      font-family: var(--font-ui);
-      font-size: var(--fs-xs);
-      font-weight: 800;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-    .card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 
     /* ----- The trail (Goals signature) ----- */
     /* --climb (0 to 1) is set by goals.js: how far up the trail you are */
@@ -42,7 +38,7 @@
 
     .trail-path {
       fill: none;
-      stroke: rgb(255 255 255 / 0.55);
+      stroke: var(--trail-line);
       stroke-width: 2.5;
       stroke-linecap: round;
       stroke-dasharray: 2 7;
@@ -147,9 +143,6 @@
     .savings.is-done { box-shadow: var(--shadow-card), inset 0 0 0 2px var(--gold); }
 
     /* ----- Sheets ----- */
-    .plain-fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
-    .plain-fieldset legend { padding: 0; margin-bottom: 8px; }
-    .sheet-delete.is-confirming { color: var(--danger-text); background: var(--accent-soft); }
     .range-row { display: flex; align-items: center; gap: 12px; }
     .range { flex: 1; min-width: 0; min-height: var(--tap); margin: 0; accent-color: var(--accent); cursor: pointer; }
     .range-value { flex: none; min-width: 4.5ch; text-align: right; font-family: var(--font-head); font-size: var(--fs-lg); font-weight: 800; font-variant-numeric: tabular-nums; }
