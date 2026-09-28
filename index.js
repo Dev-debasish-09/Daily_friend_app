@@ -304,9 +304,13 @@ function updateEntry(habit, changes, { focusKey = null } = {}) {
   const justWon = result.won && !wasWon;
 
   render({ justDoneId: improved ? habit.id : null, focusKey });
+  renderLevel();
 
   if (justWon) dayWon(result);
   else if (improved) celebrate(habit, next, target, result);
+
+  // New badge or level? Let the Day Won sunrise finish first.
+  if (improved || justWon) setTimeout(() => checkProgress().then(renderLevel), justWon ? 1800 : 400);
   return improved || justWon;
 }
 
@@ -427,6 +431,64 @@ listEl.addEventListener('submit', (e) => {
 });
 
 
+/* ---------- Level + nightly reflection ---------- */
+
+function renderLevel() {
+  const info = levelInfo(computeXP());
+  document.getElementById('level-num').textContent = info.level;
+  document.getElementById('level-title').textContent = `Level ${info.level} · ${info.title}`;
+  document.getElementById('level-bar').style.setProperty('--value', `${((info.into / info.need) * 100).toFixed(1)}%`);
+  document.getElementById('level-note').textContent =
+    `${formatIndianNumber(info.toNext)} XP to Level ${info.level + 1}. See your Wall of Wins.`;
+  document.getElementById('level-card').setAttribute('aria-label',
+    `Level ${info.level}, ${info.title}. ${info.toNext} XP to the next level. Open the Wall of Wins.`);
+  document.getElementById('level-card').hidden = false;
+}
+
+const CHECK_CIRCLE_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></svg>';
+
+// From 8 PM: a gentle prompt. Once saved: a quiet "saved" line with Edit.
+function renderReflection() {
+  const card = document.getElementById('reflect-card');
+  const promptDay = reflectionDayNow();
+  const iso = promptDay || today;
+  const entry = getReflection(iso);
+
+  if (!promptDay && !entry) {
+    card.hidden = true;
+    return;
+  }
+
+  const isToday = iso === today;
+  if (entry) {
+    const mood = MOODS[entry.mood - 1];
+    const energy = ENERGY[entry.energy - 1];
+    card.innerHTML = `
+      <p class="reflect-card__done">${CHECK_CIRCLE_SVG}<strong id="reflect-title">${isToday ? 'Tonight’s' : 'Yesterday’s'} reflection is saved</strong></p>
+      <p class="reflect-card__faces">
+        <span>${mood.emoji} Mood: ${mood.word}</span>
+        <span>${energy.emoji} Energy: ${energy.word}</span>
+      </p>
+      ${entry.improve ? `<p class="muted">Tomorrow: ${escapeHTML(entry.improve)}</p>` : ''}
+      <button class="btn btn--ghost" type="button" data-reflect="${iso}" style="align-self: flex-start">Edit reflection</button>`;
+  } else {
+    card.innerHTML = `
+      <p class="eyebrow">Evening check-in</p>
+      <h2 id="reflect-title">${isToday ? 'How did today go?' : 'How did yesterday go?'}</h2>
+      <p class="muted">Two minutes: what went well, what you’ll improve, your mood and energy.</p>
+      <button class="btn btn--primary btn--block" type="button" data-reflect="${iso}">${isToday ? 'Write tonight’s reflection' : 'Reflect on yesterday'}</button>`;
+  }
+  card.hidden = false;
+}
+
+document.getElementById('reflect-card').addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-reflect]');
+  if (btn) {
+    openReflectionSheet({ iso: btn.dataset.reflect, onSave: () => { renderReflection(); renderLevel(); } });
+  }
+});
+
+
 /* ---------- Header, countdowns, quote ---------- */
 
 const LONG_DATE = { day: 'numeric', month: 'short', year: 'numeric' };
@@ -496,6 +558,8 @@ async function init() {
 
   dayLog = getDayLog(today);
   render({ riseIn: true });
+  renderLevel();
+  renderReflection();
 
   // Welcome toast right after onboarding, then tidy the URL
   if (new URLSearchParams(location.search).has('welcome')) {
@@ -516,6 +580,7 @@ document.getElementById('fab-expense').addEventListener('click', () => openExpen
 
 // If the app stays open past midnight, start the new day fresh
 document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') renderReflection();   // it may be past 8 PM now
   if (document.visibilityState === 'visible' && todayISO() !== today) {
     today = todayISO();
     dayLog = getDayLog(today);
@@ -524,6 +589,8 @@ document.addEventListener('visibilitychange', () => {
     renderQuote();
     renderFood();
     render();
+    renderLevel();
+    renderReflection();
   }
 });
 

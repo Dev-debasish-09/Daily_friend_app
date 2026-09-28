@@ -154,37 +154,6 @@
     .range { flex: 1; min-width: 0; min-height: var(--tap); margin: 0; accent-color: var(--accent); cursor: pointer; }
     .range-value { flex: none; min-width: 4.5ch; text-align: right; font-family: var(--font-head); font-size: var(--fs-lg); font-weight: 800; font-variant-numeric: tabular-nums; }
 
-    /* ----- Proud moment ----- */
-    .proud {
-      width: min(360px, calc(100% - 2 * var(--gutter)));
-      margin: auto;
-      padding: 0;
-      border: 0;
-      border-radius: var(--radius-card);
-      background: var(--sheet-bg);
-      color: var(--ink);
-      box-shadow: var(--shadow-card), inset 0 0 0 2px var(--gold);
-      text-align: center;
-    }
-    .proud::backdrop { background: rgb(20 19 43 / 0.55); }
-    .proud[open] { animation: proud-pop 420ms var(--ease-out); }
-    .proud__inner { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 24px 20px 20px; }
-    .proud__art { width: 120px; height: auto; }
-    .proud__rays { fill: var(--gold); transform-origin: 60px 44px; }
-    .proud[open] .proud__rays { animation: rays-spin 1.2s var(--ease-out); }
-    .proud__title { font-size: var(--fs-xl); overflow-wrap: anywhere; }
-    .proud .btn { margin-top: 8px; }
-
-    @keyframes proud-pop {
-      0%   { transform: scale(0.9); }
-      60%  { transform: scale(1.03); }
-      100% { transform: none; }
-    }
-    @keyframes rays-spin {
-      from { transform: scale(0.4) rotate(-30deg); opacity: 0; }
-      to   { transform: none; opacity: 1; }
-    }
-
     @media (prefers-reduced-motion: reduce) {
       .ms-row:active { transform: none; }
     }
@@ -412,24 +381,5 @@
     </form>
   </dialog>
 
-  <!-- Proud moment: a milestone or savings goal reached -->
-  <dialog class="proud" id="proud" aria-labelledby="proud-title" aria-describedby="proud-text">
-    <div class="proud__inner">
-      <svg class="proud__art" viewBox="0 0 120 88" aria-hidden="true" focusable="false">
-        <g class="proud__rays">
-          <path d="M60 44 44 4h32z M60 44 96 12l8 22z M60 44 24 12l-8 22z" opacity="0.45"/>
-        </g>
-        <path class="range-near" d="M4 88 60 30l56 58z" style="fill: var(--mountain-near)"/>
-        <path d="M60 30 72 42l-6-2-6 5-6-5-6 2z" style="fill: var(--lavender)"/>
-        <path d="M60 30V6" style="stroke: var(--gold); stroke-width: 2.5; stroke-linecap: round"/>
-        <path d="M60 6l18 6-18 6z" style="fill: var(--gold)"/>
-      </svg>
-      <p class="eyebrow" id="proud-eyebrow">Milestone reached</p>
-      <h2 class="proud__title" id="proud-title" tabindex="-1"></h2>
-      <p id="proud-text"></p>
-      <p class="muted">Saved to your Wins.</p>
-      <button class="btn btn--primary btn--block" type="button" id="proud-close">Keep climbing</button>
-    </div>
-  </dialog>
 </body>
 </html>

@@ -240,8 +240,44 @@
       100% { transform: scale(1); }
     }
 
+    /* Level card: a tappable link to the Wall of Wins */
+    .level-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 16px;
+      color: var(--ink);
+      text-decoration: none;
+      transition: transform var(--dur-fast) var(--ease-out);
+    }
+    .level-card:active { transform: scale(0.98); }
+    .level-card__num {
+      flex: none;
+      display: grid;
+      place-items: center;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: var(--on-accent);
+      font-family: var(--font-head);
+      font-size: var(--fs-lg);
+      font-weight: 800;
+    }
+    .level-card__text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+    .level-card__title { font-family: var(--font-head); font-weight: 700; }
+    .level-card__note { font-size: var(--fs-sm); color: var(--muted); }
+    .level-card__chev { flex: none; width: 20px; height: 20px; color: var(--muted); }
+
+    /* Nightly reflection card */
+    .reflect-card { display: flex; flex-direction: column; gap: 10px; }
+    .reflect-card__faces { display: flex; flex-wrap: wrap; gap: 6px 14px; font-weight: 700; }
+    .reflect-card__done { display: flex; align-items: center; gap: 8px; }
+    .reflect-card__done svg { flex: none; width: 20px; height: 20px; color: var(--success-text); }
+
     @media (prefers-reduced-motion: reduce) {
       .habit--toggle:active { transform: none; }
+      .level-card:active { transform: none; }
     }
   </style>
 </head>
@@ -304,6 +340,20 @@
         </p>
       </div>
     </section>
+
+    <!-- Level + XP (opens the Wall of Wins) -->
+    <a class="card level-card" id="level-card" href="wins.html" hidden>
+      <span class="level-card__num" id="level-num" aria-hidden="true">1</span>
+      <span class="level-card__text">
+        <span class="level-card__title" id="level-title">Level 1</span>
+        <span class="progress" aria-hidden="true"><span class="progress__bar" id="level-bar"></span></span>
+        <span class="level-card__note" id="level-note"></span>
+      </span>
+      <svg class="level-card__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 6l6 6-6 6"/></svg>
+    </a>
+
+    <!-- Nightly reflection: a gentle prompt from 8 PM -->
+    <section class="card reflect-card" id="reflect-card" aria-labelledby="reflect-title" hidden></section>
 
     <!-- Daily quote (Fraunces italic lives only here) -->
     <figure class="card quote-card" id="quote-card" hidden>

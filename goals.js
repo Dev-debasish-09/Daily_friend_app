@@ -869,22 +869,11 @@ document.getElementById('dep-form').addEventListener('submit', (e) => {
 
 /* ---------- Proud moment ---------- */
 
-const proud = document.getElementById('proud');
-
+// The shared gold card (shared.js), then any badge or level-up this unlocked
 function celebrate({ eyebrow, title, text }) {
-  document.getElementById('proud-eyebrow').textContent = eyebrow;
-  document.getElementById('proud-title').textContent = title;
-  document.getElementById('proud-text').textContent = text;
-  document.body.style.overflow = 'hidden';
-  proud.showModal();
-  document.getElementById('proud-close').focus();
-  haptic([20, 40, 30]);
-  confetti({ count: 140, power: 1.3 });
+  proudMoment({ eyebrow, title, text, flag: eyebrow.startsWith('Savings') ? 'var(--success)' : 'var(--accent)' });
+  checkProgress();
 }
-
-document.getElementById('proud-close').addEventListener('click', () => proud.close());
-proud.addEventListener('close', () => { document.body.style.overflow = ''; });
-proud.addEventListener('click', (e) => { if (e.target === proud) proud.close(); });
 
 
 /* ---------- Start ---------- */

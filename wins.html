@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en-IN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#F4F1FA">
+  <title>Wins · ASCEND</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="styles.css">
+
+  <script src="shared.js"></script>
+  <script src="wins.js" defer></script>
+
+  <!-- Styles only Wins needs -->
+  <style>
+    .section-title {
+      font-family: var(--font-ui);
+      font-size: var(--fs-xs);
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* ----- Level hero ----- */
+    .level-hero { display: flex; flex-direction: column; gap: 14px; }
+    .level-hero__top { display: flex; align-items: center; gap: 16px; }
+    .level-ring { flex: none; position: relative; width: 96px; height: 96px; }
+    .level-ring svg { width: 100%; height: 100%; }
+    .level-ring__track { fill: none; stroke: var(--line); stroke-width: 8; }
+    .level-ring__fill { fill: none; stroke: var(--accent); stroke-width: 8; stroke-linecap: round; }
+    .level-ring__num {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      font-family: var(--font-head);
+      font-size: 2rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+    .level-hero__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .level-hero__title { font-size: var(--fs-xl); }
+    .xp-rules { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; font-size: var(--fs-sm); }
+    .xp-rules strong { font-variant-numeric: tabular-nums; }
+
+    /* ----- Flag tiles (badges + wall) ----- */
+    .flag-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .flag-tile { align-items: center; text-align: center; gap: 6px; padding: 14px 12px; }
+    .flag-tile .flag-art { width: 72px; }
+    .flag-tile__title { font-family: var(--font-head); font-size: var(--fs-md); font-weight: 700; line-height: 1.25; overflow-wrap: anywhere; }
+    .flag-tile__detail { font-size: var(--fs-sm); color: var(--muted); overflow-wrap: anywhere; }
+    .flag-tile__date { font-size: var(--fs-xs); font-weight: 800; color: var(--accent-text); }
+    .flag-tile.is-earned { box-shadow: var(--shadow-tile), inset 0 0 0 1.5px var(--gold); }
+    .flag-tile .meter__track { width: 100%; }
+    .flag-tile.is-locked .flag-tile__title { color: var(--muted); }
+
+    /* Flags rise once on load (the page's one load moment) */
+    .rise { animation: flag-rise 520ms var(--ease-out) both; animation-delay: calc(var(--i) * 45ms); }
+    @keyframes flag-rise {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    .month-group { display: flex; flex-direction: column; gap: 10px; }
+    .month-group__title { font-size: var(--fs-md); }
+
+    @media (prefers-reduced-motion: reduce) {
+      .rise { animation: none; }
+    }
+  </style>
+</head>
+
+<body data-page="wins">
+  <main class="page" id="main">
+
+    <header class="stack">
+      <p class="eyebrow">Wall of Wins</p>
+      <h1>Wins</h1>
+      <p class="muted">Every flag here is proof you kept climbing.</p>
+    </header>
+
+    <!-- Level + XP -->
+    <section class="card level-hero" aria-labelledby="h-level">
+      <div class="level-hero__top">
+        <div class="level-ring" aria-hidden="true">
+          <svg viewBox="0 0 96 96" focusable="false">
+            <circle class="level-ring__track" cx="48" cy="48" r="40"/>
+            <circle class="level-ring__fill" id="level-ring" cx="48" cy="48" r="40" pathLength="100" stroke-dasharray="0 100" transform="rotate(-90 48 48)"/>
+          </svg>
+          <span class="level-ring__num" id="level-num">1</span>
+        </div>
+        <div class="level-hero__text">
+          <p class="eyebrow" id="level-eyebrow">Level 1</p>
+          <h2 class="level-hero__title" id="h-level">Base Walker</h2>
+          <p class="muted" id="level-xp"></p>
+        </div>
+      </div>
+      <div class="progress" aria-hidden="true"><div class="progress__bar" id="level-bar"></div></div>
+      <p id="level-next"></p>
+      <details class="table-view">
+        <summary>How you earn XP</summary>
+        <ul class="xp-rules" id="xp-rules"></ul>
+      </details>
+    </section>
+
+    <!-- Badges -->
+    <section class="stack" aria-labelledby="h-badges">
+      <div class="stack" style="gap: 4px">
+        <h2 class="section-title" id="h-badges">Badges</h2>
+        <p class="muted" id="badge-count"></p>
+      </div>
+      <ul class="flag-grid" id="badge-grid"></ul>
+    </section>
+
+    <!-- The wall: every win, newest first -->
+    <section class="stack-lg" aria-labelledby="h-wall">
+      <h2 class="section-title" id="h-wall">Every win</h2>
+      <div class="stack-lg" id="wall">
+        <p class="muted">Loading your wins…</p>
+      </div>
+    </section>
+
+  </main>
+</body>
+</html>

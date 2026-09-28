@@ -1248,6 +1248,82 @@ body.has-fab .page {
 }
 
 
+/* Summit flag art (Wall of Wins + proud moments). Set the flag colour with --flag. */
+.flag-art { display: block; width: 100%; height: auto; }
+.flag-art__peak { fill: var(--mountain-near); }
+.flag-art__snow { fill: var(--lavender); }
+.flag-art__pole { stroke: var(--ink); stroke-width: 2.5; stroke-linecap: round; }
+.flag-art__flag { fill: var(--flag, var(--gold)); }
+.flag-art__rays { fill: var(--gold); opacity: 0.45; transform-origin: 60px 44px; }
+.flag-art.is-locked .flag-art__peak { fill: none; stroke: var(--line); stroke-width: 2; stroke-dasharray: 4 4; }
+.flag-art.is-locked .flag-art__snow,
+.flag-art.is-locked .flag-art__flag { display: none; }
+.flag-art.is-locked .flag-art__pole { stroke: var(--line); }
+
+/* Proud moment: gold card for milestones, badges and level-ups (proudMoment in shared.js) */
+.proud {
+  width: min(360px, calc(100% - 2 * var(--gutter)));
+  margin: auto;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-card);
+  background: var(--sheet-bg);
+  color: var(--ink);
+  box-shadow: var(--shadow-card), inset 0 0 0 2px var(--gold);
+  text-align: center;
+}
+.proud::backdrop { background: rgb(20 19 43 / 0.55); }
+.proud[open] { animation: proud-pop 420ms var(--ease-out); }
+.proud__inner { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 24px 20px 20px; }
+.proud__art { width: 120px; }
+.proud[open] .flag-art__rays { animation: rays-spin 1.2s var(--ease-out); }
+.proud__title { font-size: var(--fs-xl); overflow-wrap: anywhere; }
+.proud .btn { margin-top: 8px; }
+
+@keyframes proud-pop {
+  0%   { transform: scale(0.9); }
+  60%  { transform: scale(1.03); }
+  100% { transform: none; }
+}
+@keyframes rays-spin {
+  from { transform: scale(0.4) rotate(-30deg); opacity: 0; }
+  to   { transform: none; opacity: 0.45; }
+}
+
+/* 1–5 picker (mood, energy): five big radio tiles */
+.rating {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.rating legend { padding: 0; margin-bottom: 8px; }
+.rating__option { position: relative; }
+.rating__option input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.rating__face {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 60px;
+  padding: 4px 2px;
+  background: var(--tile-bg);
+  border: 2px solid var(--line);
+  border-radius: 16px;
+  pointer-events: none;
+  transition: border-color var(--dur-fast) ease, background-color var(--dur-fast) ease, transform var(--dur-fast) var(--ease-out);
+}
+.rating__emoji { font-size: 1.375rem; line-height: 1.1; }
+.rating__word { font-size: 0.75rem; font-weight: 800; line-height: 1.1; }
+.rating__option input:checked + .rating__face { border-color: var(--accent); background: var(--accent-soft); }
+.rating__option input:focus-visible + .rating__face { outline: 3px solid var(--focus); outline-offset: 2px; }
+.rating__option:active .rating__face { transform: scale(0.95); }
+
+
 /* ---------- 10. Toast ---------- */
 .toast-region {
   position: fixed;
@@ -1492,6 +1568,7 @@ body[data-nav="off"] .toast-region {
   .key-btn:active,
   .fab:active,
   .stepper__btn:active,
+  .rating__option:active .rating__face,
   .bottom-nav__item:active { transform: none; }
 
   .toast { transform: none; }

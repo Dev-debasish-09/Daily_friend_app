@@ -7,7 +7,8 @@
    1. Storage   2. Settings + theme   3. Dates (Asia/Kolkata)
    4. Money (INR)   5. Profile   6. Form errors   7. Toast
    8. Background   9. Bottom nav   10. Habits + daily logs
-   (then time sessions, money, roadmap + goals + wins)
+   (then time sessions, money, roadmap + goals + wins, proud moment,
+    nightly reflection, XP + levels + badges)
    11. Start-up + onboarding gate
    ========================================================= */
 
@@ -1641,6 +1642,446 @@ function removeWinFor(sourceId) {
 }
 
 
+/* ---------- Summit flag + proud moment ----------
+   summitFlagSVG('var(--gold)', { rays: true }) draws a small peak with a flag.
+   proudMoment({ eyebrow, title, text, flag }) opens the gold card with confetti.
+   Several in a row (a milestone, then a badge, then a level-up) wait their turn. */
+
+function summitFlagSVG(flag = 'var(--gold)', { rays = false, locked = false } = {}) {
+  return `<svg class="flag-art${locked ? ' is-locked' : ''}" viewBox="0 0 120 88" style="--flag: ${flag}" aria-hidden="true" focusable="false">
+    ${rays ? '<path class="flag-art__rays" d="M60 44 44 4h32z M60 44 96 12l8 22z M60 44 24 12l-8 22z"/>' : ''}
+    <path class="flag-art__peak" d="M4 86 60 30l56 56z"/>
+    <path class="flag-art__snow" d="M60 30 72 42l-6-2-6 5-6-5-6 2z"/>
+    <path class="flag-art__pole" d="M60 30V6"/>
+    <path class="flag-art__flag" d="M60 6l18 6-18 6z"/>
+  </svg>`;
+}
+
+const proudQueue = [];
+let proudDialog = null;
+
+function buildProudDialog() {
+  proudDialog = document.createElement('dialog');
+  proudDialog.className = 'proud';
+  proudDialog.setAttribute('aria-labelledby', 'proud-title');
+  proudDialog.setAttribute('aria-describedby', 'proud-text');
+  proudDialog.innerHTML = `
+    <div class="proud__inner">
+      <div class="proud__art" id="proud-art"></div>
+      <p class="eyebrow" id="proud-eyebrow"></p>
+      <h2 class="proud__title" id="proud-title" tabindex="-1"></h2>
+      <p id="proud-text"></p>
+      <p class="muted" id="proud-note"></p>
+      <button class="btn btn--primary btn--block" type="button" id="proud-close">Keep climbing</button>
+    </div>`;
+  document.body.appendChild(proudDialog);
+  proudDialog.querySelector('#proud-close').addEventListener('click', () => proudDialog.close());
+  proudDialog.addEventListener('click', (e) => { if (e.target === proudDialog) proudDialog.close(); });
+  proudDialog.addEventListener('close', () => {
+    document.body.style.overflow = '';
+    if (proudQueue.length) setTimeout(showNextProud, 250);
+  });
+}
+
+function proudMoment(moment) {
+  proudQueue.push(moment);
+  if (!proudDialog) buildProudDialog();
+  if (!proudDialog.open) showNextProud();
+}
+
+function showNextProud() {
+  const m = proudQueue.shift();
+  if (!m) return;
+  const $ = (id) => proudDialog.querySelector(`#${id}`);
+  $('proud-art').innerHTML = summitFlagSVG(m.flag, { rays: true });
+  $('proud-eyebrow').textContent = m.eyebrow;
+  $('proud-title').textContent = m.title;
+  $('proud-text').textContent = m.text;
+  $('proud-note').textContent = m.note === undefined ? 'Saved to your Wall of Wins.' : m.note;
+  document.body.style.overflow = 'hidden';
+  proudDialog.showModal();
+  $('proud-close').focus();
+  haptic([20, 40, 30]);
+  confetti({ count: 140, power: 1.3 });
+}
+
+
+/* ---------- Nightly reflection (ascend:journal:YYYY-MM) ----------
+   { "2026-09-28": { well, improve, mood: 1-5, energy: 1-5, savedAt } }
+   Today asks gently from 8 PM; until 5 AM it asks about the day before. */
+
+const REFLECT_FROM_HOUR = 20;
+const MOODS = [
+  { emoji: '😣', word: 'Rough' },
+  { emoji: '😕', word: 'Low' },
+  { emoji: '😐', word: 'Okay' },
+  { emoji: '🙂', word: 'Good' },
+  { emoji: '😄', word: 'Great' },
+];
+const ENERGY = [
+  { emoji: '🪫', word: 'Drained' },
+  { emoji: '🥱', word: 'Low' },
+  { emoji: '🔋', word: 'Steady' },
+  { emoji: '💪', word: 'Strong' },
+  { emoji: '⚡', word: 'Full' },
+];
+
+function getReflection(iso) {
+  const entry = getMonthMap('journal', monthOf(iso))[iso];
+  return entry && typeof entry === 'object' ? entry : null;
+}
+
+function saveReflection(iso, entry) {
+  const ym = monthOf(iso);
+  const month = getMonthMap('journal', ym);
+  month[iso] = entry;
+  return setData(`journal:${ym}`, month);
+}
+
+// Which day the evening prompt is about right now, or null (daytime)
+function reflectionDayNow() {
+  const hour = currentHourIST();
+  if (hour >= REFLECT_FROM_HOUR) return todayISO();
+  if (hour < 5) return addDays(todayISO(), -1);
+  return null;
+}
+
+let rf = null;   // the reflection sheet's elements + state
+
+function ratingHTML(name, legend, options) {
+  return `
+    <fieldset class="rating" id="${name}-field">
+      <legend class="label">${legend}</legend>
+      ${options.map((o, i) => `
+        <label class="rating__option">
+          <input type="radio" name="${name}" value="${i + 1}" aria-label="${i + 1} of 5, ${o.word}">
+          <span class="rating__face" aria-hidden="true">
+            <span class="rating__emoji">${o.emoji}</span>
+            <span class="rating__word">${o.word}</span>
+          </span>
+        </label>`).join('')}
+    </fieldset>
+    <p class="field-error" id="${name}-error" hidden></p>`;
+}
+
+function buildReflectionSheet() {
+  const dialog = document.createElement('dialog');
+  dialog.className = 'sheet';
+  dialog.id = 'reflect-sheet';
+  dialog.setAttribute('aria-labelledby', 'rf-title');
+  dialog.innerHTML = `
+    <form class="sheet__form" id="rf-form" novalidate>
+      <div class="sheet__scroll">
+        <div class="xp-head">
+          <h2 id="rf-title" tabindex="-1">Tonight’s reflection</h2>
+          <button type="button" class="btn btn--ghost" id="rf-cancel">Cancel</button>
+        </div>
+        <p class="muted" id="rf-date"></p>
+
+        <div class="field">
+          <label class="label" for="rf-well">What went well?</label>
+          <textarea class="textarea" id="rf-well" maxlength="300" rows="3" placeholder="e.g. Finished the regression chapter before dinner"></textarea>
+        </div>
+        <div class="field">
+          <label class="label" for="rf-improve">What will you improve tomorrow?</label>
+          <textarea class="textarea" id="rf-improve" maxlength="300" rows="3" placeholder="e.g. Start ISS before checking my phone"></textarea>
+        </div>
+
+        ${ratingHTML('rf-mood', 'Mood', MOODS)}
+        ${ratingHTML('rf-energy', 'Energy', ENERGY)}
+      </div>
+      <div class="sheet__footer">
+        <button class="btn btn--primary btn--block" type="submit">Save reflection</button>
+      </div>
+    </form>`;
+  document.body.appendChild(dialog);
+
+  const $ = (id) => dialog.querySelector(`#${id}`);
+  rf = {
+    dialog,
+    form: $('rf-form'),
+    title: $('rf-title'),
+    date: $('rf-date'),
+    well: $('rf-well'),
+    improve: $('rf-improve'),
+    moodError: $('rf-mood-error'),
+    energyError: $('rf-energy-error'),
+    state: null,
+  };
+
+  $('rf-cancel').addEventListener('click', () => dialog.close());
+  dialog.addEventListener('click', (e) => { if (e.target === dialog) dialog.close(); });
+  dialog.addEventListener('close', () => { document.body.style.overflow = ''; });
+  dialog.addEventListener('change', (e) => {
+    if (e.target.name === 'rf-mood') rf.moodError.hidden = true;
+    if (e.target.name === 'rf-energy') rf.energyError.hidden = true;
+  });
+  rf.form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    saveReflectionFromSheet();
+  });
+}
+
+// openReflectionSheet({ iso, onSave }) — add or edit the reflection for a day
+function openReflectionSheet({ iso = todayISO(), onSave = null } = {}) {
+  if (!rf) buildReflectionSheet();
+  const entry = getReflection(iso);
+  rf.state = { iso, onSave, editing: Boolean(entry) };
+
+  const isToday = iso === todayISO();
+  rf.title.textContent = isToday ? 'Tonight’s reflection' : 'Reflect on yesterday';
+  rf.date.textContent = formatDate(iso, { weekday: 'long', day: 'numeric', month: 'long' });
+  rf.well.value = entry ? entry.well || '' : '';
+  rf.improve.value = entry ? entry.improve || '' : '';
+  ['mood', 'energy'].forEach((key) => {
+    rf.form.querySelectorAll(`input[name="rf-${key}"]`).forEach((input) => {
+      input.checked = Boolean(entry) && Number(input.value) === entry[key];
+    });
+  });
+  rf.moodError.hidden = true;
+  rf.energyError.hidden = true;
+
+  document.body.style.overflow = 'hidden';
+  rf.dialog.showModal();
+  (entry ? rf.title : rf.well).focus();
+}
+
+function saveReflectionFromSheet() {
+  const picked = (key) => Number((rf.form.querySelector(`input[name="rf-${key}"]:checked`) || {}).value) || 0;
+  const mood = picked('mood');
+  const energy = picked('energy');
+  if (!mood) {
+    rf.moodError.textContent = 'Pick how your mood was, 1 to 5.';
+    rf.moodError.hidden = false;
+  }
+  if (!energy) {
+    rf.energyError.textContent = 'Pick your energy, 1 to 5.';
+    rf.energyError.hidden = false;
+  }
+  if (!mood || !energy) {
+    haptic(30);
+    (mood ? rf.energyError : rf.moodError).previousElementSibling.querySelector('input').focus();
+    return;
+  }
+
+  const clean = (text) => text.trim().replace(/\s+/g, ' ');
+  const { iso, onSave, editing } = rf.state;
+  const ok = saveReflection(iso, {
+    well: clean(rf.well.value),
+    improve: clean(rf.improve.value),
+    mood,
+    energy,
+    savedAt: new Date().toISOString(),
+  });
+  if (!ok) {
+    showToast('Couldn’t save. Check that your browser allows storage.', { type: 'danger' });
+    return;
+  }
+  rf.dialog.close();
+  haptic(15);
+  showToast(editing ? 'Reflection updated.' : 'Reflection saved. +10 XP. Rest well.', { type: 'success' });
+  if (onSave) onSave();
+  checkProgress();
+}
+
+
+/* ---------- XP, levels + badges ----------
+   XP is worked out from your history each time (never stored), so undoing
+   a habit takes its XP back and nothing is ever counted twice.
+   ascend:xp = { levelSeen } remembers the highest level already celebrated.
+   Earned badges and level-ups are saved as wins (type 'badge' / 'level'). */
+
+const XP_RULES = {
+  'non-negotiable': 30,    // a habit done in full (half for the minimum version)
+  important: 20,
+  bonus: 10,
+  dayWon: 50,
+  reflection: 10,
+  milestone: 100,
+  savingsGoal: 150,
+  badge: 50,
+};
+
+const LEVEL_TITLES = [
+  [80, 'Summit Legend'], [55, 'Summit Chaser'], [35, 'Peak Seeker'], [20, 'Camp Builder'],
+  [10, 'Ridge Climber'], [5, 'Trail Finder'], [1, 'Base Walker'],
+];
+
+function trackingStart() {
+  const p = getProfile() || {};
+  return [p.onboardedOn, p.createdOn].filter(isValidISO).sort()[0] || todayISO();
+}
+
+// Every "YYYY-MM" from one month to another
+function monthsBetween(fromYm, toYm) {
+  const list = [];
+  for (let ym = fromYm; ym <= toYm && list.length < 600; ym = nextMonth(ym)) list.push(ym);
+  return list;
+}
+
+function computeXP() {
+  const habits = getData('habits', []) || [];
+  let xp = 0;
+
+  monthsBetween(monthOf(trackingStart()), monthOf(todayISO())).forEach((ym) => {
+    Object.entries(getMonthMap('logs', ym)).forEach(([iso, day]) => {
+      habits.forEach((h) => {
+        const target = habitTarget(h, iso);
+        const entry = day[h.id];
+        const points = XP_RULES[habitPriority(h)];
+        if (isHabitDone(h, entry, target)) xp += points;
+        else if (isHabitKept(h, entry, target)) xp += Math.round(points / 2);
+      });
+      if (dayScore(habits, day, iso).won) xp += XP_RULES.dayWon;
+    });
+    xp += Object.keys(getMonthMap('journal', ym)).length * XP_RULES.reflection;
+  });
+
+  const goals = getData('goals', null) || {};
+  (goals.goals || []).forEach((g) => (g.milestones || []).forEach((m) => { if (m.doneOn) xp += XP_RULES.milestone; }));
+  (goals.savings || []).forEach((s) => { if (s.target > 0 && s.saved >= s.target) xp += XP_RULES.savingsGoal; });
+  xp += getWins().filter((w) => w.type === 'badge').length * XP_RULES.badge;
+  return xp;
+}
+
+// Level 2 at 200 XP, and each level after needs 100 XP more than the last
+function levelInfo(xp) {
+  let level = 1;
+  let floor = 0;
+  let need = 200;
+  while (xp >= floor + need) {
+    floor += need;
+    level += 1;
+    need += 100;
+  }
+  const title = LEVEL_TITLES.find(([min]) => level >= min)[1];
+  return { xp, level, title, into: xp - floor, need, toNext: floor + need - xp };
+}
+
+// Your job isn't a habit you chose, so it doesn't earn streak badges or feature in insights
+const WORK_HABIT_IDS = ['office-work'];
+
+let badgesCache = null;
+
+async function loadBadges() {
+  if (badgesCache) return badgesCache;
+  try {
+    const res = await fetch('data/badges.json', { cache: 'no-cache' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+    badgesCache = Array.isArray(json.badges) ? json.badges : [];
+  } catch (err) {
+    console.warn('[ascend] Could not load badges', err);
+    return [];
+  }
+  return badgesCache;
+}
+
+// Numbers the badges are measured against. Each is worked out only when asked for.
+function makeBadgeContext() {
+  const memo = {};
+  const once = (key, fn) => (key in memo ? memo[key] : (memo[key] = fn()));
+  const today = todayISO();
+  const start = trackingStart();
+  const months = monthsBetween(monthOf(start), monthOf(today));
+
+  return {
+    // Longest current streak across your habits
+    bestStreak: () => once('streak', () => {
+      const habits = (getData('habits', []) || []).filter((h) => !h.archived && !WORK_HABIT_IDS.includes(h.id));
+      const readDay = makeLogReader();
+      return Math.max(0, ...habits.map((h) => habitStreak(h, readDay, today).count));
+    }),
+    // Sum of a habit's logged values (minutes or counts), all time
+    habitTotal: (id) => once(`total:${id}`, () => months.reduce((sum, ym) =>
+      sum + Object.values(getMonthMap('logs', ym))
+        .reduce((s, day) => s + (Number(day[id] && day[id].value) || 0), 0), 0)),
+    // Days in a row, up to today, with no food delivery order
+    noFoodStreak: () => once('nofood', () => {
+      const read = makeExpenseReader();
+      let count = 0;
+      for (let i = 0; i < 400; i += 1) {
+        const iso = addDays(today, -i);
+        if (iso < start || read(iso).some((x) => x.categoryId === FOOD_DELIVERY_ID)) break;
+        count += 1;
+      }
+      return count;
+    }),
+    savingsTotal: () => once('saved', () =>
+      ((getData('goals', null) || {}).savings || []).reduce((s, g) => s + (Number(g.saved) || 0), 0)),
+    milestonesDone: () => once('ms', () =>
+      ((getData('goals', null) || {}).goals || []).reduce((s, g) => s + (g.milestones || []).filter((m) => m.doneOn).length, 0)),
+  };
+}
+
+// How far along a badge is, in its own units (days, problems, hours, rupees...)
+function badgeValue(badge, ctx) {
+  switch (badge.type) {
+    case 'habitStreak': return ctx.bestStreak();
+    case 'habitTotal': return ctx.habitTotal(badge.habitId) / (badge.per || 1);
+    case 'noFoodStreak': return ctx.noFoodStreak();
+    case 'savingsTotal': return ctx.savingsTotal();
+    case 'milestones': return ctx.milestonesDone();
+    default: return 0;
+  }
+}
+
+// Award new badges, celebrate a level-up. Runs one at a time; returns levelInfo.
+// The very first run is quiet: history you already had isn't a flood of pop-ups.
+let progressRun = Promise.resolve(null);
+
+function checkProgress() {
+  progressRun = progressRun.then(runProgressCheck, runProgressCheck);
+  return progressRun;
+}
+
+async function runProgressCheck() {
+  try {
+    if (!hasProfile()) return null;
+    const badges = await loadBadges();
+    const state = getData('xp', null);
+    const firstRun = !state || typeof state !== 'object';
+    const earned = new Set(getWins().map((w) => w.sourceId));
+    const ctx = makeBadgeContext();
+
+    const fresh = badges.filter((b) => !earned.has(`badge:${b.id}`) && badgeValue(b, ctx) >= b.target);
+    fresh.forEach((b) => addWin({ type: 'badge', title: b.name, detail: b.desc, emoji: b.emoji, sourceId: `badge:${b.id}` }));
+
+    const info = levelInfo(computeXP());
+
+    if (firstRun) {
+      setData('xp', { levelSeen: info.level });
+      if (fresh.length) {
+        showToast(`${fresh.length} ${fresh.length === 1 ? 'badge' : 'badges'} added to your Wall of Wins.`, { type: 'success' });
+      }
+      return info;
+    }
+
+    fresh.forEach((b) => proudMoment({
+      eyebrow: 'Badge earned',
+      title: `${b.emoji} ${b.name}`,
+      text: b.cheer || b.desc,
+      flag: 'var(--gold)',
+    }));
+
+    if (info.level > (Number(state.levelSeen) || 1)) {
+      addWin({ type: 'level', title: `Reached Level ${info.level}`, detail: info.title, emoji: '⭐', sourceId: `level:${info.level}` });
+      setData('xp', { ...state, levelSeen: info.level });
+      proudMoment({
+        eyebrow: 'Level up',
+        title: `Level ${info.level}: ${info.title}`,
+        text: `Every target you hit got you here. ${formatIndianNumber(info.toNext)} XP to Level ${info.level + 1}.`,
+        flag: 'var(--accent)',
+      });
+    }
+    return info;
+  } catch (err) {
+    console.warn('[ascend] Could not check progress', err);
+    return null;
+  }
+}
+
+
 /* ---------- 11. Start-up (runs on every page) ---------- */
 
 // Page name from the URL: "/money.html" or "/money" -> "money", "/" -> "index"
@@ -1672,6 +2113,9 @@ document.addEventListener('DOMContentLoaded', () => {
   addAmbientBackground();
   ensureToastRegion();
   if (document.body.dataset.nav !== 'off') renderBottomNav();
+
+  // Badges or a level-up earned since the last visit (e.g. from a timer on Track)
+  if (hasProfile()) setTimeout(checkProgress, 600);
 
   // Let you know when recurring expenses were added in the background
   if (recurringAddedOnLoad.length) {
