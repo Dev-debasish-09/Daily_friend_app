@@ -6,7 +6,7 @@
    new files to APP_FILES. The app then shows "Update ready".
    ========================================================= */
 
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2';
 const CACHE_NAME = `ascend-${CACHE_VERSION}`;
 
 // Every file the app needs (relative to this file, so it works in any folder)
@@ -20,6 +20,7 @@ const APP_FILES = [
   'wins.html', 'wins.js',
   'settings.html', 'settings.js',
   'onboarding.html', 'onboarding.js',
+  'sky-preview.html', 'sky-preview.js',
   'styles.css', 'shared.js',
   'manifest.webmanifest',
   'data/quotes.json', 'data/habits.json', 'data/categories.json',

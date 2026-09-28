@@ -160,6 +160,8 @@
       transition: transform var(--dur-fast) var(--ease-out);
     }
     .xp-row:active { transform: scale(0.98); }
+    /* Rows straight on the sky (the expense list) are glass; inside cards they're lighter panels */
+    .expense-days .xp-row { background: var(--glass-bg); }
     .xp-row__badge {
       flex: none;
       display: grid;
@@ -306,7 +308,7 @@
     <!-- This month's expenses, grouped by day -->
     <section class="stack-lg" aria-labelledby="h-list">
       <h2 id="h-list">Expenses this month</h2>
-      <div class="stack-lg" id="expense-days">
+      <div class="stack-lg expense-days" id="expense-days">
         <p class="muted">Loading…</p>
       </div>
     </section>

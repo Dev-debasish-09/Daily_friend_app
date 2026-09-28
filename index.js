@@ -13,6 +13,7 @@ const userName = firstName(profile.name);
 
 const listEl = document.getElementById('checklist');
 const heroEl = document.getElementById('hero');
+let sunEl = null;          // the score sun/moon in the background sky (set up in init)
 
 let today = todayISO();
 let habits = [];
@@ -259,15 +260,15 @@ function animateScore(to) {
 }
 
 function pulseSun() {
-  heroEl.classList.remove('is-pulsing');
-  void heroEl.offsetWidth;                       // restart the animation
-  heroEl.classList.add('is-pulsing');
+  sunEl.classList.remove('is-pulsing');
+  void sunEl.offsetWidth;                        // restart the animation
+  sunEl.classList.add('is-pulsing');
 }
 
 // 12 gold rays around the sun (hidden until Day Won)
 function drawRays() {
-  const cx = 180;
-  const cy = 150;
+  const cx = 120;
+  const cy = 120;
   let shapes = '';
   for (let i = 0; i < 12; i += 1) {
     const a = (i / 12) * Math.PI * 2;
@@ -282,7 +283,8 @@ function renderHero(result, wins) {
   const { score, done, kept, total, nonNegKept, won } = result;
   document.getElementById('win-streak-text').textContent = winStreakText(wins);
 
-  heroEl.style.setProperty('--score', (score / 100).toFixed(3));
+  sunEl.style.setProperty('--score', (score / 100).toFixed(3));
+  sunEl.classList.toggle('is-won', won);
   heroEl.classList.toggle('is-won', won);
   if (score > shownScore && !heroEl.classList.contains('is-arriving')) pulseSun();
   animateScore(score);
@@ -290,11 +292,12 @@ function renderHero(result, wins) {
   document.getElementById('day-type').textContent = isWeekend(today) ? 'Weekend targets' : 'Weekday targets';
 
   // Describe the picture for screen readers
+  const body = getSky() === 'night' ? 'moon' : 'sun';
   document.getElementById('summit-label').textContent = won
-    ? 'Day won: a full gold sunrise over the summit'
+    ? `Day won: the ${body} is fully up over the summit`
     : score === 0
-      ? 'The sun is still below the horizon'
-      : `The sun is ${score}% of the way up over the summit`;
+      ? `The ${body} is still below the ridge`
+      : `The ${body} is ${score}% of the way up over the summit`;
 
   const minOnly = kept - done;
   document.getElementById('done-summary').textContent =
@@ -393,14 +396,14 @@ function floatXP(anchor, points) {
 // The big one: bring the summit into view, burst the rays, big confetti, long buzz
 function dayWon(result) {
   const reduced = prefersReducedMotion();
-  heroEl.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'center' });
+  window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' });
 
   setTimeout(() => {
-    heroEl.classList.remove('is-bursting');
-    void heroEl.offsetWidth;                      // restart the burst animation
-    heroEl.classList.add('is-bursting');
+    sunEl.classList.remove('is-bursting');
+    void sunEl.offsetWidth;                       // restart the burst animation
+    sunEl.classList.add('is-bursting');
 
-    const sun = heroEl.querySelector('.sun-core').getBoundingClientRect();
+    const sun = sunEl.querySelector(getSky() === 'night' ? '.moon-disc' : '.sun-core').getBoundingClientRect();
     confetti({ x: sun.left + sun.width / 2, y: sun.top + sun.height / 2, count: 140, power: 1.4 });
     haptic([40, 60, 40, 60, 160]);
   }, reduced ? 0 : 450);
@@ -595,6 +598,7 @@ async function renderQuote() {
 /* ---------- Start ---------- */
 
 async function init() {
+  sunEl = mountScoreSun();
   renderHeader();
   drawRays();
   renderQuote();

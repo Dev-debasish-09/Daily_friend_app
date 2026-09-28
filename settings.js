@@ -1,6 +1,6 @@
 /* =========================================================
-   settings.js — edit profile details and theme.
-   Profile -> ascend:profile, theme -> ascend:settings.
+   settings.js — edit profile details and the sky.
+   Profile -> ascend:profile, sky -> ascend:settings.
    ========================================================= */
 
 const form = document.getElementById('profile-form');
@@ -76,20 +76,22 @@ form.addEventListener('submit', (e) => {
 });
 
 
-/* ---------- Theme ---------- */
+/* ---------- Sky ---------- */
 
-function syncThemeButtons() {
-  document.querySelectorAll('[data-theme-choice]').forEach((btn) => {
-    btn.setAttribute('aria-pressed', String(btn.dataset.themeChoice === getTheme()));
-  });
+const skyField = document.getElementById('sky-choices');
+skyField.insertAdjacentHTML('beforeend', skyChoicesHTML('sky'));
+
+function syncSkyChoice() {
+  const choice = skyChoice();
+  skyField.querySelectorAll('input[name="sky"]').forEach((input) => { input.checked = input.value === choice; });
 }
 
-document.querySelectorAll('[data-theme-choice]').forEach((btn) => {
-  btn.addEventListener('click', () => {
-    const name = setTheme(btn.dataset.themeChoice);
-    syncThemeButtons();
-    showToast(name === 'night' ? 'Night theme on' : 'Dawn theme on', { type: 'info' });
-  });
+skyField.addEventListener('change', (e) => {
+  if (e.target.name !== 'sky') return;
+  const shown = setSkyChoice(e.target.value);
+  showToast(e.target.value === 'auto'
+    ? `Sky follows the time now. It’s ${SKY_LABELS[shown].toLowerCase()} right now.`
+    : `${SKY_LABELS[shown]} sky on.`, { type: 'info' });
 });
 
 
@@ -833,7 +835,7 @@ document.getElementById('import-form').addEventListener('submit', (e) => {
 
 /* ---------- Start ---------- */
 fillForm();
-syncThemeButtons();
+syncSkyChoice();
 renderQuoteList();
 initHabits();
 renderBackupStatus();

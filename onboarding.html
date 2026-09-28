@@ -55,17 +55,6 @@
       border-radius: var(--radius-tile);
     }
 
-    /* Mini theme preview inside each choice card */
-    .theme-preview {
-      flex: none;
-      width: 56px;
-      height: 56px;
-      overflow: hidden;
-      border-radius: var(--radius-input);
-      background: linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
-      box-shadow: inset 0 0 0 1px var(--line);
-    }
-    .theme-preview svg { width: 100%; height: 100%; }
   </style>
 </head>
 
@@ -138,7 +127,7 @@
           <p class="hint" id="limit-hint">We’ll give you a heads-up as you get close.</p>
         </div>
 
-        <button class="btn btn--primary btn--block" type="submit">Next: pick a theme</button>
+        <button class="btn btn--primary btn--block" type="submit">Next: pick your sky</button>
       </form>
     </section>
 
@@ -147,33 +136,11 @@
       <form class="card stack-lg" id="form-3" novalidate>
         <div class="stack">
           <h1 id="h-step-3" tabindex="-1">Pick your sky</h1>
-          <p class="muted">Switch anytime in Settings.</p>
+          <p class="muted">Auto follows the time of day. You can change it anytime in Settings.</p>
         </div>
 
-        <fieldset class="choices">
-          <legend class="label">Theme</legend>
-
-          <label class="choice">
-            <input type="radio" name="theme" value="dawn">
-            <span class="theme-preview" data-theme="dawn" aria-hidden="true">
-              <svg viewBox="0 0 56 56"><circle class="art-sun" cx="30" cy="30" r="8"/><path class="art-far" d="M0 56V38l14-8 10 6 12-12 20 16v16z"/><path class="art-near" d="M0 56v-8l16-8 12 8 14-10 14 10v8z"/></svg>
-            </span>
-            <span class="choice__text">
-              <span class="choice__title">Dawn</span>
-              <span class="choice__desc">Soft lavender and peach. Bright and calm.</span>
-            </span>
-          </label>
-
-          <label class="choice">
-            <input type="radio" name="theme" value="night">
-            <span class="theme-preview" data-theme="night" aria-hidden="true">
-              <svg viewBox="0 0 56 56"><circle class="art-sun" cx="30" cy="30" r="8"/><path class="art-far" d="M0 56V38l14-8 10 6 12-12 20 16v16z"/><path class="art-near" d="M0 56v-8l16-8 12 8 14-10 14 10v8z"/></svg>
-            </span>
-            <span class="choice__text">
-              <span class="choice__title">Night</span>
-              <span class="choice__desc">Deep indigo. Easy on the eyes after dark.</span>
-            </span>
-          </label>
+        <fieldset class="choices" id="sky-choices">
+          <legend class="label">Sky</legend>
         </fieldset>
 
         <button class="btn btn--gold btn--block" type="submit">Save and start my climb</button>

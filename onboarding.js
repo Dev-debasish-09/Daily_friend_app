@@ -103,14 +103,15 @@ document.getElementById('form-2').addEventListener('submit', (e) => {
 });
 
 
-/* ---------- Screen 3: theme, then save ---------- */
+/* ---------- Screen 3: sky, then save ---------- */
 
 const form3 = document.getElementById('form-3');
+document.getElementById('sky-choices').insertAdjacentHTML('beforeend', skyChoicesHTML('sky'));
 
-// Start with the current theme selected; preview a choice instantly
-form3.theme.value = getTheme();
+// Start on Auto; preview a choice instantly
+form3.sky.value = skyChoice();
 form3.addEventListener('change', (e) => {
-  if (e.target.name === 'theme') applyTheme(e.target.value);
+  if (e.target.name === 'sky') applySky(e.target.value === 'auto' ? skyForTime() : e.target.value);
 });
 
 form3.addEventListener('submit', (e) => {
@@ -129,6 +130,6 @@ form3.addEventListener('submit', (e) => {
     return;
   }
 
-  setTheme(form3.theme.value);
+  setSkyChoice(form3.sky.value);
   location.href = 'index.html?welcome=1';   // Today shows a welcome toast
 });

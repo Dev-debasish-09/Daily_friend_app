@@ -100,7 +100,13 @@ Open every tab once while online so everything is cached, then try it in airplan
 
 ## Design notes
 
-- Two themes, **Dawn** (default) and **Night**, switched in Settings.
+- A **living sky** behind every page: four skies, **dawn** (5:00–10:59), **day** (11:00–16:59),
+  **dusk** (17:00–19:29) and **night** (19:30–4:59), following India time and cross-fading when
+  the sky changes. Settings → Sky can pin one instead of *Auto*.
+- Layers: gradient, slow aurora, horizon glow, seeded stars and a moon at night, three
+  mountain ranges with mist, grain and a vignette. On Today, the score sun (a moon at night)
+  rises from behind the middle range.
+- Preview all four skies at `sky-preview.html` (not linked in the app).
 - All colours, fonts, radii and shadows are CSS variables in `styles.css`.
 - Mobile-first at 375px, checked at 320px and 430px; 48px tap targets, 16px inputs,
   safe-area padding, WCAG AA contrast on both themes, visible keyboard focus.

@@ -20,117 +20,18 @@
 
   <!-- Styles only Today needs -->
   <style>
-    /* ----- Summit hero (Today's signature) -----
-       Full-bleed scene at the top of the page. --score (0 to 1) is set by index.js:
-       the sun rises, the stars fade and the horizon warms as today's score grows. */
-    .hero {
-      --score: 0;
-      position: relative;
-      /* Break out of the page padding: edge to edge, under the status bar */
-      margin: calc(-1 * (env(safe-area-inset-top) + 20px)) calc(-1 * max(var(--gutter), env(safe-area-inset-right))) 0 calc(-1 * max(var(--gutter), env(safe-area-inset-left)));
-      height: calc(min(122vw, 540px) + env(safe-area-inset-top));
-      overflow: hidden;
-      border-radius: 0 0 var(--radius-card) var(--radius-card);
-      box-shadow: var(--shadow-card);
-      isolation: isolate;
-    }
-    @media (min-width: 481px) {
-      .hero { margin-left: 0; margin-right: 0; border-radius: var(--radius-card); margin-top: 0; height: 540px; }
-    }
+    /* ----- Hero: greeting, level and score on glass -----
+       The score sun (or moon at night) lives in the background sky, rising from
+       behind the mid mountain range as the score grows (shared.js mountScoreSun). */
+    .hero { display: flex; flex-direction: column; gap: 18px; }
+    .hero.is-won { box-shadow: var(--shadow-card), inset 0 0 0 2px var(--gold); }
 
-    .summit { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; }
-
-    .sky-top    { stop-color: var(--sky-top); }
-    .sky-dusk   { stop-color: var(--sky-dusk); }
-    .warm-clear { stop-color: var(--peach); stop-opacity: 0; }
-    .warm-peach { stop-color: var(--peach); stop-opacity: 0.75; }
-    .warm-gold  { stop-color: var(--gold); stop-opacity: 0.9; }
-    .glow-in    { stop-color: var(--gold); stop-opacity: 0.85; }
-    .glow-out   { stop-color: var(--gold); stop-opacity: 0; }
-
-    /* The horizon warms as you climb */
-    .warmth { opacity: calc(var(--score) * 0.85); transition: opacity 1.4s var(--ease-out); }
-    /* Stars fade as the sun comes up */
-    .stars { fill: var(--star-color); opacity: calc((1 - var(--score)) * var(--star-strength)); transition: opacity 1.4s ease; }
-
-    /* 0% = below the ridge, 100% = high over the summit */
-    .sun {
-      transform: translateY(calc((1 - var(--score)) * 150px));
-      transition: transform 1.4s var(--ease-out);
-    }
-    .sun-glow { opacity: calc(0.25 + var(--score) * 0.75); transition: opacity 1.4s ease; }
-    .sun-core { fill: var(--peach); transform-box: fill-box; transform-origin: center; }
-    .sun-gold { fill: var(--gold); opacity: var(--score); transition: opacity 1.4s ease; }
-    /* A small pulse when your score goes up (user action only) */
-    .hero.is-pulsing .sun-core { animation: sun-pulse 600ms var(--ease-out); }
-    @keyframes sun-pulse {
-      0%   { transform: scale(1); }
-      40%  { transform: scale(1.12); }
-      100% { transform: scale(1); }
-    }
-
-    .rays {
-      fill: var(--gold);
-      opacity: 0;
-      transform: scale(0.5);
-      transform-box: view-box;
-      transform-origin: 180px 150px;   /* sun centre */
-      transition: opacity 0.6s ease, transform 0.6s var(--ease-out);
-    }
-
-    .range-far  { fill: var(--mountain-far); opacity: 0.55; }
-    .range-mid  { fill: var(--mountain-far); }
-    .range-near { fill: var(--mountain-near); }
-    .haze-clear { stop-color: var(--mountain-near); stop-opacity: 0; }
-    .haze-dark  { stop-color: var(--mountain-near); stop-opacity: 0.9; }
-    .ridge-gold { fill: none; stroke: var(--gold); stroke-width: 2.5; stroke-linejoin: round; opacity: 0; transition: opacity 0.8s ease; }
-
-    /* Day Won: full gold sunrise, rays, a gold edge on the ridge */
-    .hero.is-won { box-shadow: var(--shadow-card), 0 0 0 2px var(--gold); }
-    .hero.is-won .rays { opacity: 1; transform: scale(1); }
-    .hero.is-won .ridge-gold { opacity: 1; }
-    .hero.is-bursting .rays { animation: rays-burst 1.4s var(--ease-out); }
-    @keyframes rays-burst {
-      0%   { opacity: 0; transform: scale(0.4) rotate(-25deg); }
-      55%  { opacity: 1; transform: scale(1.18) rotate(4deg); }
-      100% { opacity: 1; transform: scale(1) rotate(0deg); }
-    }
-
-    /* The load moment: ranges rise one after another, then the sun climbs */
-    .hero.is-arriving .range-far  { animation: range-rise 900ms var(--ease-out) both; }
-    .hero.is-arriving .range-mid  { animation: range-rise 900ms var(--ease-out) 90ms both; }
-    .hero.is-arriving .range-near,
-    .hero.is-arriving .haze,
-    .hero.is-arriving .ridge-gold { animation: range-rise 900ms var(--ease-out) 180ms both; }
-    .hero.is-arriving .hero__sky  { animation: sky-in 700ms var(--ease-out) both; }
-    .hero.is-arriving .hero__stats { animation: sky-in 700ms var(--ease-out) 300ms both; }
-    .hero.is-arriving .sun { transition-delay: 250ms; }
-    @keyframes range-rise {
-      from { transform: translateY(26px); }
-      to   { transform: none; }
-    }
-    @keyframes sky-in {
-      from { opacity: 0; transform: translateY(8px); }
-      to   { opacity: 1; transform: none; }
-    }
-
-    /* Text in the sky (greeting) */
-    .hero__sky {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 12px;
-      padding: calc(env(safe-area-inset-top) + 20px) max(20px, env(safe-area-inset-right)) 0 max(20px, env(safe-area-inset-left));
-    }
+    .hero__sky { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
     .hero__hello { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
     .hero__hello h1 { font-size: var(--fs-2xl); overflow-wrap: anywhere; }
-    .hero__hello .badge { align-self: flex-start; background: var(--glass-bg); color: var(--ink); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+    .hero__hello .badge { align-self: flex-start; }
 
-    /* Level ring in the sky: opens the Wall of Wins */
+    /* Level ring: opens the Wall of Wins */
     .level-ring {
       flex: none;
       position: relative;
@@ -138,10 +39,9 @@
       place-items: center;
       width: 52px;
       height: 52px;
+      margin-bottom: 18px;
       border-radius: 50%;
-      background: var(--glass-bg);
-      -webkit-backdrop-filter: blur(12px);
-      backdrop-filter: blur(12px);
+      background: var(--tile-bg);
       box-shadow: var(--shadow-tile);
       color: var(--ink);
       text-decoration: none;
@@ -154,30 +54,25 @@
     .level-ring__num { font-family: var(--font-head); font-size: var(--fs-md); font-weight: 800; line-height: 1; }
     .level-ring__label { position: absolute; top: calc(100% + 4px); font-size: 0.75rem; font-weight: 800; color: var(--ink); white-space: nowrap; }
 
-    /* Score and progress, sitting on the near range */
-    .hero__stats {
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      padding: 0 max(20px, env(safe-area-inset-right)) 22px max(20px, env(safe-area-inset-left));
-      color: var(--on-mountain);
-    }
+    .hero__stats { display: flex; flex-direction: column; gap: 6px; padding-top: 14px; border-top: 1px solid var(--line); }
     .hero__score { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; }
-    .hero__score .num-big { font-size: 3.25rem; color: var(--on-mountain); }
-    .hero__score-label { font-weight: 700; color: var(--on-mountain-muted); }
-    .hero__line { font-weight: 700; color: var(--on-mountain); }
-    .hero__line .dim { color: var(--on-mountain-muted); font-weight: 600; }
-    .hero__streak { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--on-mountain); }
-    .hero__streak svg { flex: none; width: 18px; height: 18px; color: var(--gold); }
+    .hero__score .num-big { font-size: 3.25rem; }
+    .hero__score-label { font-weight: 700; color: var(--muted); }
+    .hero__line { font-weight: 700; }
+    .hero__line .dim { color: var(--muted); font-weight: 600; }
+    .hero__streak { display: flex; align-items: center; gap: 8px; font-weight: 700; }
+    .hero__streak svg { flex: none; width: 18px; height: 18px; color: var(--accent-text); }
+
+    /* The page's load moment: the hero text settles in while the sun climbs */
+    .hero.is-arriving .hero__sky   { animation: hero-in 600ms var(--ease-out) both; }
+    .hero.is-arriving .hero__stats { animation: hero-in 600ms var(--ease-out) 200ms both; }
+    @keyframes hero-in {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: none; }
+    }
 
     @media (prefers-reduced-motion: reduce) {
-      .hero.is-arriving .range-far, .hero.is-arriving .range-mid, .hero.is-arriving .range-near,
-      .hero.is-arriving .ridge-gold, .hero.is-arriving .haze, .hero.is-arriving .hero__sky, .hero.is-arriving .hero__stats,
-      .hero.is-pulsing .sun-core { animation: none; }
+      .hero.is-arriving .hero__sky, .hero.is-arriving .hero__stats { animation: none; }
       .level-ring:active { transform: none; }
     }
 
@@ -366,52 +261,10 @@
 <body data-page="today" class="has-fab">
   <main class="page" id="main">
 
-    <!-- Summit hero: the page's signature and its one load moment.
-         The sun rises with today's score; the ranges rise in on load. -->
-    <section class="hero" id="hero" aria-labelledby="hello">
-      <svg class="summit" viewBox="0 0 360 440" preserveAspectRatio="xMidYMax slice" role="img" aria-labelledby="summit-label" focusable="false">
-        <title id="summit-label">The sun is below the horizon</title>
-        <defs>
-          <linearGradient id="sky-gradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" class="sky-top"/>
-            <stop offset="1" class="sky-dusk"/>
-          </linearGradient>
-          <linearGradient id="warm-gradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0.25" class="warm-clear"/>
-            <stop offset="0.62" class="warm-peach"/>
-            <stop offset="0.8" class="warm-gold"/>
-          </linearGradient>
-          <!-- Dark haze at the foot of the ranges, so the score is always readable -->
-          <linearGradient id="haze-gradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" class="haze-clear"/>
-            <stop offset="0.5" class="haze-dark"/>
-          </linearGradient>
-          <radialGradient id="sun-glow-gradient">
-            <stop offset="0" class="glow-in"/>
-            <stop offset="1" class="glow-out"/>
-          </radialGradient>
-        </defs>
-
-        <rect width="360" height="440" fill="url(#sky-gradient)"/>
-        <g class="stars"><circle cx="28" cy="118" r="1.2"/><circle cx="64" cy="150" r="0.9"/><circle cx="96" cy="104" r="1.4"/><circle cx="132" cy="136" r="1"/><circle cx="214" cy="112" r="1.1"/><circle cx="246" cy="146" r="1.4"/><circle cx="288" cy="120" r="0.9"/><circle cx="318" cy="158" r="1.2"/><circle cx="340" cy="108" r="1"/><circle cx="20" cy="182" r="1"/><circle cx="84" cy="196" r="1.1"/><circle cx="300" cy="190" r="1"/><circle cx="152" cy="176" r="0.8"/><circle cx="230" cy="184" r="0.9"/><circle cx="48" cy="222" r="0.8"/><circle cx="330" cy="220" r="0.9"/></g>
-        <rect class="warmth" width="360" height="440" fill="url(#warm-gradient)"/>
-
-        <!-- Sun (drawn before the mountains so they hide it at low scores) -->
-        <g class="sun">
-          <g class="rays" id="rays"></g>
-          <circle class="sun-glow" cx="180" cy="150" r="110" fill="url(#sun-glow-gradient)"/>
-          <circle class="sun-core" cx="180" cy="150" r="30"/>
-          <circle class="sun-gold" cx="180" cy="150" r="30"/>
-        </g>
-
-        <!-- Three ranges; the near one holds the score and has the summit at the centre -->
-        <path class="range-far" d="M0 440V236l38-14 40 12 48-40 36 24 30-14 42 26 40-30 44 20 42-8v228z"/>
-        <path class="range-mid" d="M0 440V266l50-20 42 14 54-46 34 24 30-20 38 28 46-18 66 30v182z"/>
-        <path class="range-near" d="M0 440V270l56-16 48 12 76-62 56 40 46-14 78 32v168z"/>
-        <rect class="haze" y="210" width="360" height="230" fill="url(#haze-gradient)"/>
-        <path class="ridge-gold" d="M0 270l56-16 48 12 76-62 56 40 46-14 78 32"/>
-      </svg>
-
+    <!-- Hero: greeting, level ring and today's score. The sun that rises with the
+         score is in the background sky, behind the mid mountain range. -->
+    <section class="card hero" id="hero" aria-labelledby="hello">
+      <p class="sr-only" id="summit-label">The sun is below the horizon</p>
       <div class="hero__sky">
         <div class="hero__hello">
           <p class="eyebrow" id="today-date"></p>

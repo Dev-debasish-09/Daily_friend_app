@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en-IN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#C9C3F2">
+  <meta name="robots" content="noindex">
+  <title>Sky preview · ASCEND</title>
+
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+
+  <script src="shared.js"></script>
+  <script src="sky-preview.js" defer></script>
+
+  <!-- Hidden test page: not linked from the app. Nothing here is saved. -->
+  <style>
+    .sky-buttons { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .sky-buttons .btn[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+    .sky-buttons .btn--wide { grid-column: 1 / -1; }
+    .sample-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+    .sample-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .sample-row__meta { font-size: var(--fs-sm); color: var(--muted); }
+    .range-row { display: flex; align-items: center; gap: 12px; }
+    .range { flex: 1; min-width: 0; min-height: var(--tap); margin: 0; accent-color: var(--accent); }
+    .range-value { flex: none; min-width: 4.5ch; text-align: right; font-family: var(--font-head); font-weight: 800; font-variant-numeric: tabular-nums; }
+  </style>
+</head>
+
+<body data-page="sky-preview">
+  <main class="page" id="main">
+
+    <header class="stack">
+      <p class="eyebrow">Hidden test page</p>
+      <h1>Sky preview</h1>
+      <p class="muted">Switch skies instantly. This page doesn’t change your saved sky.</p>
+    </header>
+
+    <!-- Sky switcher -->
+    <section class="card stack" aria-labelledby="h-switch">
+      <h2 id="h-switch">Pick a sky</h2>
+      <div class="sky-buttons" role="group" aria-label="Sky">
+        <button class="btn btn--secondary" type="button" data-preview-sky="dawn" aria-pressed="false">Dawn</button>
+        <button class="btn btn--secondary" type="button" data-preview-sky="day" aria-pressed="false">Day</button>
+        <button class="btn btn--secondary" type="button" data-preview-sky="dusk" aria-pressed="false">Dusk</button>
+        <button class="btn btn--secondary" type="button" data-preview-sky="night" aria-pressed="false">Night</button>
+        <button class="btn btn--ghost btn--wide" type="button" id="preview-auto">Back to the time-of-day sky</button>
+      </div>
+      <p class="muted" id="sky-now" aria-live="polite"></p>
+    </section>
+
+    <!-- Today's sun (or moon at night) -->
+    <section class="card stack" aria-labelledby="h-sun">
+      <h2 id="h-sun">Today’s sun</h2>
+      <p class="muted">Drag to see it rise from behind the middle range. At 100% the rays appear.</p>
+      <div class="range-row">
+        <label class="sr-only" for="sun-score">Score</label>
+        <input class="range" id="sun-score" type="range" min="0" max="100" step="1" value="60">
+        <output class="range-value" id="sun-score-value" for="sun-score">60%</output>
+      </div>
+      <button class="btn btn--secondary btn--block" type="button" id="replay-intro">Replay the sky’s load moment</button>
+    </section>
+
+    <!-- Sample content on top of the sky -->
+    <section class="card stack" aria-labelledby="h-sample">
+      <p class="eyebrow">Sample card</p>
+      <h2 id="h-sample">ISS Study</h2>
+      <p>2h 30m of 4h 30m today. <span class="text-accent">12-day streak</span>.</p>
+      <p class="muted">Muted text for notes and hints.</p>
+      <p class="meter__note is-normal"><span>₹1,240 left this month. Nicely on track.</span></p>
+      <p class="meter__note is-ember"><span>₹300 over this month’s limit.</span></p>
+      <div class="grid-2">
+        <div class="tile"><span class="tile__label">Days won</span><span class="tile__value">12</span><span class="tile__note">in a row</span></div>
+        <div class="tile"><span class="tile__label">Level</span><span class="tile__value">7</span><span class="tile__note">Trail Finder</span></div>
+      </div>
+      <button class="btn btn--primary btn--block" type="button" id="sample-btn">Log 30 minutes</button>
+    </section>
+
+    <section class="stack" aria-labelledby="h-list">
+      <h2 class="section-title" id="h-list">A list straight on the sky</h2>
+      <ul class="sample-list">
+        <li class="tile sample-row"><span><strong>📚 ISS Study</strong><br><span class="sample-row__meta">Non-negotiable · 4h 30m</span></span><span class="badge">Done</span></li>
+        <li class="tile sample-row"><span><strong>🧩 DSA Problem</strong><br><span class="sample-row__meta">Important · 1 problem</span></span><span class="badge badge--gold">Kept</span></li>
+        <li class="tile sample-row"><span><strong>🥗 No Food Delivery</strong><br><span class="sample-row__meta">Important · yes / no</span></span><span class="badge">Open</span></li>
+      </ul>
+      <p class="muted">Free text like this sits straight on the sky with a soft halo.</p>
+    </section>
+
+  </main>
+</body>
+</html>

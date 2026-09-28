@@ -259,6 +259,111 @@
   color-scheme: dark;
 }
 
+/* ---------- 3b. Living sky: four skies ----------
+   <html> and <body> get data-sky="dawn|day|dusk|night" (shared.js picks it from the
+   clock, or your choice in Settings) plus data-theme: "dawn" for the light skies,
+   "night" for the dark ones, so every component token above still applies.
+   Each sky then sets the same variables. The colours below are registered with
+   @property so a sky change cross-fades smoothly instead of snapping.
+   Text colours were tuned per sky to pass WCAG AA on glass over the lightest and
+   darkest parts of that sky (see README). */
+@property --sky-top      { syntax: "<color>"; inherits: true; initial-value: #C9C3F2; }
+@property --sky-mid      { syntax: "<color>"; inherits: true; initial-value: #F3C6D3; }
+@property --sky-bottom   { syntax: "<color>"; inherits: true; initial-value: #FBD9BE; }
+@property --glow         { syntax: "<color>"; inherits: true; initial-value: #F6A58C; }
+@property --glow-2       { syntax: "<color>"; inherits: true; initial-value: #F2B544; }
+@property --mtn-far      { syntax: "<color>"; inherits: true; initial-value: #B9B3E3; }
+@property --mtn-mid      { syntax: "<color>"; inherits: true; initial-value: #8C86C4; }
+@property --mtn-near     { syntax: "<color>"; inherits: true; initial-value: #5E5A9E; }
+@property --mist         { syntax: "<color>"; inherits: true; initial-value: rgb(255 240 235 / 0.6); }
+@property --text         { syntax: "<color>"; inherits: true; initial-value: #2B2A4A; }
+@property --ink          { syntax: "<color>"; inherits: true; initial-value: #2B2A4A; }
+@property --muted        { syntax: "<color>"; inherits: true; initial-value: #4D4964; }
+@property --glass-bg     { syntax: "<color>"; inherits: true; initial-value: rgb(255 255 255 / 0.55); }
+@property --glass-border { syntax: "<color>"; inherits: true; initial-value: rgb(255 255 255 / 0.7); }
+@property --accent       { syntax: "<color>"; inherits: true; initial-value: #5B4BDB; }
+@property --stars-opacity    { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --moon-opacity     { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --horizon-strength { syntax: "<number>"; inherits: true; initial-value: 0.85; }
+@property --aurora-opacity   { syntax: "<number>"; inherits: true; initial-value: 0.5; }
+
+:root {
+  --moon-light: #FFFDF5;
+  --moon-shade: #CFC8EC;
+  --ray: var(--gold);
+}
+
+[data-sky="dawn"] {
+  --sky-top: #C9C3F2; --sky-mid: #F3C6D3; --sky-bottom: #FBD9BE;
+  --glow: #F6A58C; --glow-2: #F2B544;
+  --mtn-far: #B9B3E3; --mtn-mid: #8C86C4; --mtn-near: #5E5A9E;
+  --mist: rgb(255 240 235 / 0.6);
+  --text: #2B2A4A; --ink: #2B2A4A;
+  --muted: #4D4964;
+  --accent: #5B4BDB; --accent-text: #3C2BD2; --focus: #3C2BD2;
+  --success-text: #21534B; --danger-text: #862F2A;
+  --glass-bg: rgb(255 255 255 / 0.55); --glass-border: rgb(255 255 255 / 0.7);
+  --halo-shadow: 0 0 1px rgb(255 255 255 / 0.9), 0 0 10px rgb(255 255 255 / 0.75);
+  --stars-opacity: 0; --moon-opacity: 0; --horizon-strength: 0.85; --aurora-opacity: 0.55;
+}
+
+[data-sky="day"] {
+  --sky-top: #A9CCF5; --sky-mid: #DCE9FA; --sky-bottom: #F7F3EC;
+  --glow: #FFE8A3; --glow-2: #C9C3F2;
+  --mtn-far: #AFC0E3; --mtn-mid: #7F93C4; --mtn-near: #4F5F9A;
+  --mist: rgb(255 255 255 / 0.6);
+  --text: #22304F; --ink: #22304F;
+  --muted: #534F6D;
+  --accent: #5B4BDB; --accent-text: #4333D5; --focus: #4333D5;
+  --success-text: #235B51; --danger-text: #8E312C;
+  --glass-bg: rgb(255 255 255 / 0.6); --glass-border: rgb(255 255 255 / 0.75);
+  --halo-shadow: 0 0 1px rgb(255 255 255 / 0.9), 0 0 10px rgb(255 255 255 / 0.75);
+  --stars-opacity: 0; --moon-opacity: 0; --horizon-strength: 0.45; --aurora-opacity: 0.45;
+}
+
+[data-sky="dusk"] {
+  --sky-top: #2E2466; --sky-mid: #9C4F86; --sky-bottom: #F29A6B;
+  --glow: #FFB347; --glow-2: #E0607E;
+  --mtn-far: #7A4F8F; --mtn-mid: #4E3470; --mtn-near: #2B1F4A;
+  --mist: rgb(242 154 107 / 0.25);
+  --text: #F7EEF5; --ink: #F7EEF5;
+  --muted: #DBCEE2;
+  --accent: #8B7CFF; --accent-text: #D5CDFF;
+  --success-text: #8EE0C8; --danger-text: #FFC6BE;
+  /* 0.65 rather than 0.45: at 0.45 even white text fails AA over the bright horizon */
+  --glass-bg: rgb(30 22 60 / 0.65); --glass-border: rgb(255 255 255 / 0.16);
+  --halo-shadow: 0 0 1px rgb(20 12 40 / 0.9), 0 0 12px rgb(20 12 40 / 0.8);
+  --stars-opacity: 0.35; --moon-opacity: 0; --horizon-strength: 0.9; --aurora-opacity: 0.55;
+}
+
+[data-sky="night"] {
+  --sky-top: #0B0A1F; --sky-mid: #1B1942; --sky-bottom: #2E2A63;
+  --glow: #5B4BDB; --glow-2: #2F7D6D;
+  --mtn-far: #2A2856; --mtn-mid: #1E1C45; --mtn-near: #121130;
+  --mist: rgb(139 124 255 / 0.12);
+  --text: #ECEAF7; --ink: #ECEAF7;
+  --muted: #B4B1D6;
+  --accent: #8B7CFF; --accent-text: #B6ACFF;
+  --success-text: #6DCDB3; --danger-text: #FF9A91;
+  --glass-bg: rgb(20 19 43 / 0.55); --glass-border: rgb(255 255 255 / 0.12);
+  --halo-shadow: 0 0 1px rgb(8 7 24 / 0.9), 0 0 12px rgb(8 7 24 / 0.8);
+  --stars-opacity: 1; --moon-opacity: 1; --horizon-strength: 0.35; --aurora-opacity: 0.5;
+  --ray: var(--lavender);
+}
+
+/* A sky change cross-fades everything in 1.5s (html and body both carry data-sky) */
+html,
+body {
+  transition:
+    --sky-top 1.5s ease, --sky-mid 1.5s ease, --sky-bottom 1.5s ease,
+    --glow 1.5s ease, --glow-2 1.5s ease,
+    --mtn-far 1.5s ease, --mtn-mid 1.5s ease, --mtn-near 1.5s ease, --mist 1.5s ease,
+    --text 1.5s ease, --ink 1.5s ease, --muted 1.5s ease,
+    --glass-bg 1.5s ease, --glass-border 1.5s ease, --accent 1.5s ease,
+    --stars-opacity 1.5s ease, --moon-opacity 1.5s ease,
+    --horizon-strength 1.5s ease, --aurora-opacity 1.5s ease;
+}
+
 
 /* ---------- 4. Base ---------- */
 *,
@@ -274,7 +379,7 @@
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-  background: var(--bg-bottom);   /* shows during iOS overscroll */
+  background: var(--sky-bottom);  /* shows during iOS overscroll */
 }
 
 body {
@@ -334,83 +439,174 @@ code {
 }
 
 
-/* ---------- 5. Background: gradient, floating light, grain ---------- */
-/* Gradient layer (fixed so it doesn't stretch on long pages) */
-body::before {
-  content: "";
+/* ---------- 5. Background: the living sky ----------
+   One fixed container (.sky-bg, injected by shared.js), bottom to top:
+   sky gradient, aurora, horizon glow, stars + moon, mountains (with the Today
+   sun between the far and mid ranges), grain, vignette.
+   Only transform and opacity animate. Max 3 blurred elements (the aurora). */
+.sky-bg {
+  --mtn-h: min(28vh, 260px);
   position: fixed;
-  inset: 0;
-  z-index: -2;
-  background: linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
-}
-
-/* Soft light circles (injected by shared.js as .ambient) */
-.ambient {
-  position: fixed;
-  inset: 0;
+  inset: 0;                /* always the full visible screen, so the mountains sit on the bottom edge */
   z-index: -1;
   overflow: hidden;
   pointer-events: none;
 }
+@supports (height: 1dvh) {
+  .sky-bg { --mtn-h: min(28dvh, 260px); }
+}
+.sky-bg > * { position: absolute; }
 
-.ambient__orb {
+.sky-bg__gradient {
+  inset: 0;
+  background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 55%, var(--sky-bottom) 100%);
+}
+
+/* Aurora: three big soft lights drifting on slow, different paths */
+.sky-bg__aurora { inset: 0; opacity: var(--aurora-opacity); }
+.sky-bg__aurora span {
   position: absolute;
   border-radius: 50%;
-  background: radial-gradient(circle at center, var(--orb) 0%, transparent 70%);
-  animation: drift var(--dur, 40s) ease-in-out infinite alternate;
+  filter: blur(80px);
   will-change: transform;
+  animation: aurora-1 72s ease-in-out infinite alternate;
 }
-
-.ambient__orb:nth-child(1) {
-  --orb: var(--orb-1);
-  --dur: 38s;
-  --dx: -40px;
-  --dy: 60px;
-  width: 380px;
-  height: 380px;
-  top: -120px;
-  right: -140px;
-}
-
-.ambient__orb:nth-child(2) {
-  --orb: var(--orb-2);
-  --dur: 46s;
-  --dx: 50px;
-  --dy: -40px;
-  width: 440px;
-  height: 440px;
-  top: 30%;
-  left: -200px;
-  animation-delay: -12s;
-}
-
-.ambient__orb:nth-child(3) {
-  --orb: var(--orb-3);
-  --dur: 54s;
-  --dx: -30px;
-  --dy: -50px;
-  width: 320px;
-  height: 320px;
-  bottom: -80px;
-  right: -60px;
-  animation-delay: -24s;
-}
-
-@keyframes drift {
+.sky-bg__aurora span:nth-child(1) { width: 70vmax; height: 70vmax; top: -30vmax; left: -25vmax; background: var(--glow); opacity: 0.6; }
+.sky-bg__aurora span:nth-child(2) { width: 60vmax; height: 60vmax; top: 10vh; right: -30vmax; background: var(--glow-2); opacity: 0.5; animation-name: aurora-2; animation-duration: 86s; }
+.sky-bg__aurora span:nth-child(3) { width: 55vmax; height: 55vmax; bottom: -10vmax; left: -10vmax; background: var(--glow); opacity: 0.45; animation-name: aurora-3; animation-duration: 64s; }
+@keyframes aurora-1 {
   from { transform: translate3d(0, 0, 0); }
-  to   { transform: translate3d(var(--dx), var(--dy), 0); }
+  to   { transform: translate3d(12vmax, 8vmax, 0); }
+}
+@keyframes aurora-2 {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-14vmax, 10vmax, 0); }
+}
+@keyframes aurora-3 {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(10vmax, -12vmax, 0); }
 }
 
-/* Subtle grain on top of everything in the background */
-body::after {
-  content: "";
-  position: fixed;
+/* Soft glow behind the mountains, strongest at dawn and dusk */
+.sky-bg__horizon {
+  left: -20%;
+  right: -20%;
+  bottom: calc(var(--mtn-h) * 0.35);
+  height: 55%;
+  background: radial-gradient(ellipse 50% 65% at 50% 100%, var(--glow) 0%, transparent 70%);
+  opacity: var(--horizon-strength);
+}
+
+/* Stars (night, faint at dusk) and the moon (night) */
+.sky-bg__stars { top: 0; left: 0; width: 100%; height: 68%; opacity: var(--stars-opacity); }
+.sky-bg__stars circle { fill: var(--star-color); }
+.sky-bg__stars .twinkle { animation: twinkle var(--d, 6s) ease-in-out var(--delay, 0s) infinite alternate; }
+@keyframes twinkle {
+  from { opacity: 1; }
+  to   { opacity: 0.2; }
+}
+.sky-bg__moon {
+  top: calc(env(safe-area-inset-top) + 14px);
+  right: max(20px, env(safe-area-inset-right));
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 36% 34%, var(--moon-light) 0%, var(--moon-light) 35%, var(--moon-shade) 100%);
+  box-shadow: 0 0 36px 8px rgb(236 234 247 / 0.22);
+  opacity: var(--moon-opacity);
+}
+/* Today shows the moon on the score instead */
+body[data-page="today"] .sky-bg__moon { display: none; }
+
+/* Mountains: three irregular ranges pinned to the bottom, mist between them */
+.sky-bg__mountains { left: 0; right: 0; bottom: 0; height: var(--mtn-h); }
+.sky-bg__mountains > * { position: absolute; inset: 0; width: 100%; height: 100%; will-change: transform; }
+.sky-bg__layer > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.mtn-far  { fill: var(--mtn-far); }
+.mtn-mid  { fill: var(--mtn-mid); }
+.mtn-near { fill: var(--mtn-near); }
+.mist-clear { stop-color: var(--mist); stop-opacity: 0; }
+.mist-full  { stop-color: var(--mist); }
+
+/* Grain and vignette on top */
+.sky-bg__grain {
   inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  opacity: var(--grain-opacity);
+  opacity: 0.05;
+  mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   background-size: 160px 160px;
+}
+.sky-bg__vignette {
+  inset: 0;
+  background: radial-gradient(ellipse 85% 75% at 50% 45%, transparent 55%, rgb(var(--shadow-rgb) / 0.09) 100%);
+}
+
+/* First load of the day: the sky fades in, then the mountains rise 12px into place */
+.sky-bg.is-intro .sky-bg__gradient,
+.sky-bg.is-intro .sky-bg__aurora,
+.sky-bg.is-intro .sky-bg__horizon,
+.sky-bg.is-intro .sky-bg__stars { animation: sky-fade-in 700ms ease both; }
+.sky-bg.is-intro .sky-bg__mountains { animation: mountains-rise 800ms var(--ease-out) 250ms both; }
+@keyframes sky-fade-in {
+  from { opacity: 0; }
+}
+@keyframes mountains-rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Tab hidden: everything stops */
+.sky-bg.is-paused,
+.sky-bg.is-paused * { animation-play-state: paused !important; }
+
+/* Today's score sun (or moon at night), between the far and mid ranges.
+   --score (0 to 1) is set by the page: 0 = hidden behind the mid ridge, 1 = fully up. */
+.sky-bg__sunslot { pointer-events: none; }
+.score-sun {
+  --score: 0;
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--mtn-h) * 0.18 - 120px);
+  width: 240px;
+  height: 240px;
+  margin-left: -120px;
+  transform: translateY(calc(-1 * var(--score) * (var(--mtn-h) * 0.78 + 24px)));
+  transition: transform 1.4s var(--ease-out);
+}
+.score-sun svg { width: 100%; height: 100%; overflow: visible; }
+.score-glow-in  { stop-color: var(--gold); stop-opacity: 0.8; }
+.score-glow-out { stop-color: var(--gold); stop-opacity: 0; }
+.score-sun__glow { opacity: calc(0.3 + var(--score) * 0.7); transition: opacity 1.4s ease; }
+.score-sun .sun-core { fill: var(--peach); transform-box: fill-box; transform-origin: center; }
+.score-sun .sun-gold { fill: var(--gold); opacity: var(--score); transition: opacity 1.4s ease; }
+.score-sun .moon-disc { fill: var(--moon-light); transform-box: fill-box; transform-origin: center; }
+.score-sun .moon-crater { fill: var(--moon-shade); opacity: 0.6; }
+.score-sun__moon { display: none; }
+[data-sky="night"] .score-sun__sun { display: none; }
+[data-sky="night"] .score-sun__moon { display: inline; }
+[data-sky="night"] .score-glow-in,
+[data-sky="night"] .score-glow-out { stop-color: var(--lavender); }
+.score-sun .rays {
+  fill: var(--ray);
+  opacity: 0;
+  transform: scale(0.5);
+  transform-box: view-box;
+  transform-origin: 120px 120px;
+  transition: opacity 0.6s ease, transform 0.6s var(--ease-out);
+}
+.score-sun.is-won .rays { opacity: 1; transform: scale(1); }
+.score-sun.is-bursting .rays { animation: rays-burst 1.4s var(--ease-out); }
+.score-sun.is-pulsing .sun-core,
+.score-sun.is-pulsing .moon-disc { animation: sun-pulse 600ms var(--ease-out); }
+@keyframes rays-burst {
+  0%   { opacity: 0; transform: scale(0.4) rotate(-25deg); }
+  55%  { opacity: 1; transform: scale(1.18) rotate(4deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+@keyframes sun-pulse {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.12); }
+  100% { transform: scale(1); }
 }
 
 
@@ -468,19 +664,21 @@ body::after {
   position: relative;
   padding: 20px;
   background: var(--glass-bg);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
-  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  backdrop-filter: blur(18px) saturate(140%);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-card);
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--shadow-card);          /* includes the thin white top highlight */
 }
 
+/* A tile straight on the sky is glass too; inside a card it's a lighter,
+   unblurred panel (no stacked blurs, better on mid-range phones) */
 .tile {
   position: relative;
   padding: 16px;
-  background: var(--tile-bg);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  backdrop-filter: blur(18px) saturate(140%);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-tile);
   box-shadow: var(--shadow-tile);
@@ -488,6 +686,20 @@ body::after {
   flex-direction: column;
   gap: 4px;
 }
+.card .tile,
+.sheet .tile {
+  background: var(--tile-bg);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* Text sitting straight on the sky (page titles, section labels) gets a soft
+   halo in the sky's own colour, so it stays readable over the brightest spots.
+   Anything on its own surface turns the halo off. */
+.page { text-shadow: var(--halo-shadow, none); }
+.card, .tile, .sheet, .proud, .btn, .fab, .badge, .segmented, .chip-btn, .icon-btn,
+.stepper, .choice, .xp-row, .ms-row, .toast, .bottom-nav, .input, .select, .textarea,
+.level-ring { text-shadow: none; }
 
 .tile__label {
   font-size: var(--fs-sm);
@@ -510,7 +722,8 @@ body::after {
 
 /* Browsers without blur get a more solid surface so text stays readable */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .card, .tile { background: var(--menu-bg); }
+  .card, .tile, .segmented { background: var(--menu-bg); }
+  .card .tile { background: var(--tile-bg); }
 }
 
 
@@ -598,7 +811,7 @@ body::after {
   display: inline-flex;
   gap: 4px;
   padding: 4px;
-  background: var(--tile-bg);
+  background: var(--glass-bg);
   border: 1px solid var(--line);
   border-radius: var(--radius-pill);
 }
@@ -1343,6 +1556,32 @@ body.has-fab .page {
   to   { transform: none; opacity: 0.45; }
 }
 
+/* Sky picker (Settings, onboarding): each choice shows a little sky with a ridge */
+.sky-swatch-wrap {
+  flex: none;
+  display: flex;
+  width: 56px;
+  height: 56px;
+  overflow: hidden;
+  border-radius: var(--radius-input);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.sky-swatch {
+  position: relative;
+  flex: 1;
+  background: linear-gradient(180deg, var(--sky-top), var(--sky-mid) 55%, var(--sky-bottom));
+}
+.sky-swatch::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 42%;
+  background: var(--mtn-mid);
+  clip-path: polygon(0 55%, 22% 20%, 40% 50%, 66% 0, 100% 40%, 100% 100%, 0 100%);
+}
+
 /* 1–5 picker (mood, energy): five big radio tiles */
 .rating {
   display: grid;
@@ -1653,7 +1892,10 @@ body[data-nav="off"] .toast-region {
     scroll-behavior: auto !important;
   }
 
-  .ambient__orb { animation: none; }
+  /* The sky stays still and beautiful: no drift, no twinkle, no intro */
+  .sky-bg__aurora span,
+  .sky-bg__stars .twinkle,
+  .sky-bg.is-intro * { animation: none !important; }
 
   .btn:active:not(:disabled),
   .segmented button:active,

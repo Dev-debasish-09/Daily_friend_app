@@ -199,14 +199,13 @@
       <ul class="quote-list" id="quote-list" aria-label="Your saved quotes"></ul>
     </section>
 
-    <!-- Appearance -->
-    <section class="card stack" aria-labelledby="h-theme">
-      <h2 id="h-theme">Theme</h2>
-      <p class="muted">Changes right away.</p>
-      <div class="segmented" role="group" aria-label="Theme">
-        <button type="button" data-theme-choice="dawn" aria-pressed="false">Dawn</button>
-        <button type="button" data-theme-choice="night" aria-pressed="false">Night</button>
-      </div>
+    <!-- Sky: follows the time of day, or pick one -->
+    <section class="card stack" aria-labelledby="h-sky">
+      <h2 id="h-sky">Sky</h2>
+      <p class="muted">Changes right away. Auto moves from dawn to night with the clock.</p>
+      <fieldset class="choices" id="sky-choices">
+        <legend class="sr-only">Sky</legend>
+      </fieldset>
     </section>
 
     <!-- Your data: backups and exports -->

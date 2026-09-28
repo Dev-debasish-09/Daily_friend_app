@@ -76,11 +76,24 @@ function shardKey(type, isoDate = todayISO()) {
 }
 
 
-/* ---------- 2. Settings + theme ---------- */
+/* ---------- 2. Settings + sky ----------
+   Four skies: dawn, day, dusk, night. "auto" (the default) follows the clock in
+   Asia/Kolkata. <html> and <body> get data-sky plus data-theme ("dawn" for the
+   light skies, "night" for the dark ones) so all component tokens keep working. */
 
-const DEFAULT_SETTINGS = { theme: 'dawn' };
-const THEMES = ['dawn', 'night'];
-const THEME_COLORS = { dawn: '#F4F1FA', night: '#14132B' };   // browser bar color
+const DEFAULT_SETTINGS = { sky: 'auto' };
+const SKIES = ['dawn', 'day', 'dusk', 'night'];
+const SKY_CHOICES = ['auto', ...SKIES];
+const DARK_SKIES = ['dusk', 'night'];
+const SKY_BAR_COLORS = { dawn: '#C9C3F2', day: '#A9CCF5', dusk: '#2E2466', night: '#0B0A1F' };   // browser bar
+const SKY_LABELS = { auto: 'Auto (follows time)', dawn: 'Dawn', day: 'Day', dusk: 'Dusk', night: 'Night' };
+const SKY_NOTES = {
+  auto: 'Dawn 5–11, day 11–5, dusk 5–7:30, night after. India time.',
+  dawn: 'Lavender to peach. Soft and calm.',
+  day: 'Clear blue. Bright and fresh.',
+  dusk: 'Plum to amber. A warm evening glow.',
+  night: 'Deep indigo, stars and a moon.',
+};
 
 function getSettings() {
   const saved = getData('settings', {});
@@ -94,29 +107,45 @@ function updateSettings(changes) {
   return next;
 }
 
-// Put the theme on <html> and <body> and tint the browser bar.
-function applyTheme(theme) {
-  const name = THEMES.includes(theme) ? theme : 'dawn';
-  document.documentElement.dataset.theme = name;
-  if (document.body) document.body.dataset.theme = name;
+// "auto" or a sky you picked in Settings
+function skyChoice() {
+  const choice = getSettings().sky;
+  return SKY_CHOICES.includes(choice) ? choice : 'auto';
+}
+
+// Put a sky on <html> and <body> and tint the browser bar
+function applySky(sky) {
+  const name = SKIES.includes(sky) ? sky : 'dawn';
+  const theme = DARK_SKIES.includes(name) ? 'night' : 'dawn';
+  [document.documentElement, document.body].forEach((el) => {
+    if (!el) return;
+    el.dataset.sky = name;
+    el.dataset.theme = theme;
+  });
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute('content', THEME_COLORS[name]);
+  if (meta) meta.setAttribute('content', SKY_BAR_COLORS[name]);
   return name;
 }
 
-// Apply AND remember the theme.
-function setTheme(theme) {
-  const name = applyTheme(theme);
-  updateSettings({ theme: name });
-  return name;
+// Save a choice ("auto" or a sky) and show it straight away
+function setSkyChoice(choice) {
+  updateSettings({ sky: SKY_CHOICES.includes(choice) ? choice : 'auto' });
+  return applySky(currentSky());
 }
 
+function getSky() {
+  return document.documentElement.dataset.sky || 'dawn';
+}
+
+// Light or dark family of the current sky: 'dawn' | 'night'
 function getTheme() {
-  return document.documentElement.dataset.theme || 'dawn';
+  return DARK_SKIES.includes(getSky()) ? 'night' : 'dawn';
 }
 
-// Run right away (we're in <head>) so the page never flashes the wrong theme.
-applyTheme(getSettings().theme);
+// Older pages (style guide) still call setTheme('dawn' | 'night')
+function setTheme(theme) {
+  return setSkyChoice(theme === 'night' ? 'night' : 'dawn');
+}
 
 
 /* ---------- 3. Dates (always Asia/Kolkata) ----------
@@ -156,6 +185,24 @@ function toISODate(date = new Date()) {
 function todayISO() {
   return toISODate(new Date());
 }
+
+// Which sky the clock says (IST): dawn 5:00–10:59, day 11:00–16:59, dusk 17:00–19:29, night 19:30–4:59
+function skyForTime(date = new Date()) {
+  const { hour, minute } = istParts(date);
+  const m = hour * 60 + minute;
+  if (m >= 5 * 60 && m < 11 * 60) return 'dawn';
+  if (m >= 11 * 60 && m < 17 * 60) return 'day';
+  if (m >= 17 * 60 && m < 19 * 60 + 30) return 'dusk';
+  return 'night';
+}
+
+function currentSky() {
+  const choice = skyChoice();
+  return choice === 'auto' ? skyForTime() : choice;
+}
+
+// Run right away (we're in <head>) so the page never flashes the wrong sky
+applySky(currentSky());
 
 function currentHourIST() {
   return istParts().hour;
@@ -545,15 +592,183 @@ function confetti({ x = window.innerWidth / 2, y = window.innerHeight / 3, count
 }
 
 
-/* ---------- 8. Background ambience (floating light circles) ---------- */
+/* ---------- 8. Background: the living sky ----------
+   One fixed layer on every page (styles.css section 5 has the looks):
+   gradient, aurora, horizon glow, stars + moon, three mountain ranges, grain, vignette.
+   Stars and ridgelines come from a fixed seed, so they never jump on reload. */
 
-function addAmbientBackground() {
-  if (document.querySelector('.ambient')) return;
-  const el = document.createElement('div');
-  el.className = 'ambient';
-  el.setAttribute('aria-hidden', 'true');
-  el.innerHTML = '<span class="ambient__orb"></span>'.repeat(3);
-  document.body.prepend(el);
+// Small seeded random number generator (same numbers every time)
+function seededRandom(seed) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6D2B79F5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// About 80 stars, 15 of them twinkling
+function starsSVG() {
+  const rand = seededRandom(20260314);
+  let dots = '';
+  for (let i = 0; i < 80; i += 1) {
+    const x = (rand() * 100).toFixed(2);
+    const y = (Math.pow(rand(), 1.4) * 100).toFixed(2);          // a few more near the top
+    const r = (0.5 + rand() * 1.1).toFixed(2);
+    const o = (0.35 + rand() * 0.65).toFixed(2);
+    const twinkle = i % 5 === 0 && i < 75;                        // 15 twinkle
+    const style = twinkle ? ` class="twinkle" style="--d: ${(4 + rand() * 5).toFixed(1)}s; --delay: -${(rand() * 6).toFixed(1)}s"` : '';
+    dots += `<circle cx="${x}%" cy="${y}%" r="${r}" opacity="${o}"${style}/>`;
+  }
+  return `<svg class="sky-bg__stars" aria-hidden="true" focusable="false">${dots}</svg>`;
+}
+
+// A natural, irregular ridgeline across a 1200 x 300 box, closed to the bottom.
+// Layered waves plus seeded jitter; `lift` raises a gentle peak in the middle (for the Today sun).
+function ridgePath(seed, base, amp, lift = 0) {
+  const rand = seededRandom(seed);
+  const waves = [0.009, 0.021, 0.047].map((f) => ({ f: f * (0.8 + rand() * 0.4), p: rand() * Math.PI * 2 }));
+  let d = '';
+  for (let x = 0; x <= 1200; x += 12) {
+    let y = base
+      - amp * (0.55 * Math.sin(x * waves[0].f + waves[0].p)
+      + 0.3 * Math.sin(x * waves[1].f + waves[1].p)
+      + 0.15 * Math.sin(x * waves[2].f + waves[2].p))
+      + (rand() - 0.5) * amp * 0.12
+      - lift * Math.exp(-(((x - 600) / 170) ** 2));
+    y = Math.max(8, Math.min(296, y));
+    d += `${x === 0 ? 'M' : 'L'}${x} ${y.toFixed(1)}`;
+  }
+  return `${d}L1200 300L0 300Z`;
+}
+
+function mountainsHTML() {
+  const range = (cls, seed, base, amp, lift, mistFrom) => `
+    <svg class="${cls}" viewBox="0 0 1200 300" preserveAspectRatio="xMidYMax slice" aria-hidden="true" focusable="false">
+      <defs>
+        <linearGradient id="${cls}-mist" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" class="mist-clear"/><stop offset="1" class="mist-full"/>
+        </linearGradient>
+      </defs>
+      <path class="${cls}" d="${ridgePath(seed, base, amp, lift)}"/>
+      ${mistFrom ? `<rect x="0" y="${mistFrom}" width="1200" height="${300 - mistFrom}" fill="url(#${cls}-mist)"/>` : ''}
+    </svg>`;
+  // Far is highest and lightest; near stays low (mostly behind the bottom nav)
+  return `
+    <div class="sky-bg__mountains">
+      <div class="sky-bg__layer" data-depth="0.1">${range('mtn-far', 11, 112, 78, 0, 120)}</div>
+      <div class="sky-bg__sunslot sky-bg__layer" data-depth="0.2"></div>
+      <div class="sky-bg__layer" data-depth="0.2">${range('mtn-mid', 23, 200, 52, 48, 185)}</div>
+      <div class="sky-bg__layer" data-depth="0">${range('mtn-near', 37, 256, 24, 0, 0)}</div>
+    </div>`;
+}
+
+let skyBg = null;
+
+// Build the background once per page and return it
+function ensureSkyBackground() {
+  if (skyBg) return skyBg;
+  skyBg = document.createElement('div');
+  skyBg.className = 'sky-bg';
+  skyBg.setAttribute('aria-hidden', 'true');
+  skyBg.innerHTML = `
+    <div class="sky-bg__gradient"></div>
+    <div class="sky-bg__aurora"><span></span><span></span><span></span></div>
+    <div class="sky-bg__horizon"></div>
+    ${starsSVG()}
+    <div class="sky-bg__moon"></div>
+    ${mountainsHTML()}
+    <div class="sky-bg__grain"></div>
+    <div class="sky-bg__vignette"></div>`;
+  document.body.prepend(skyBg);
+
+  // First load of the day: the sky fades in and the mountains rise
+  const today = todayISO();
+  if (getSettings().skyIntroOn !== today && !prefersReducedMotion()) {
+    skyBg.classList.add('is-intro');
+    updateSettings({ skyIntroOn: today });
+    setTimeout(() => skyBg.classList.remove('is-intro'), 1400);
+  }
+
+  // Pause the drifting and twinkling while the tab is hidden
+  document.addEventListener('visibilitychange', () => {
+    skyBg.classList.toggle('is-paused', document.hidden);
+  });
+
+  // Very subtle parallax on scroll: far 0.1x, mid (and the Today sun) 0.2x
+  if (!prefersReducedMotion()) {
+    const layers = [...skyBg.querySelectorAll('[data-depth]')].filter((el) => Number(el.dataset.depth) > 0);
+    let queued = false;
+    window.addEventListener('scroll', () => {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(() => {
+        const y = Math.min(window.scrollY, 500);
+        layers.forEach((el) => { el.style.transform = `translate3d(0, ${(y * Number(el.dataset.depth)).toFixed(1)}px, 0)`; });
+        queued = false;
+      });
+    }, { passive: true });
+  }
+  return skyBg;
+}
+
+// Today's score sun (or moon at night), placed between the far and mid ranges.
+// Returns the element; the page sets --score (0 to 1) on it.
+function mountScoreSun() {
+  const slot = ensureSkyBackground().querySelector('.sky-bg__sunslot');
+  if (!slot.firstElementChild) {
+    slot.innerHTML = `
+      <div class="score-sun" id="score-sun">
+        <svg viewBox="0 0 240 240" aria-hidden="true" focusable="false">
+          <defs>
+            <radialGradient id="score-glow"><stop offset="0" class="score-glow-in"/><stop offset="1" class="score-glow-out"/></radialGradient>
+          </defs>
+          <g class="rays" id="rays"></g>
+          <circle class="score-sun__glow" cx="120" cy="120" r="110" fill="url(#score-glow)"/>
+          <g class="score-sun__sun">
+            <circle class="sun-core" cx="120" cy="120" r="28"/>
+            <circle class="sun-gold" cx="120" cy="120" r="28"/>
+          </g>
+          <g class="score-sun__moon">
+            <circle class="moon-disc" cx="120" cy="120" r="26"/>
+            <circle class="moon-crater" cx="110" cy="112" r="5"/>
+            <circle class="moon-crater" cx="128" cy="129" r="3.5"/>
+            <circle class="moon-crater" cx="127" cy="107" r="2.5"/>
+          </g>
+        </svg>
+      </div>`;
+  }
+  return slot.firstElementChild;
+}
+
+// Every 5 minutes (and when you come back to the app) move to the next sky if the
+// clock says so. Registered colours in styles.css make the change cross-fade in 1.5s.
+function watchSky() {
+  if (currentPageName() === 'sky-preview') return;     // the preview page picks its own sky
+  const check = () => {
+    const next = currentSky();
+    if (next !== getSky()) applySky(next);
+  };
+  setInterval(check, 5 * 60 * 1000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) check(); });
+}
+
+// Sky picker for Settings and onboarding: radio cards with a little preview
+function skyChoicesHTML(name) {
+  const swatch = (sky) => `<span class="sky-swatch" data-sky="${sky}"></span>`;
+  return SKY_CHOICES.map((choice) => `
+    <label class="choice sky-choice">
+      <input type="radio" name="${name}" value="${choice}">
+      <span class="sky-swatch-wrap" aria-hidden="true">
+        ${choice === 'auto' ? SKIES.map(swatch).join('') : swatch(choice)}
+      </span>
+      <span class="choice__text">
+        <span class="choice__title">${SKY_LABELS[choice]}</span>
+        <span class="choice__desc">${SKY_NOTES[choice]}</span>
+      </span>
+    </label>`).join('');
 }
 
 
@@ -2127,7 +2342,7 @@ function currentPageName() {
 // Runs in <head>, so the wrong page never paints.
 (function onboardingGate() {
   const page = currentPageName();
-  if (page === 'style-guide') return;
+  if (page === 'style-guide' || page === 'sky-preview') return;
   const done = hasProfile();
   if (!done && page !== 'onboarding') location.replace('onboarding.html');
   else if (done && page === 'onboarding') location.replace('index.html');
@@ -2198,8 +2413,9 @@ document.addEventListener('input', (e) => {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-  applyTheme(getSettings().theme);     // now also sets it on <body>
-  addAmbientBackground();
+  applySky(currentSky());              // now also sets it on <body>
+  ensureSkyBackground();
+  watchSky();
   ensureToastRegion();
   if (document.body.dataset.nav !== 'off') renderBottomNav();
   if (currentPageName() !== 'style-guide') registerServiceWorker();
